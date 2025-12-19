@@ -17,3 +17,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Local database backups (DO NOT COMMIT)
+backend/database/reseed_db_local_backup.sql
