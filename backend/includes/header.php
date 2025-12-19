@@ -272,63 +272,66 @@ if (file_exists($configPath)) {
 
 
 <header class="site-header">
-
     <div class="container nav-wrapper">
 
-        <a href="index.php" class="brand">
-
-            <img src="/reseed/assets/images/Re-logo.png" alt="ReSEED Logo">
-
+        <!-- Brand -->
+        <a href="<?= $BASE_URL ?>/index.php" class="brand">
+            <img 
+                src="<?= $BASE_URL ?>/assets/images/Re-logo.png" 
+                alt="ReSEED Logo"
+                loading="lazy"
+            >
             <span>ReSEED</span>
-
         </a>
 
-
-
+        <!-- Mobile Toggle -->
         <button class="nav-toggle" aria-label="Open Navigation">
-
             <i class="fa-solid fa-bars"></i>
-
         </button>
 
-
-
+        <!-- Navigation -->
         <nav class="main-nav">
+            <?php
+                $current_page = basename($_SERVER['PHP_SELF']);
 
-            <?php 
-
-                $current_page = basename($_SERVER['PHP_SELF']); 
-
-                function isActive($page, $current) {
-
+                function isActive(string $page, string $current): string {
                     return $page === $current ? 'active' : '';
-
                 }
-
             ?>
 
-            <a href="index.php" class="nav-link <?php echo isActive('index.php', $current_page); ?>">Home</a>
+            <a href="<?= $BASE_URL ?>/index.php"
+               class="nav-link <?= isActive('index.php', $current_page); ?>">
+                Home
+            </a>
 
-            <a href="projects.php" class="nav-link <?php echo isActive('projects.php', $current_page); ?>">Projects</a>
+            <a href="<?= $BASE_URL ?>/projects.php"
+               class="nav-link <?= isActive('projects.php', $current_page); ?>">
+                Projects
+            </a>
 
-            
+            <a href="<?= $BASE_URL ?>/blog.php"
+               class="nav-link <?= isActive('blog.php', $current_page); ?>">
+                News
+            </a>
 
-            
+            <a href="<?= $BASE_URL ?>/gallery.php"
+               class="nav-link <?= isActive('gallery.php', $current_page); ?>">
+                Gallery
+            </a>
 
-            
+            <a href="#contact" class="nav-link open-contact-modal">
+                Contact
+            </a>
 
-            <a href="blog.php" class="nav-link <?php echo isActive('blog.php', $current_page); ?>">News</a>
-
-            <a href="gallery.php" class="nav-link <?php echo isActive('gallery.php', $current_page); ?>">Gallery</a>
-
-            <a href="#contact" class="nav-link open-contact-modal">Contact</a>
-            <a href="https://api.reseed.org/donate" class="btn btn-primary">Donate Now</a>
+            <a href="https://api.reseed.org/donate"
+               class="btn btn-primary"
+               target="_blank"
+               rel="noopener">
+                Donate Now
+            </a>
         </nav>
 
-        
-
         <div class="nav-backdrop"></div>
-
     </div>
-
 </header>
+
