@@ -1,5 +1,4 @@
 <?php
-
 $configPath = __DIR__ . '/config.php';
 $examplePath = __DIR__ . '/config.example.php';
 
@@ -11,6 +10,7 @@ if (file_exists($configPath)) {
     die('Configuration file missing.');
 }
 ?>
+
 <!DOCTYPE html>
 
 <html lang="en">
