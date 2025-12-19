@@ -1,11 +1,10 @@
 <?php
-// api/get-posts.php
-// Fetches a list of posts/news articles and returns them as a JSON array.
+// backend/api/get-posts.php
 
 require_once __DIR__ . '/../includes/config.php';
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); // Adjust for production
+header('Access-Control-Allow-Origin: *');
 
 $response = [
     'success' => false,
@@ -14,18 +13,29 @@ $response = [
 ];
 
 try {
-    // Adjust SELECT statement for your actual 'posts' table columns
-    $stmt = $pdo->query("SELECT id, title, slug, summary, category, created_at, cover_image FROM posts WHERE is_published = 1 ORDER BY created_at DESC");
-    $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt = $pdo->query("
+        SELECT 
+            id,
+            title,
+            slug,
+            excerpt,
+            cover_image,
+            media_type,
+            media_url,
+            published_at
+        FROM posts
+        WHERE published_at IS NOT NULL
+        ORDER BY published_at DESC
+    ");
 
     $response['success'] = true;
-    $response['data'] = $posts;
+    $response['data'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $response['message'] = 'Posts fetched successfully.';
-    
-} catch(PDOException $e) {
-    error_log("API Error (get-posts): " . $e->getMessage());
-    $response['message'] = 'Database error: Could not retrieve posts.';
+
+} catch (PDOException $e) {
+    error_log('API Error (get-posts): ' . $e->getMessage());
     http_response_code(500);
+    $response['message'] = 'Database error: Could not retrieve posts.';
 }
 
 echo json_encode($response);

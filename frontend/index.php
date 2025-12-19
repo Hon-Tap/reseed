@@ -1,6 +1,7 @@
 <?php
 // index.php — ReSEED Landing Page (PRO UI MASTER EDITION)
-include __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../backend/includes/header.php';
+
 
 // Fetch Latest Posts
 try {
@@ -621,4 +622,4 @@ document.querySelectorAll('.acc-trigger').forEach(btn=>{
 });
 </script>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/../backend/includes/footer.php'; ?>
