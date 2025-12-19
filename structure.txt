@@ -1,0 +1,63 @@
+Folder PATH listing
+Volume serial number is 7252-0695
+C:\XAMPP\HTDOCS\RESEED
+|   blog.php
+|   gallery.php
+|   index.php
+|   post.php
+|   projects.php
+|   README.md
+|   structure.txt
+|   
++---admin
+|       import_gallery.php
+|       
++---api
+|       contact-handler.php
+|       get-posts.php
+|       get-projects.php
+|       
++---assets
+|   +---css
+|   |       main.css
+|   |       
+|   +---images
+|   |       hero.jpg
+|   |       Re-Logo.jpg
+|   |       Re-Pro.jpg
+|   |       Re-team.jpg
+|   |       Re-Yak.jpg
+|   |       Re1.jpg
+|   |       Re2.jpg
+|   |       ReSEEDWeb.png
+|   |       Team-Reseed.jpg
+|   |       teamRe.jpg
+|   |       Yak.jpg
+|   |       
+|   \---js
+|           main.js
+|           
++---includes
+|       config.php
+|       footer.php
+|       header.php
+|       helpers.php
+|       
++---templates
+|       post-card.php
+|       project-card.php
+|       
+\---uploads
+    \---images
+            hero.jpg
+            Re-Logo.jpg
+            Re-Pro.jpg
+            Re-team.jpg
+            Re-Yak.jpg
+            Re1.jpg
+            Re2.jpg
+            ReSEEDWeb.png
+            Team-Reseed.jpg
+            teamRe.jpg
+            Yak.jpg
+            

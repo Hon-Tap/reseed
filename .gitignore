@@ -1,0 +1,19 @@
+# Environment & secrets
+.env
+.env.*
+config.php
+
+# Uploads
+backend/uploads/
+frontend/uploads/
+
+# Dependencies
+vendor/
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
