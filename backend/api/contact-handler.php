@@ -1,50 +1,74 @@
 <?php
 // backend/api/contact-handler.php
-// Handles contact form submissions and stores them in the database
+declare(strict_types=1);
 
-require_once __DIR__ . '/../includes/config.php';
+/*
+|--------------------------------------------------------------------------
+| Bootstrap
+|--------------------------------------------------------------------------
+| IMPORTANT: Path corrected.
+| backend/api → root/includes
+*/
+require_once dirname(__DIR__) . '/includes/config.php';
 
-/**
- * Standard API headers
- */
-header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+
+
+/*
+|--------------------------------------------------------------------------
+| Standard API Headers
+|--------------------------------------------------------------------------
+*/
+header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-/**
- * Handle CORS preflight
- */
+/*
+|--------------------------------------------------------------------------
+| Preflight (CORS)
+|--------------------------------------------------------------------------
+*/
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
-/**
- * Only allow POST
- */
+/*
+|--------------------------------------------------------------------------
+| Method Guard
+|--------------------------------------------------------------------------
+*/
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     echo json_encode([
         'success' => false,
-        'message' => 'Method not allowed'
+        'message' => 'Method not allowed.'
     ]);
     exit;
 }
 
-/**
- * Read input (supports JSON and form-data)
- */
-$data = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+/*
+|--------------------------------------------------------------------------
+| Input Handling
+|--------------------------------------------------------------------------
+| Supports:
+| - application/json
+| - multipart/form-data
+*/
+$rawInput = file_get_contents('php://input');
+$jsonData = json_decode($rawInput, true);
 
-$name    = trim($data['name'] ?? '');
-$email   = trim($data['email'] ?? '');
-$phone   = trim($data['phone'] ?? '');
+$data = is_array($jsonData) ? $jsonData : $_POST;
+
+$name    = trim($data['name']    ?? '');
+$email   = trim($data['email']   ?? '');
+$phone   = trim($data['phone']   ?? '');
 $message = trim($data['message'] ?? '');
 
-/**
- * Validate input
- */
+/*
+|--------------------------------------------------------------------------
+| Validation
+|--------------------------------------------------------------------------
+*/
 if ($name === '' || $email === '' || $message === '') {
     http_response_code(400);
     echo json_encode([
@@ -63,21 +87,24 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
-/**
- * Store message in database
- * Matches `contacts` table schema exactly
- */
+/*
+|--------------------------------------------------------------------------
+| Database Insert
+|--------------------------------------------------------------------------
+| Table: contacts
+| Columns: name, email, phone, message, created_at
+*/
 try {
-    $stmt = $pdo->prepare("
-        INSERT INTO contacts (name, email, phone, message, created_at)
-        VALUES (?, ?, ?, ?, NOW())
-    ");
+    $stmt = $pdo->prepare(
+        "INSERT INTO contacts (name, email, phone, message, created_at)
+         VALUES (:name, :email, :phone, :message, NOW())"
+    );
 
     $stmt->execute([
-        $name,
-        $email,
-        $phone ?: null,
-        $message
+        ':name'    => $name,
+        ':email'   => $email,
+        ':phone'   => $phone !== '' ? $phone : null,
+        ':message' => $message
     ]);
 
     http_response_code(200);
@@ -86,8 +113,9 @@ try {
         'message' => 'Thank you for contacting ReSEED. We will get back to you soon.'
     ]);
 
-} catch (PDOException $e) {
-    error_log('API Error (contact-handler): ' . $e->getMessage());
+} catch (Throwable $e) {
+    // Never echo errors to client
+    error_log('[CONTACT_API_ERROR] ' . $e->getMessage());
 
     http_response_code(500);
     echo json_encode([
