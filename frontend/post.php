@@ -1,8 +1,8 @@
 <?php
-// projects.php — ReSEED Projects (PRO UI EDITION)
+// Frontend page — standardized bootstrap
 
-// Always load config FIRST (one level up from /frontend)
-require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../backend/includes/config.php';
+
 
 
 function readingTime(string $content): int {
