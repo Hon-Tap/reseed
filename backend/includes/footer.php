@@ -198,93 +198,189 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. AOS Initialization ---
-    if (typeof AOS !== 'undefined') { 
-        AOS.init({ once: true, duration: 800 }); 
-    }
+(() => {
+    'use strict';
 
-    // --- 2. Navigation & Header Logic ---
-    const header = document.querySelector('.site-header');
-    const navToggle = document.querySelector('.nav-toggle');
-    const mainNav = document.querySelector('.main-nav');
-    const navBackdrop = document.querySelector('.nav-backdrop');
-    const navLinks = document.querySelectorAll('.nav-link');
-
-    // Toggle Mobile Menu
-    const toggleMenu = (e) => {
-        if (e) e.preventDefault();
-        const isOpen = mainNav.classList.toggle('active');
-        navBackdrop.classList.toggle('active');
-        
-        // Change icon and prevent body scroll
-        const icon = navToggle.querySelector('i');
-        if (isOpen) {
-            icon.classList.replace('fa-bars', 'fa-xmark');
-            document.body.style.overflow = 'hidden';
-        } else {
-            icon.classList.replace('fa-xmark', 'fa-bars');
-            document.body.style.overflow = '';
-        }
-    };
-
-    if (navToggle) navToggle.addEventListener('click', toggleMenu);
-    if (navBackdrop) navBackdrop.addEventListener('click', toggleMenu);
-    
-    // Close menu when clicking links (important for mobile)
-    navLinks.forEach(link => link.addEventListener('click', () => {
-        if (mainNav.classList.contains('active')) toggleMenu();
-    }));
-
-    // Header Shrink on Scroll
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
+    /* ======================================================
+       DOM READY
+    ====================================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+        initAOS();
+        initNavigation();
+        initHeaderScroll();
+        initModal();
+        initUtilities();
+        initContactForm();
     });
 
+    /* ======================================================
+       1. AOS
+    ====================================================== */
+    function initAOS() {
+        if (window.AOS) {
+            AOS.init({
+                once: true,
+                duration: 800,
+                easing: 'ease-out-cubic'
+            });
+        }
+    }
 
-    // --- 3. Modal Functionality ---
-    const modal = document.getElementById('contactModal');
-    const openBtns = document.querySelectorAll('.open-contact-modal');
-    const closeBtn = document.querySelector('.modal-close');
+    /* ======================================================
+       2. NAVIGATION & MOBILE MENU
+    ====================================================== */
+    function initNavigation() {
+        const header      = document.querySelector('.site-header');
+        const navToggle   = document.querySelector('.nav-toggle');
+        const mainNav     = document.querySelector('.main-nav');
+        const backdrop    = document.querySelector('.nav-backdrop');
+        const navLinks    = document.querySelectorAll('.nav-link');
 
-    if (modal) {
+        if (!navToggle || !mainNav) return;
+
+        const icon = navToggle.querySelector('i');
+
+        const openMenu = () => {
+            mainNav.classList.add('active');
+            backdrop?.classList.add('active');
+            icon?.classList.replace('fa-bars', 'fa-xmark');
+            document.body.style.overflow = 'hidden';
+        };
+
+        const closeMenu = () => {
+            mainNav.classList.remove('active');
+            backdrop?.classList.remove('active');
+            icon?.classList.replace('fa-xmark', 'fa-bars');
+            document.body.style.overflow = '';
+        };
+
+        const toggleMenu = (e) => {
+            e?.preventDefault();
+            mainNav.classList.contains('active') ? closeMenu() : openMenu();
+        };
+
+        navToggle.addEventListener('click', toggleMenu);
+        backdrop?.addEventListener('click', closeMenu);
+
+        navLinks.forEach(link =>
+            link.addEventListener('click', () => {
+                if (mainNav.classList.contains('active')) closeMenu();
+            })
+        );
+    }
+
+    /* ======================================================
+       3. HEADER SCROLL EFFECT
+    ====================================================== */
+    function initHeaderScroll() {
+        const header = document.querySelector('.site-header');
+        if (!header) return;
+
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled', window.scrollY > 50);
+        });
+    }
+
+    /* ======================================================
+       4. MODAL (CONTACT)
+    ====================================================== */
+    function initModal() {
+        const modal     = document.getElementById('contactModal');
+        const openBtns  = document.querySelectorAll('.open-contact-modal');
+        const closeBtn  = modal?.querySelector('.modal-close');
+
+        if (!modal) return;
+
         const openModal = (e) => {
             e.preventDefault();
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
-            setTimeout(() => modal.classList.add('open'), 10);
+            requestAnimationFrame(() => modal.classList.add('open'));
         };
 
         const closeModal = () => {
             modal.classList.remove('open');
             document.body.style.overflow = '';
-            setTimeout(() => modal.style.display = 'none', 350);
+            setTimeout(() => modal.style.display = 'none', 300);
         };
 
         openBtns.forEach(btn => btn.addEventListener('click', openModal));
-        if (closeBtn) closeBtn.addEventListener('click', closeModal);
-        window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        closeBtn?.addEventListener('click', closeModal);
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
     }
 
+    /* ======================================================
+       5. UTILITIES
+    ====================================================== */
+    function initUtilities() {
+        // Dynamic Year
+        const yearEl = document.getElementById('year');
+        if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    // --- 4. Utilities (Year & Back to Top) ---
-    const yearEl = document.getElementById('year');
-    if (yearEl) yearEl.textContent = new Date().getFullYear();
+        // Back to Top
+        const btt = document.getElementById('backToTop');
+        if (!btt) return;
 
-    const bttBtn = document.getElementById('backToTop');
-    if (bttBtn) {
         window.addEventListener('scroll', () => {
-            const isVisible = window.scrollY > 400;
-            bttBtn.style.opacity = isVisible ? '1' : '0';
-            bttBtn.style.pointerEvents = isVisible ? 'auto' : 'none';
+            const visible = window.scrollY > 400;
+            btt.style.opacity = visible ? '1' : '0';
+            btt.style.pointerEvents = visible ? 'auto' : 'none';
         });
-        bttBtn.addEventListener('click', () => {
+
+        btt.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
     }
-});
+
+    /* ======================================================
+       6. CONTACT FORM (AJAX)
+    ====================================================== */
+    function initContactForm() {
+        const form     = document.getElementById('contactForm');
+        const statusEl = document.getElementById('contactFormStatus');
+
+        if (!form || !statusEl) return;
+
+        const COLORS = {
+            info: '#64748b',
+            success: '#16a34a',
+            error: '#dc2626'
+        };
+
+        const setStatus = (msg, type = 'info') => {
+            statusEl.textContent = msg;
+            statusEl.style.color = COLORS[type] || COLORS.info;
+        };
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setStatus('Sending message...', 'info');
+
+            try {
+                const res = await fetch('/reseed/backend/api/contact-handler.php', {
+                    method: 'POST',
+                    body: new FormData(form)
+                });
+
+                if (!res.ok) throw new Error('Request failed');
+
+                const data = await res.json();
+
+                if (data.success) {
+                    setStatus(data.message || 'Message sent successfully.', 'success');
+                    form.reset();
+                } else {
+                    setStatus(data.message || 'Something went wrong.', 'error');
+                }
+            } catch (err) {
+                console.error('Contact form error:', err);
+                setStatus('Network error. Please try again later.', 'error');
+            }
+        });
+    }
+
+})();
 </script>
