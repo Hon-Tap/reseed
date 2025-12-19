@@ -1,20 +1,9 @@
 <?php
-$configPath = __DIR__ . '/config.php';
-$examplePath = __DIR__ . '/config.example.php';
-
-if (file_exists($configPath)) {
-    require_once $configPath;
-} elseif (file_exists($examplePath)) {
-    require_once $examplePath;
-} else {
-    die('Configuration file missing.');
-}
+require_once __DIR__ . '/config.php'; 
 ?>
-
 <!DOCTYPE html>
 
 <html lang="en">
-
 <head>
 
     <meta charset="UTF-8">
