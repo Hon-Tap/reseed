@@ -1,23 +1,40 @@
 <?php
 // index.php — ReSEED Landing Page (PRO UI MASTER EDITION)
+
+// Bootstrap / config
 require_once __DIR__ . '/../backend/includes/header.php';
 
+// --------------------------------------------------
+// Fetch Latest Posts (SAFE: works with or without DB)
+// --------------------------------------------------
 
+$latestPosts = [];
 
-// Fetch Latest Posts
-try {
-    $stmt = $pdo->query("
-        SELECT title, slug, excerpt, cover_image, media_type, published_at
-        FROM posts
-        WHERE published_at IS NOT NULL
-        ORDER BY published_at DESC
-        LIMIT 3
-    ");
-    $latestPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    $latestPosts = [];
+if (isset($pdo) && $pdo instanceof PDO) {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT 
+                title,
+                slug,
+                excerpt,
+                cover_image,
+                media_type,
+                published_at
+            FROM posts
+            WHERE published_at IS NOT NULL
+            ORDER BY published_at DESC
+            LIMIT 3
+        ");
+        $stmt->execute();
+        $latestPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        // Log silently in production
+        error_log('Homepage post query failed: ' . $e->getMessage());
+        $latestPosts = [];
+    }
 }
 ?>
+
 
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -623,4 +640,4 @@ document.querySelectorAll('.acc-trigger').forEach(btn=>{
 });
 </script>
 
-<?php include __DIR__ . '/../backend/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/../backend/includes/footer.php'; ?>
