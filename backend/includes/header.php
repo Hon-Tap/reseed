@@ -275,14 +275,12 @@ if (file_exists($configPath)) {
     <div class="container nav-wrapper">
 
         <!-- Brand -->
-        <a href="<?= $BASE_URL ?>/index.php" class="brand">
-            <img 
-                src="<?= $BASE_URL ?>/assets/images/Re-logo.png" 
-                alt="ReSEED Logo"
-                loading="lazy"
-            >
-            <span>ReSEED</span>
-        </a>
+         <img 
+            src="<?= $BASE_URL ?>/frontend/assets/images/Re-logo.png"
+            alt="ReSEED Logo"
+            loading="lazy"
+        >
+
 
         <!-- Mobile Toggle -->
         <button class="nav-toggle" aria-label="Open Navigation">

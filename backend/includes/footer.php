@@ -33,7 +33,7 @@
         <div class="footer-top">
             <div class="footer-brand">
                 <div class="footer-logo">
-                    <img src="/reseed/backend/assets/images/Re-logo.png" alt="ReSEED Logo">
+                    <img src="<?= $BASE_URL ?>/frontend/assets/images/Re-logo.png" alt="ReSEED Logo" loading="lazy">
                     <span>ReSEED</span>
                 </div>
                 <p>Restoring livelihoods, regenerating ecosystems, and rebuilding communities across South Sudan through sustainable intervention.</p>
