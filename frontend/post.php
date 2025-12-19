@@ -1,6 +1,9 @@
 <?php
-require_once __DIR__ . '/includes/config.php';
-include __DIR__ . '/includes/header.php';
+// projects.php — ReSEED Projects (PRO UI EDITION)
+
+// Always load config FIRST (one level up from /frontend)
+require_once __DIR__ . '/../includes/config.php';
+
 
 function readingTime(string $content): int {
   return max(1, ceil(str_word_count(strip_tags($content)) / 200));

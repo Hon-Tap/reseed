@@ -1,7 +1,12 @@
 <?php
-// blog.php — ReSEED Journal (Editorial Edition)
-require_once __DIR__ . '/includes/config.php';
-include __DIR__ . '/includes/header.php';
+// projects.php — ReSEED Projects (PRO UI EDITION)
+
+// Always load config FIRST (one level up from /frontend)
+require_once __DIR__ . '/../includes/config.php';
+
+// Then load the shared header
+require_once __DIR__ . '/includes/header.php';
+
 
 /* ---------------- HELPERS ---------------- */
 function readingTime(string $content): int {

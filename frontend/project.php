@@ -1,7 +1,10 @@
 <?php
-// project.php — Single Project Detail (PRO UI EDITION)
+// projects.php — ReSEED Projects (PRO UI EDITION)
 
-require_once __DIR__ . '/includes/config.php';
+// Always load config FIRST (one level up from /frontend)
+require_once __DIR__ . '/../includes/config.php';
+
+
 
 $slug = $_GET['slug'] ?? null;
 if (!$slug) { header("Location: projects.php"); exit; }
