@@ -1,10 +1,12 @@
 <?php
+require_once __DIR__ . '/config.example.php';
 require_once __DIR__ . '/config.php'; 
 ?>
 <!DOCTYPE html>
 
 <html lang="en">
 <head>
+    <!-- DEBUG BASE_URL: <?= htmlspecialchars(BASE_URL ?? 'NOT_SET') ?> -->
 
     <meta charset="UTF-8">
 
