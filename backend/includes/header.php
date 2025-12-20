@@ -275,11 +275,15 @@ if (file_exists($configPath)) {
     <div class="container nav-wrapper">
 
         <!-- Brand -->
-         <img 
-          src="/assets/images/Re-logo.png"
-          alt="ReSEED Logo"
-          loading="lazy"
-        >
+        <a href="/" class="brand">
+            <img 
+                src="/assets/images/Re-logo.png"
+                alt="ReSEED Logo"
+                loading="lazy"
+            >
+            <span>ReSEED</span>
+        </a>
+
 
 
 
