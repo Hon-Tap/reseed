@@ -1,3 +1,4 @@
+
 # Official PHP with Apache
 FROM php:8.2-apache
 
@@ -24,5 +25,21 @@ COPY . /var/www/html
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
     && chmod -R 775 /var/www/html/uploads /var/www/html/logs || true
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy all project files
+COPY . /var/www/html
+
+# Create uploads directory and expose it to frontend (runtime-safe)
+RUN mkdir -p /var/www/html/backend/uploads \
+    && rm -rf /var/www/html/frontend/uploads \
+    && ln -s /var/www/html/backend/uploads /var/www/html/frontend/uploads
+
+# Permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
+    && chmod -R 775 /var/www/html/backend/uploads /var/www/html/logs || true
 
 EXPOSE 80
