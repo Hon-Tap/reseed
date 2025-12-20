@@ -1,8 +1,8 @@
 <?php
 // index.php — ReSEED Landing Page (PRO UI MASTER EDITION)
-
-// Bootstrap / config
 require_once dirname(__DIR__) . '/backend/includes/config.php';
+require_once dirname(__DIR__) . '/backend/includes/header.php';
+
 
 
 // --------------------------------------------------
@@ -641,4 +641,5 @@ document.querySelectorAll('.acc-trigger').forEach(btn=>{
 });
 </script>
 
-<?php require_once __DIR__ . '/../backend/includes/footer.php'; ?>
+<?php include dirname(__DIR__) . '/backend/includes/footer.php'; ?>
+
