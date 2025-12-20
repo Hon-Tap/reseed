@@ -1,7 +1,11 @@
 <?php
-// index.php — ReSEED Landing Page (PRO UI MASTER EDITION)
-require_once dirname(__DIR__) . '/backend/includes/config.php';
-require_once dirname(__DIR__) . '/backend/includes/header.php';
+// Load config (Render or local)
+if (file_exists('/etc/secrets/config.php')) {
+    require_once '/etc/secrets/config.php';
+} else {
+    require_once dirname(__DIR__, 2) . '/backend/includes/config.php';
+}
+
 
 
 
