@@ -8,9 +8,9 @@ if ($renderSecret && is_readable($renderSecret)) {
 } else {
     require_once dirname(__DIR__) . '/backend/includes/config.php';
 }
-   require_once dirname(__DIR__, 2) . '/backend/includes/config.php';
-}
 
+// Load shared header
+require_once dirname(__DIR__) . '/backend/includes/header.php';
 
 // --------------------------------------------------
 // Fetch Latest Posts (SAFE: works with or without DB)
