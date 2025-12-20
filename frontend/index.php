@@ -1,12 +1,13 @@
 <?php
-// Load config (Render or local)
-if (file_exists('/etc/secrets/config.php')) {
-    require_once '/etc/secrets/config.php';
+// Load config (Render-safe + local-safe)
+
+$renderSecret = getenv('RENDER_SECRET_FILE_CONFIG_PHP');
+
+if ($renderSecret && is_readable($renderSecret)) {
+    require_once $renderSecret;
 } else {
     require_once dirname(__DIR__, 2) . '/backend/includes/config.php';
 }
-
-
 
 
 // --------------------------------------------------
