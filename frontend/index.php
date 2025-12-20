@@ -470,7 +470,7 @@ h1, h2, h3, h4, .font-heading {
 </style>
 
 <section class="hero">
-    <img src="/assets/images/Re-logo.png">
+    <img src="/assets/images/Re-logo.png" class="hero-bg" alt="ReSEED Landscape">
     <div class="hero-overlay"></div>
     <div class="container">
         <div class="hero-content" data-aos="fade-up" data-aos-duration="1200">
@@ -570,11 +570,14 @@ h1, h2, h3, h4, .font-heading {
     <div class="container">
         <div class="d-flex justify-content-between align-items-end mb-5">
             <h2 class="section-title mb-0">Field Stories</h2>
-            <a href="blog.php" class="btn btn-link text-success fw-bold text-decoration-none">See All News →</a>
+            <a href="/blog.php" class="btn btn-link text-success fw-bold text-decoration-none">
+                See All News →
+            </a>
         </div>
+
         <div class="h-grid">
             <?php foreach ($latestPosts as $post): 
-                $media_path = 'uploads/posts/' . ($post['cover_image'] ?: 'default.jpg');
+                $media_path = '/uploads/posts/' . ($post['cover_image'] ?: 'default.jpg');
             ?>
             <div class="news-card" data-aos="fade-up">
                 <div class="news-media-container">
@@ -586,17 +589,31 @@ h1, h2, h3, h4, .font-heading {
                         <img src="<?= $media_path ?>" alt="<?= htmlspecialchars($post['title']) ?>">
                     <?php endif; ?>
                 </div>
+
                 <div class="news-body">
-                    <small class="text-success fw-bold d-block mb-2"><?= date('M d, Y', strtotime($post['published_at'])) ?></small>
-                    <h4 class="fw-bold mb-3"><?= htmlspecialchars($post['title']) ?></h4>
-                    <p class="text-muted small"><?= htmlspecialchars(mb_strimwidth($post['excerpt'], 0, 100, '...')) ?></p>
-                    <a href="post.php?slug=<?= urlencode($post['slug']) ?>" class="btn btn-sm btn-outline-success mt-3 rounded-pill">Read Story</a>
+                    <small class="text-success fw-bold d-block mb-2">
+                        <?= date('M d, Y', strtotime($post['published_at'])) ?>
+                    </small>
+
+                    <h4 class="fw-bold mb-3">
+                        <?= htmlspecialchars($post['title']) ?>
+                    </h4>
+
+                    <p class="text-muted small">
+                        <?= htmlspecialchars(mb_strimwidth($post['excerpt'], 0, 100, '...')) ?>
+                    </p>
+
+                    <a href="/post.php?slug=<?= urlencode($post['slug']) ?>"
+                       class="btn btn-sm btn-outline-success mt-3 rounded-pill">
+                        Read Story
+                    </a>
                 </div>
             </div>
             <?php endforeach; ?>
         </div>
     </div>
 </section>
+
 
 <section id="get-involved" class="partnership-section">
     <img src="/assets/images/Re-logo.png" class="partnership-bg" alt="Landscape">
