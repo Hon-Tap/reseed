@@ -1,8 +1,8 @@
 <?php
 // Frontend page — standardized bootstrap
+require_once dirname(__DIR__) . '/backend/includes/config.php';
+require_once dirname(__DIR__) . '/backend/includes/header.php';
 
-require_once __DIR__ . '/../backend/includes/config.php';
-require_once __DIR__ . '/includes/header.php';
 
 
 
@@ -316,4 +316,4 @@ try {
   <?php endif; ?>
 </main>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include dirname(__DIR__) . '/backend/includes/footer.php'; ?>
