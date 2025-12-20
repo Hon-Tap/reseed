@@ -2,7 +2,8 @@
 // index.php — ReSEED Landing Page (PRO UI MASTER EDITION)
 
 // Bootstrap / config
-require_once __DIR__ . '/../backend/includes/header.php';
+require_once dirname(__DIR__) . '/backend/includes/config.php';
+
 
 // --------------------------------------------------
 // Fetch Latest Posts (SAFE: works with or without DB)
@@ -469,7 +470,7 @@ h1, h2, h3, h4, .font-heading {
 </style>
 
 <section class="hero">
-    <img src="/reseed/assets/images/Re-logo.png" class="hero-bg" alt="Hero">
+    <img src="/assets/images/Re-logo.png">
     <div class="hero-overlay"></div>
     <div class="container">
         <div class="hero-content" data-aos="fade-up" data-aos-duration="1200">
@@ -488,7 +489,7 @@ h1, h2, h3, h4, .font-heading {
     <div class="container">
         <div class="about-grid">
             <div data-aos="fade-right">
-                <img src="/reseed/assets/images/Re-team.jpg" class="about-img" alt="ReSEED Team">
+                <img src="/assets/images/Re-team.jpg" class="about-img" alt="ReSEED Team">
             </div>
             <div data-aos="fade-left">
                 <span class="text-success fw-bold text-uppercase tracking-widest mb-2 d-block">The ReSEED Story</span>
@@ -598,7 +599,7 @@ h1, h2, h3, h4, .font-heading {
 </section>
 
 <section id="get-involved" class="partnership-section">
-    <img src="/reseed/assets/images/Re-logo.png" class="partnership-bg" alt="Landscape">
+    <img src="/assets/images/Re-logo.png" class="partnership-bg" alt="Landscape">
     <div class="partnership-overlay"></div>
     <div class="container">
         <div class="partnership-content" data-aos="fade-right">
