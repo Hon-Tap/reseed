@@ -1,51 +1,50 @@
 <?php
 declare(strict_types=1);
 
-if (session_status() === PHP_SESSION_NONE) {
+if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-require_once "../../includes/config.php";
+require_once dirname(__DIR__, 2) . '/includes/config.php';
+require_once dirname(__DIR__, 1) . '/includes/csrf.php';
 
-/* ----------------------------------------
-   INPUT SANITIZATION
----------------------------------------- */
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit;
+}
+
+if (!csrf_verify($_POST['csrf_token'] ?? null)) {
+    header('Location: ../login.php?error=csrf');
+    exit;
+}
+
 $username = trim($_POST['username'] ?? '');
 $password = $_POST['password'] ?? '';
 
 if ($username === '' || $password === '') {
-    header("Location: ../login.php?error=empty");
+    header('Location: ../login.php?error=empty');
     exit;
 }
 
-/* ----------------------------------------
-   FETCH USER (MATCHES TABLE EXACTLY)
----------------------------------------- */
-$stmt = $pdo->prepare("
-    SELECT id, username, password_hash, role
-    FROM users
-    WHERE username = ?
-    LIMIT 1
-");
-$stmt->execute([$username]);
+$stmt = $pdo->prepare(
+    'SELECT id, username, password_hash, role
+     FROM users
+     WHERE username = :username
+     LIMIT 1'
+);
+$stmt->execute(['username' => $username]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-/* ----------------------------------------
-   VERIFY PASSWORD
----------------------------------------- */
 if ($user && password_verify($password, $user['password_hash'])) {
+    session_regenerate_id(true);
 
-    // ✅ CONSISTENT SESSION CONTRACT
     $_SESSION['admin_id']   = (int) $user['id'];
-    $_SESSION['admin_name'] = $user['username']; // display name
-    $_SESSION['admin_role'] = $user['role'];     // future-proof
+    $_SESSION['admin_name'] = $user['username'];
+    $_SESSION['admin_role'] = $user['role'] ?? 'admin';
 
-    header("Location: ../dashboard.php");
+    header('Location: ../dashboard.php');
     exit;
 }
 
-/* ----------------------------------------
-   LOGIN FAILED
----------------------------------------- */
-header("Location: ../login.php?error=invalid");
+header('Location: ../login.php?error=invalid');
 exit;
