@@ -5,7 +5,7 @@
             <h3>Get in Touch</h3>
             <p>Have a question or want to partner with us? We'd love to hear from you.</p>
         </div>
-        <form id="contactForm" action="/reseed/backend/api/contact-handler.php" method="POST" class="contact-form">
+        <form action="/backend/api/contact-handler.php" method="POST"  class="contact-form">
     <div class="form-group">
         <input type="text" name="name" id="name" required placeholder=" ">
         <label for="name">Your Name</label>
@@ -33,9 +33,15 @@
         <div class="footer-top">
             <div class="footer-brand">
                 <div class="footer-logo">
-                    <img src="<?= $BASE_URL ?>/frontend/assets/images/Re-logo.png" alt="ReSEED Logo" loading="lazy">
+                    <img
+                        src="/frontend/assets/images/Re-logo.png"
+                        alt="ReSEED Logo"
+                        loading="lazy"
+                    >
                     <span>ReSEED</span>
                 </div>
+
+
                 <p>Restoring livelihoods, regenerating ecosystems, and rebuilding communities across South Sudan through sustainable intervention.</p>
                 <div class="social-links">
                     <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
@@ -69,9 +75,10 @@
         <div class="footer-bottom">
             <div class="bottom-left">
                 <p>&copy; <span id="year"></span> ReSEED. All rights reserved.</p>
-                <a href="/reseed/admin/login.php" class="admin-link">
+                <a href="/backend/admin/login.php" class="admin-link">
                     <i class="fa-solid fa-lock"></i> Admin Access
                 </a>
+
             </div>
             <button id="backToTop" class="back-to-top" aria-label="Back to top">
                 <i class="fa-solid fa-arrow-up"></i>

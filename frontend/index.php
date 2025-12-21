@@ -535,51 +535,95 @@ h1, h2, h3, h4, .font-heading {
 
 <section class="section bg-light">
     <div class="container">
+
+        <!-- Header -->
         <div class="d-flex justify-content-between align-items-end mb-5">
             <h2 class="section-title mb-0">Field Stories</h2>
-            <a href="/blog.php" class="btn btn-link text-success fw-bold text-decoration-none">
+            <a href="/frontend/blog.php"
+               class="btn btn-link text-success fw-bold text-decoration-none">
                 See All News →
             </a>
         </div>
 
+        <!-- Content -->
         <div class="h-grid">
-            <?php foreach ($latestPosts as $post): 
-                $media_path = '/uploads/posts/' . ($post['cover_image'] ?: 'default.jpg');
-            ?>
-            <div class="news-card" data-aos="fade-up">
-                <div class="news-media-container">
-                    <?php if ($post['media_type'] === 'video'): ?>
-                        <video muted autoplay loop playsinline>
-                            <source src="<?= $media_path ?>" type="video/mp4">
-                        </video>
-                    <?php else: ?>
-                        <img src="<?= $media_path ?>" alt="<?= htmlspecialchars($post['title']) ?>">
-                    <?php endif; ?>
-                </div>
 
-                <div class="news-body">
-                    <small class="text-success fw-bold d-block mb-2">
-                        <?= date('M d, Y', strtotime($post['published_at'])) ?>
-                    </small>
+            <?php if (!empty($latestPosts) && is_array($latestPosts)): ?>
+                <?php foreach ($latestPosts as $post): ?>
 
-                    <h4 class="fw-bold mb-3">
-                        <?= htmlspecialchars($post['title']) ?>
-                    </h4>
+                    <?php
+                        $coverImage = $post['cover_image'] ?? 'default.jpg';
+                        $mediaType  = $post['media_type'] ?? 'image';
+                        $mediaPath  = '/backend/uploads/posts/' . $coverImage;
+                    ?>
 
-                    <p class="text-muted small">
-                        <?= htmlspecialchars(mb_strimwidth($post['excerpt'], 0, 100, '...')) ?>
+                    <article class="news-card" data-aos="fade-up">
+
+                        <!-- Media -->
+                        <div class="news-media-container">
+                            <?php if ($mediaType === 'video'): ?>
+                                <video muted autoplay loop playsinline>
+                                    <source src="<?= htmlspecialchars($mediaPath) ?>" type="video/mp4">
+                                </video>
+                            <?php else: ?>
+                                <img
+                                    src="<?= htmlspecialchars($mediaPath) ?>"
+                                    alt="<?= htmlspecialchars($post['title'] ?? 'Story image') ?>"
+                                    loading="lazy"
+                                >
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Body -->
+                        <div class="news-body">
+                            <small class="text-success fw-bold d-block mb-2">
+                                <?= !empty($post['published_at'])
+                                    ? date('M d, Y', strtotime($post['published_at']))
+                                    : 'Unpublished'
+                                ?>
+                            </small>
+
+                            <h4 class="fw-bold mb-3">
+                                <?= htmlspecialchars($post['title'] ?? 'Untitled Story') ?>
+                            </h4>
+
+                            <p class="text-muted small">
+                                <?= htmlspecialchars(
+                                    mb_strimwidth($post['excerpt'] ?? '', 0, 110, '...')
+                                ) ?>
+                            </p>
+
+                            <?php if (!empty($post['slug'])): ?>
+                                <a href="/frontend/post.php?slug=<?= urlencode($post['slug']) ?>"
+                                   class="btn btn-sm btn-outline-success mt-3 rounded-pill">
+                                    Read Story
+                                </a>
+                            <?php endif; ?>
+                        </div>
+
+                    </article>
+
+                <?php endforeach; ?>
+
+            <?php else: ?>
+
+                <!-- Empty State -->
+                <div class="text-center py-5 w-100">
+                    <p class="text-muted mb-3">
+                        No field stories published yet.
                     </p>
-
-                    <a href="/post.php?slug=<?= urlencode($post['slug']) ?>"
-                       class="btn btn-sm btn-outline-success mt-3 rounded-pill">
-                        Read Story
+                    <a href="/frontend/blog.php"
+                       class="btn btn-outline-success rounded-pill">
+                        Visit News Archive
                     </a>
                 </div>
-            </div>
-            <?php endforeach; ?>
+
+            <?php endif; ?>
+
         </div>
     </div>
 </section>
+
 
 
 <section id="get-involved" class="partnership-section">
