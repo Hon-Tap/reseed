@@ -5,26 +5,26 @@
             <h3>Get in Touch</h3>
             <p>Have a question or want to partner with us? We'd love to hear from you.</p>
         </div>
-        <form action="/backend/api/contact-handler.php" method="POST"  class="contact-form">
-    <div class="form-group">
-        <input type="text" name="name" id="name" required placeholder=" ">
-        <label for="name">Your Name</label>
-    </div>
-    <div class="form-group">
-        <input type="email" name="email" id="email" required placeholder=" ">
-        <label for="email">Your Email</label>
-    </div>
-    <div class="form-group">
-        <textarea name="message" id="message" rows="4" required placeholder=" "></textarea>
-        <label for="message">How can we help?</label>
-    </div>
+        <form action="/api/contact.php" method="POST"  class="contact-form">
+            <div class="form-group">
+                <input type="text" name="name" id="name" required placeholder=" ">
+                <label for="name">Your Name</label>
+            </div>
+            <div class="form-group">
+                <input type="email" name="email" id="email" required placeholder=" ">
+                <label for="email">Your Email</label>
+            </div>
+            <div class="form-group">
+                <textarea name="message" id="message" rows="4" required placeholder=" "></textarea>
+                <label for="message">How can we help?</label>
+            </div>
 
-    <div id="form-status" class="form-status"></div>
+            <div id="form-status" class="form-status"></div>
 
-    <button type="submit" id="submitBtn" class="nav-donate" style="width: 100%; border: none; cursor: pointer; padding: 1rem; transition: 0.3s;">
-        Send Message
-    </button>
-</form>
+            <button type="submit" id="submitBtn" class="nav-donate" style="width: 100%; border: none; cursor: pointer; padding: 1rem; transition: 0.3s;">
+                Send Message
+            </button>
+        </form>
     </div>
 </div>
 
@@ -75,7 +75,7 @@
         <div class="footer-bottom">
             <div class="bottom-left">
                 <p>&copy; <span id="year"></span> ReSEED. All rights reserved.</p>
-                <a href="/api/contact.php" class="admin-link">
+                <a href="/admin.php" class="admin-link">
                     <i class="fa-solid fa-lock"></i> Admin Access
                 </a>
             </div>
