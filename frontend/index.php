@@ -437,7 +437,7 @@ h1, h2, h3, h4, .font-heading {
 </style>
 
 <section class="hero">
-    <img src="/assets/images/Re-logo.png" class="hero-bg" alt="ReSEED Landscape">
+    <img src="/assets/images/Re-logo.jpeg" class="hero-bg" alt="ReSEED Landscape">
     <div class="hero-overlay"></div>
     <div class="container">
         <div class="hero-content" data-aos="fade-up" data-aos-duration="1200">
