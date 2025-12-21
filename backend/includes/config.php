@@ -35,8 +35,9 @@ if (!$dbHost || !$dbName || !$dbUser) {
 | PDO INIT
 |--------------------------------------------------------------------------
 */
-$dsn = "mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4";
+$dsn = "pgsql:host={$dbHost};port=5432;dbname={$dbName}";
 
 $pdo = new PDO($dsn, $dbUser, $dbPass, [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 ]);
+
