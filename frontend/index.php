@@ -1,46 +1,6 @@
 <?php
-// Load config (Render + local)
-
-$renderSecret = getenv('RENDER_SECRET_FILE_CONFIG_PHP');
-
-if ($renderSecret && is_readable($renderSecret)) {
-    require_once $renderSecret;
-} else {
-    require_once dirname(__DIR__) . '/backend/includes/config.php';
-}
-
-// Load shared header
+require_once dirname(__DIR__) . '/backend/includes/config.php';
 require_once dirname(__DIR__) . '/backend/includes/header.php';
-
-// --------------------------------------------------
-// Fetch Latest Posts (SAFE: works with or without DB)
-// --------------------------------------------------
-
-$latestPosts = [];
-
-if (isset($pdo) && $pdo instanceof PDO) {
-    try {
-        $stmt = $pdo->prepare("
-            SELECT 
-                title,
-                slug,
-                excerpt,
-                cover_image,
-                media_type,
-                published_at
-            FROM posts
-            WHERE published_at IS NOT NULL
-            ORDER BY published_at DESC
-            LIMIT 3
-        ");
-        $stmt->execute();
-        $latestPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        // Log silently in production
-        error_log('Homepage post query failed: ' . $e->getMessage());
-        $latestPosts = [];
-    }
-}
 ?>
 
 
