@@ -627,7 +627,7 @@ h1, h2, h3, h4, .font-heading {
 
 
 <section id="get-involved" class="partnership-section">
-    <img src="/assets/images/Re-logo.png" class="partnership-bg" alt="Landscape">
+    <img src="/assets/images/Re-logo.jpeg" class="partnership-bg" alt="Landscape">
     <div class="partnership-overlay"></div>
     <div class="container">
         <div class="partnership-content" data-aos="fade-right">

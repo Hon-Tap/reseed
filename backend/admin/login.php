@@ -5,18 +5,16 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Adjusted path to reach config - check if this matches your folder structure
-require_once "../includes/config.php";
+require_once __DIR__ . '/../includes/config.php';
 
 /**
  * If admin is already logged in → go to dashboard
  */
 if (isset($_SESSION['admin_id'])) {
-    header("Location: dashboard.php");
+    header('Location: dashboard.php');
     exit;
 }
 
-// Check for error messages from the handler
 $error = $_SESSION['login_error'] ?? null;
 unset($_SESSION['login_error']);
 ?>
@@ -241,7 +239,7 @@ unset($_SESSION['login_error']);
 <div class="login-container">
     <div class="login-card">
         <div class="logo-area">
-            <img src="/reseed/assets/images/Re-logo.png" alt="ReSEED Logo">
+            <img src="/reseed/assets/images/Re-logo.jpeg" alt="ReSEED Logo">
             <h2>Admin Login</h2>
             <p>Enter your credentials to manage the archive.</p>
         </div>
