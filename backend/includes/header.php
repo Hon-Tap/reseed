@@ -269,7 +269,7 @@ require_once __DIR__ . '/config.php';
         <!-- Brand -->
         <a href="/" class="brand">
             <img 
-                src="/assets/images/Re-logo.png"
+                src="/assets/images/Re-logo.jpeg"
                 alt="ReSEED Logo"
                 loading="lazy"
             >

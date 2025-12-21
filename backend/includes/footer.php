@@ -34,7 +34,7 @@
             <div class="footer-brand">
                 <div class="footer-logo">
                     <img
-                        src="/frontend/assets/images/Re-logo.png"
+                        src="/assets/images/Re-logo.jpeg"
                         alt="ReSEED Logo"
                         loading="lazy"
                     >
@@ -75,10 +75,9 @@
         <div class="footer-bottom">
             <div class="bottom-left">
                 <p>&copy; <span id="year"></span> ReSEED. All rights reserved.</p>
-                <a href="/backend/admin/login.php" class="admin-link">
+                <a href="/api/contact.php" class="admin-link">
                     <i class="fa-solid fa-lock"></i> Admin Access
                 </a>
-
             </div>
             <button id="backToTop" class="back-to-top" aria-label="Back to top">
                 <i class="fa-solid fa-arrow-up"></i>

@@ -539,7 +539,7 @@ h1, h2, h3, h4, .font-heading {
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-end mb-5">
             <h2 class="section-title mb-0">Field Stories</h2>
-            <a href="/frontend/blog.php"
+            <a href="/blog.php"
                class="btn btn-link text-success fw-bold text-decoration-none">
                 See All News →
             </a>
