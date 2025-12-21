@@ -205,7 +205,7 @@ a { text-decoration: none; transition: 0.3s; }
 
 .hero-overlay {
     position: absolute; inset: 0;
-    background: radial-gradient(circle at 10% 20%, rgba(6, 78, 59, 0.8) 0%, rgba(2, 44, 21, 0.95) 100%);
+    background: radial-gradient(circle at 10% 20%, rgba(6, 78, 10, 0.8) 0%, rgba(2, 44, 4, 0.95) 100%);
     z-index: 2;
 }
 
@@ -220,7 +220,7 @@ a { text-decoration: none; transition: 0.3s; }
 
 .hero h1 span {
     display: block;
-    background: linear-gradient(90deg, #34d399, #6ee7b7);
+    background: linear-gradient(90deg, #19a806ff, #82e76eff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
