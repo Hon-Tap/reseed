@@ -3,261 +3,345 @@ require_once dirname(__DIR__) . '/backend/includes/config.php';
 require_once dirname(__DIR__) . '/backend/includes/header.php';
 ?>
 
-
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=Inter:wght@400;500;700&display=swap');
+/* ================= PREMIUM THEME VARIABLES ================= */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
-    --primary: #099227ff;
+    /* Palette: Deep Forest & Vibrant Life */
+     --primary: #099227ff;
     --primary-dark: #022c10ff;
     --primary-light: #078f1eff;
     --accent: #53b810ff;
-    --text-main: #1e293b;
+    
+    /* Neutrals */
+    --text-main: #0f172a;
     --text-muted: #64748b;
-    --bg-light: #f8fafc;
-    --white: #ffffff;
-    --radius-xl: 40px;
-    --radius-lg: 24px;
-    --radius-md: 16px;
-    --ease: cubic-bezier(0.23, 1, 0.32, 1);
-}
-/* ================= CORE LAYOUT FIX ================= */
+    --bg-body: #ffffff;
+    --bg-surface: #f8fafc;
+    
+    /* Glassmorphism Logic */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --blur-strength: 12px;
 
-/* Consistent content width (matches header) */
-.container {
-    max-width: 1240px;
-    margin-inline: auto;
-    padding-inline: clamp(1.25rem, 4vw, 2rem);
-    width: 100%;
-}
-
-/* Prevent accidental horizontal stretching */
-html, body {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: clip; /* safer than hidden */
+    /* Spacing & Motion */
+    --radius-xl: 32px;
+    --radius-lg: 20px;
+    --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Header-aware hero height */
-.hero {
-    min-height: calc(100vh - var(--header-h, 80px));
-}
+/* ================= RESET & CORE ================= */
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Ensure sections never bleed outside viewport */
-section {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-}
-
-/* Defensive fix for grids */
-.about-grid,
-.h-grid,
-.journey-grid {
-    width: 100%;
-    max-width: 100%;
-}
-
-/* Media elements safety */
-img, video {
-    max-width: 100%;
-    height: auto;
-    display: block;
-}
-
+html { scroll-behavior: smooth; overflow-x: hidden; }
 
 body {
     font-family: 'Inter', sans-serif;
     color: var(--text-main);
-    line-height: 1.6;
-    background-color: var(--white);
+    line-height: 1.7;
+    background-color: var(--bg-body);
+    overflow-x: hidden;
 }
 
 h1, h2, h3, h4, .font-heading {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
+    color: var(--primary-dark);
 }
 
-.section { padding: 100px 0; }
-.bg-light { background: var(--bg-light); }
-.section-title { font-size: clamp(2.2rem, 4vw, 3.3rem); font-weight: 800; margin-bottom: 1.5rem; }
+img, video { max-width: 100%; height: auto; display: block; }
+a { text-decoration: none; }
 
-/* ================= HERO SECTION (UPGRADED) ================= */
+.container {
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: clamp(1.5rem, 5vw, 3rem);
+    position: relative;
+    z-index: 2;
+}
+
+.section { padding: 120px 0; position: relative; }
+.section-title {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ================= 1. SEXY HERO SECTION ================= */
 .hero {
     min-height: 100vh;
     position: relative;
     display: flex;
     align-items: center;
-    color: var(--white);
+    background: #022c15; /* Fallback */
     overflow: hidden;
-    background: #4a773cff;
+    color: white;
 }
 
+/* Dynamic Background Layers */
 .hero-bg {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    z-index: 1;
-    opacity: 0.6;
-    animation: slowZoom 25s infinite alternate;
+    opacity: 0.4;
+    filter: saturate(1.2) contrast(1.1);
+    transform: scale(1.05); /* Slight zoom for depth */
 }
 
-@keyframes slowZoom {
-    from { transform: scale(1); }
-    to { transform: scale(1.1); }
-}
-
+/* Gradient Mesh Overlay */
 .hero-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, 
-        rgba(8, 49, 26, 0.95) 0%, 
-        rgba(7, 48, 24, 0.7) 50%, 
-        rgba(5, 43, 21, 0.4) 100%);
+    background: radial-gradient(circle at 10% 20%, rgba(6, 78, 59, 0.8) 0%, rgba(2, 44, 21, 0.95) 100%);
     z-index: 2;
+}
+
+/* Floating Orbs (The "Sexy" Factor) */
+.hero::before, .hero::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: 3;
+    animation: floatOrb 10s ease-in-out infinite alternate;
+}
+
+.hero::before {
+    top: -10%;
+    right: -5%;
+    width: 500px;
+    height: 500px;
+    background: rgba(16, 185, 129, 0.2);
+}
+
+.hero::after {
+    bottom: -10%;
+    left: -10%;
+    width: 400px;
+    height: 400px;
+    background: rgba(245, 158, 11, 0.15); /* Subtle gold hint */
+    animation-delay: -5s;
+}
+
+@keyframes floatOrb {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(30px, 50px); }
 }
 
 .hero-content {
     position: relative;
-    z-index: 3;
-    max-width: 800px;
+    z-index: 10;
+    max-width: 850px;
 }
 
+/* Glass Badge */
 .hero-badge {
     display: inline-block;
-    background: rgba(17, 83, 28, 0.2);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(43, 252, 78, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 10px 24px;
     border-radius: 100px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 2px;
-    color: gold;
-    margin-bottom: 2rem;
+    color: var(--accent);
     text-transform: uppercase;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
 .hero h1 {
-    font-size: clamp(1.5rem, 4vw, 3rem);
-    line-height: 1.1;
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    line-height: 1;
     font-weight: 800;
-    margin-bottom: 1.5rem;
-    color: #e2e8f0;
+    margin-bottom: 2rem;
+    color: #fff;
+    -webkit-text-fill-color: #fff; /* Override global gradient */
+}
+
+.hero h1 span {
+    display: block;
+    background: linear-gradient(90deg, #34d399, #6ee7b7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .hero .lead {
-    font-size: 1.4rem;
-    opacity: 0.9;
-    margin-bottom: 3rem;
+    font-size: clamp(1.1rem, 2vw, 1.35rem);
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 3.5rem;
+    font-weight: 300;
+    max-width: 600px;
 }
-/* Custom Hero Primary Button */
+
+/* Modern Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s var(--ease-elastic);
+}
+
 .btn-hero-primary {
-    background: linear-gradient(135deg, #16b931 0%, #065f19 100%);
-    color: #ffffff !important;
+    background: var(--primary);
+    color: #022c15 !important;
     border: none;
-    transition: all 0.3s var(--ease);
     position: relative;
     overflow: hidden;
+    z-index: 1;
+}
+
+.btn-hero-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 100%);
+    z-index: -1;
+    transition: opacity 0.3s;
 }
 
 .btn-hero-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 30px rgba(6, 95, 25, 0.4) !important;
-    filter: brightness(1.1);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.5);
 }
 
-/* Custom Hero Outline Button */
 .btn-hero-outline {
-    color: #ffffff !important;
-    border: 2px solid rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(5px);
-    background: rgba(255, 255, 255, 0.05);
-    transition: all 0.3s var(--ease);
+    color: #fff !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(4px);
 }
 
 .btn-hero-outline:hover {
-    background: #ffffff !important;
+    background: rgba(255, 255, 255, 1);
     color: var(--primary-dark) !important;
-    border-color: #ffffff;
-    transform: translateY(-3px);
+    transform: translateY(-4px);
 }
 
-/* Mobile adjustments */
-@media (max-width: 576px) {
-    .btn-hero-primary, .btn-hero-outline {
-        width: 100%; /* Stack buttons nicely on mobile */
-        text-align: center;
-    }
-}
-
-/* ================= ABOUT SECTION ================= */
+/* ================= 2. ABOUT SECTION (Asymmetrical) ================= */
 .about-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 80px;
+    gap: 100px;
     align-items: center;
 }
 
-.about-img {
-    width: 100%;
-    height: 600px;
-    object-fit: cover;
-    border-radius: var(--radius-xl);
-    box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+.about-img-wrapper {
+    position: relative;
 }
 
-.acc-item { border-bottom: 1px solid #e5e7eb; }
+/* The "Off-Axis" Border Effect */
+.about-img-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: -20px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-xl);
+    z-index: 0;
+    transition: transform 0.5s var(--ease-elastic);
+}
+
+.about-img-wrapper:hover::before {
+    transform: translate(10px, -10px);
+}
+
+.about-img {
+    position: relative;
+    z-index: 1;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Modern Accordion */
+.accordion-box { margin-top: 3rem; }
+.acc-item { border-bottom: 1px solid rgba(0,0,0,0.08); }
+
 .acc-trigger {
     width: 100%;
     padding: 24px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 700;
     background: none;
     border: none;
     cursor: pointer;
     color: var(--primary-dark);
+    transition: color 0.3s;
 }
+
+.acc-trigger:hover { color: var(--primary); }
 
 .acc-content {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.5s var(--ease);
+    transition: max-height 0.4s ease-out;
     color: var(--text-muted);
 }
 
-/* ================= PILLARS & JOURNEY ================= */
+/* ================= 3. PILLARS (Glassmorphism Cards) ================= */
+.bg-light {
+    background-color: var(--bg-surface);
+    background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
+                      radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.05) 0px, transparent 50%);
+}
+
 .h-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 40px;
 }
 
 .card-elegant {
-    background: var(--white);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--blur-strength));
+    border: 1px solid var(--glass-border);
+    padding: 50px 40px;
     border-radius: var(--radius-lg);
-    padding: 45px;
-    border: 1px solid #f1f5f9;
-    transition: all 0.4s var(--ease);
+    transition: all 0.4s var(--ease-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Card Hover Glow */
+.card-elegant::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.4s;
 }
 
 .card-elegant:hover {
-    transform: translateY(-12px);
-    box-shadow: 0 40px 80px rgba(15, 23, 42, 0.08);
+    transform: translateY(-15px);
+    box-shadow: 0 30px 60px -15px rgba(16, 185, 129, 0.2);
+    border-color: var(--primary);
 }
+
+.card-elegant:hover::after { opacity: 1; }
 
 .icon-box {
     width: 70px;
     height: 70px;
-    background: #f0fdf4;
+    background: white;
     color: var(--primary);
     border-radius: 20px;
     display: flex;
@@ -265,55 +349,88 @@ h1, h2, h3, h4, .font-heading {
     justify-content: center;
     font-size: 1.8rem;
     margin-bottom: 30px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    position: relative;
+    z-index: 2;
+}
+
+/* ================= 4. JOURNEY (Dark Theme) ================= */
+/* We invert the colors here for high impact */
+.section-dark {
+    background: #0f172a;
+    color: white;
+}
+
+.section-dark .section-title {
+    background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .journey-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 30px;
+    margin-top: 60px;
 }
 
 .journey-card {
-    background: #e2e8f0;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     padding: 40px 30px;
-    border-radius: var(--radius-md);
-    text-align: center;
-    transition: all 0.5s ease-in-out;
-    border: 1px solid #f1f5f9;
+    border-radius: var(--radius-lg);
+    text-align: left;
+    transition: all 0.4s ease;
+    position: relative;
 }
 
 .journey-step {
-    font-size: 4rem;
+    font-size: 3.5rem;
     font-weight: 800;
-    color: #cbd5e1;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.2);
     line-height: 1;
+    margin-bottom: 20px;
+    transition: all 0.4s;
 }
 
 .journey-card:hover {
-    background: rgba(36, 126, 18, 1);
-    color: white;
+    background: var(--primary);
+    border-color: var(--primary);
 }
 
-.journey-card:hover .journey-step { color: rgba(255,255,255,0.2); }
-.journey-card:hover .text-muted { color: rgba(255,255,255,0.8) !important; }
+.journey-card:hover .journey-step {
+    -webkit-text-stroke: 1px rgba(255,255,255,0.6);
+    transform: scale(1.1) translateX(10px);
+}
 
-/* ================= NEWS (UPDATED FOR VIDEO) ================= */
+.journey-card h5 { color: white; margin-bottom: 10px; font-size: 1.25rem; }
+.journey-card p { color: rgba(255,255,255,0.6); font-size: 0.95rem; }
+.journey-card:hover p { color: rgba(255,255,255,0.9); }
+
+/* ================= 5. FIELD STORIES ================= */
 .news-card {
-    background: var(--white);
+    background: white;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    border: 1px solid #f1f5f9;
-    transition: all 0.4s var(--ease);
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    transition: all 0.4s var(--ease-smooth);
     display: flex;
     flex-direction: column;
+    height: 100%;
+}
+
+.news-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.1);
 }
 
 .news-media-container {
-    height: 250px;
+    height: 280px;
     width: 100%;
     overflow: hidden;
     position: relative;
-    background: #000;
 }
 
 .news-media-container img, 
@@ -321,26 +438,39 @@ h1, h2, h3, h4, .font-heading {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.8s var(--ease-smooth);
 }
 
-.news-body { padding: 35px; flex-grow: 1; }
-.news-body a{
-    color: var(--primary-dark);
-    font-weight: 400;
-    font-size: 1rem;
-    transition: color 0.3s var(--ease);
-    border-bottom: 1px solid black;
+.news-card:hover .news-media-container img,
+.news-card:hover .news-media-container video {
+    transform: scale(1.1);
 }
-.news-body a:hover { color: var(--primary); }
 
-/* ================= PARTNERSHIP SECTION ================= */
+.news-body { padding: 35px; flex-grow: 1; display: flex; flex-direction: column; }
+
+.news-body small {
+    color: var(--primary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.75rem;
+}
+
+.news-body h4 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin: 10px 0 15px;
+    line-height: 1.3;
+}
+
+.news-body .btn { margin-top: auto; align-self: flex-start; }
+
+/* ================= 6. PARTNERSHIP (Parallax Effect) ================= */
 .partnership-section {
-    padding: 120px 0;
     position: relative;
-    /* border-radius: var(--radius-xl);
-    margin: 0 30px; */
+    padding: 160px 0;
+    color: white;
     overflow: hidden;
-    width: 100%;
 }
 
 .partnership-bg {
@@ -349,104 +479,99 @@ h1, h2, h3, h4, .font-heading {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.3;
     z-index: 1;
 }
 
+/* Advanced Dark Gradient */
 .partnership-overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(115deg, rgba(10, 44, 4, 1) 40%, transparent 100%);
+    background: linear-gradient(90deg, #022c10 0%, rgba(2, 44, 16, 0.8) 60%, rgba(2, 44, 16, 0.2) 100%);
     z-index: 2;
 }
 
 .partnership-content {
     position: relative;
     z-index: 3;
-    max-width: 700px;
-    color: var(--white);
+    max-width: 650px;
 }
 
 .impact-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    color: var(--primary-light);
+    color: var(--accent);
     font-weight: 700;
     letter-spacing: 3px;
     text-transform: uppercase;
-    font-size: 0.85rem;
-    margin-bottom: 2rem;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 1.5rem;
 }
 
 .impact-label::before {
     content: '';
-    width: 10px;
-    height: 10px;
-    background: #ff4d4d;
-    border-radius: 40%;
-    box-shadow: 0 0 15px #ff4d4d;
-    animation: blink 2s infinite;
-}
-
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
+    width: 40px; height: 2px;
+    background: var(--accent);
 }
 
 .partnership-content h2 {
     font-size: clamp(2.5rem, 5vw, 4rem);
-    line-height: 1.1;
-    font-weight: 800;
-    margin-bottom: 2rem;
-    color: #e2e8f0;
+    color: white;
+    margin-bottom: 1.5rem;
 }
 
 .partnership-content .lead {
-    border-left: 4px solid var(--primary-light);
-    padding-left: 30px;
-    font-size: 1.3rem;
-    opacity: 0.9;
-    margin-bottom: 3.5rem;
+    font-size: 1.25rem;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 3rem;
+    font-weight: 300;
 }
 
 .btn-luxury {
-    background: var(--white);
+    background: white;
     color: var(--primary-dark);
-    padding: 20px 45px;
+    padding: 20px 50px;
     border-radius: 100px;
     font-weight: 700;
     font-size: 1.1rem;
     border: none;
+    cursor: pointer;
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.2);
     transition: all 0.3s;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
 }
 
 .btn-luxury:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-    background: var(--primary-light);
-    color: var(--white);
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.3);
+    transform: translateY(-2px);
 }
 
+/* Mobile Tweaks */
 @media (max-width: 991px) {
-    .about-grid { grid-template-columns: 1fr; gap: 40px; }
-    .partnership-section { margin:10px 0; border-radius: 0; padding: 80px 40px; }
-    .partnership-overlay { background: rgba(10, 48, 2, 1); }
+    .about-grid { grid-template-columns: 1fr; gap: 50px; }
+    .hero::before, .hero::after { opacity: 0.5; }
+    .h-grid { gap: 20px; }
 }
 </style>
 
 <section class="hero">
     <img src="/assets/images/Re-logo.jpeg" class="hero-bg" alt="ReSEED Landscape">
     <div class="hero-overlay"></div>
+    
     <div class="container">
         <div class="hero-content" data-aos="fade-up" data-aos-duration="1200">
             <span class="hero-badge">South Sudan Community Movement</span>
-            <h1>Restoring Nature.<br><span style="color: var(--primary-light)">Reseeding Prosperity.</span></h1>
+            <h1>Restoring Nature.<br><span>Reseeding Prosperity.</span></h1>
             <p class="lead">A community-led movement transforming fragile landscapes into resilient ecosystems and sustainable livelihoods.</p>
-            <div class="d-flex gap-3 flex-wrap mt-2">
-                <a href="#about" class="btn btn-hero-primary btn-lg px-5 rounded-pill py-3 fw-bold shadow-lg">Our Mission</a>
-                <a href="#get-involved" class="btn btn-hero-outline btn-lg px-5 rounded-pill py-3 fw-bold">Join Us</a>
+            
+            <div class="d-flex gap-3 flex-wrap align-items-center">
+                <a href="#about" class="btn btn-hero-primary btn-lg px-5 rounded-pill py-3 fw-bold">
+                    Our Mission
+                </a>
+                <a href="#get-involved" class="btn btn-hero-outline btn-lg px-5 rounded-pill py-3 fw-bold">
+                    Join The Movement
+                </a>
             </div>
         </div>
     </div>
@@ -455,13 +580,14 @@ h1, h2, h3, h4, .font-heading {
 <section id="about" class="section">
     <div class="container">
         <div class="about-grid">
-            <div data-aos="fade-right">
+            <div class="about-img-wrapper" data-aos="fade-right">
                 <img src="/assets/images/Re-team.jpg" class="about-img" alt="ReSEED Team">
             </div>
+            
             <div data-aos="fade-left">
-                <span class="text-success fw-bold text-uppercase tracking-widest mb-2 d-block">The ReSEED Story</span>
+                <span class="text-success fw-bold text-uppercase tracking-widest mb-2 d-block" style="letter-spacing: 2px; font-size: 0.85rem;">The ReSEED Story</span>
                 <h2 class="section-title">Rooted in Resilience.</h2>
-                <p class="text-muted mb-4 fs-5">We bridge the gap between humanitarian aid and long-term climate adaptation through community-owned solutions.</p>
+                <p class="text-muted mb-4 fs-5" style="font-weight: 300;">We bridge the gap between humanitarian aid and long-term climate adaptation through community-owned solutions.</p>
 
                 <div class="accordion-box">
                     <div class="acc-item">
@@ -482,28 +608,32 @@ h1, h2, h3, h4, .font-heading {
     <div class="container">
         <div class="text-center mb-5" data-aos="fade-up">
             <h2 class="section-title">The Three Pillars</h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">Our holistic approach ensures that every seed planted grows into a sustainable future.</p>
         </div>
+        
         <div class="h-grid">
             <div class="card-elegant" data-aos="fade-up" data-aos-delay="100">
                 <div class="icon-box"><i class="fa-solid fa-seedling"></i></div>
-                <h3 class="fw-bold">Regenerate</h3>
-                <p class="text-muted">Revitalizing degraded soils using indigenous knowledge and modern agroecology.</p>
+                <h3 class="fw-bold mb-3">Regenerate</h3>
+                <p class="text-muted">Revitalizing degraded soils using indigenous knowledge and modern agroecology to bring the land back to life.</p>
             </div>
+            
             <div class="card-elegant" data-aos="fade-up" data-aos-delay="200">
                 <div class="icon-box"><i class="fa-solid fa-people-group"></i></div>
-                <h3 class="fw-bold">Empower</h3>
-                <p class="text-muted">Investing in local leaders and youth to take ownership of their climate future.</p>
+                <h3 class="fw-bold mb-3">Empower</h3>
+                <p class="text-muted">Investing in local leaders and youth to take ownership of their climate future through education and tools.</p>
             </div>
+            
             <div class="card-elegant" data-aos="fade-up" data-aos-delay="300">
                 <div class="icon-box"><i class="fa-solid fa-shield-heart"></i></div>
-                <h3 class="fw-bold">Resilience</h3>
-                <p class="text-muted">Building shock-resistant food systems that withstand floods and droughts.</p>
+                <h3 class="fw-bold mb-3">Resilience</h3>
+                <p class="text-muted">Building shock-resistant food systems that withstand floods and droughts, ensuring stability year-round.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section">
+<section class="section section-dark">
     <div class="container">
         <div class="text-center mb-5" data-aos="fade-up">
             <h2 class="section-title">The Path to Prosperity</h2>
@@ -511,120 +641,84 @@ h1, h2, h3, h4, .font-heading {
         <div class="journey-grid">
             <div class="journey-card" data-aos="zoom-in" data-aos-delay="100">
                 <div class="journey-step">01</div>
-                <h5 class="fw-bold mt-4">Stabilize</h5>
-                <p class="text-muted small">Relief and emergency stabilization for fragile zones.</p>
+                <h5 class="fw-bold">Stabilize</h5>
+                <p>Relief and emergency stabilization for fragile zones.</p>
             </div>
             <div class="journey-card" data-aos="zoom-in" data-aos-delay="200">
                 <div class="journey-step">02</div>
-                <h5 class="fw-bold mt-4">Restore</h5>
-                <p class="text-muted small">Providing tools and regenerative farming techniques.</p>
+                <h5 class="fw-bold">Restore</h5>
+                <p>Providing tools and regenerative farming techniques.</p>
             </div>
             <div class="journey-card" data-aos="zoom-in" data-aos-delay="300">
                 <div class="journey-step">03</div>
-                <h5 class="fw-bold mt-4">Sustain</h5>
-                <p class="text-muted small">Scaling climate-smart systems and market links.</p>
+                <h5 class="fw-bold">Sustain</h5>
+                <p>Scaling climate-smart systems and market links.</p>
             </div>
             <div class="journey-card" data-aos="zoom-in" data-aos-delay="400">
                 <div class="journey-step">04</div>
-                <h5 class="fw-bold mt-4">Thrive</h5>
-                <p class="text-muted small">Achieving full self-reliance and community wealth.</p>
+                <h5 class="fw-bold">Thrive</h5>
+                <p>Achieving full self-reliance and community wealth.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section bg-light">
+<section class="section bg-surface">
     <div class="container">
-
-        <!-- Header -->
         <div class="d-flex justify-content-between align-items-end mb-5">
-            <h2 class="section-title mb-0">Field Stories</h2>
-            <a href="/blog.php"
-               class="btn btn-link text-success fw-bold text-decoration-none">
-                See All News →
+            <div>
+                <h2 class="section-title mb-2">Field Stories</h2>
+                <p class="text-muted">Updates from the ground.</p>
+            </div>
+            <a href="/blog.php" class="btn btn-link text-success fw-bold text-decoration-none">
+                See All News <i class="fa-solid fa-arrow-right ms-2"></i>
             </a>
         </div>
 
-        <!-- Content -->
         <div class="h-grid">
-
             <?php if (!empty($latestPosts) && is_array($latestPosts)): ?>
                 <?php foreach ($latestPosts as $post): ?>
-
                     <?php
                         $coverImage = $post['cover_image'] ?? 'default.jpg';
                         $mediaType  = $post['media_type'] ?? 'image';
                         $mediaPath  = '/backend/uploads/posts/' . $coverImage;
                     ?>
-
                     <article class="news-card" data-aos="fade-up">
-
-                        <!-- Media -->
                         <div class="news-media-container">
                             <?php if ($mediaType === 'video'): ?>
                                 <video muted autoplay loop playsinline>
                                     <source src="<?= htmlspecialchars($mediaPath) ?>" type="video/mp4">
                                 </video>
                             <?php else: ?>
-                                <img
-                                    src="<?= htmlspecialchars($mediaPath) ?>"
-                                    alt="<?= htmlspecialchars($post['title'] ?? 'Story image') ?>"
-                                    loading="lazy"
-                                >
+                                <img src="<?= htmlspecialchars($mediaPath) ?>" alt="<?= htmlspecialchars($post['title'] ?? 'Story image') ?>" loading="lazy">
                             <?php endif; ?>
                         </div>
 
-                        <!-- Body -->
                         <div class="news-body">
-                            <small class="text-success fw-bold d-block mb-2">
-                                <?= !empty($post['published_at'])
-                                    ? date('M d, Y', strtotime($post['published_at']))
-                                    : 'Unpublished'
-                                ?>
+                            <small>
+                                <?= !empty($post['published_at']) ? date('M d, Y', strtotime($post['published_at'])) : 'Unpublished' ?>
                             </small>
-
-                            <h4 class="fw-bold mb-3">
+                            <h4 class="font-heading">
                                 <?= htmlspecialchars($post['title'] ?? 'Untitled Story') ?>
                             </h4>
-
-                            <p class="text-muted small">
-                                <?= htmlspecialchars(
-                                    mb_strimwidth($post['excerpt'] ?? '', 0, 110, '...')
-                                ) ?>
+                            <p class="text-muted small mb-4">
+                                <?= htmlspecialchars(mb_strimwidth($post['excerpt'] ?? '', 0, 110, '...')) ?>
                             </p>
-
                             <?php if (!empty($post['slug'])): ?>
-                                <a href="/frontend/post.php?slug=<?= urlencode($post['slug']) ?>"
-                                   class="btn btn-sm btn-outline-success mt-3 rounded-pill">
-                                    Read Story
-                                </a>
+                                <a href="/frontend/post.php?slug=<?= urlencode($post['slug']) ?>" class="btn btn-sm btn-outline-success rounded-pill px-4">Read Story</a>
                             <?php endif; ?>
                         </div>
-
                     </article>
-
                 <?php endforeach; ?>
-
             <?php else: ?>
-
-                <!-- Empty State -->
                 <div class="text-center py-5 w-100">
-                    <p class="text-muted mb-3">
-                        No field stories published yet.
-                    </p>
-                    <a href="/frontend/blog.php"
-                       class="btn btn-outline-success rounded-pill">
-                        Visit News Archive
-                    </a>
+                    <p class="text-muted mb-3">No field stories published yet.</p>
+                    <a href="/blog.php" class="btn btn-outline-success rounded-pill">Visit News Archive</a>
                 </div>
-
             <?php endif; ?>
-
         </div>
     </div>
 </section>
-
-
 
 <section id="get-involved" class="partnership-section">
     <img src="/assets/images/Re-logo.jpeg" class="partnership-bg" alt="Landscape">
@@ -633,7 +727,7 @@ h1, h2, h3, h4, .font-heading {
         <div class="partnership-content" data-aos="fade-right">
             <span class="impact-label">Scale Our Impact</span>
             <h2>Let's Restore the Land Together</h2>
-            <p class="lead">We are building a network of partners to transform South Sudan’s landscapes. Join us in creating a resilient future for the next generation.</p>
+            <p class="lead">We are building a network of partners to transform South Sudan’s landscapes. Join us in creating a resilient future.</p>
             
             <div class="d-flex align-items-center flex-wrap gap-4">
                 <button class="btn btn-luxury open-contact-modal">Partner With Us</button>
@@ -644,30 +738,35 @@ h1, h2, h3, h4, .font-heading {
 </section>
 
 <script>
-AOS.init({ once:true, duration:1000, easing:'ease-out-cubic' });
+    AOS.init({ once:true, duration:1000, easing:'ease-out-cubic' });
 
-document.querySelectorAll('.acc-trigger').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-        const content=btn.nextElementSibling;
-        const icon=btn.querySelector('i');
+    // Accordion Logic
+    document.querySelectorAll('.acc-trigger').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            const content = btn.nextElementSibling;
+            const icon = btn.querySelector('i');
 
-        document.querySelectorAll('.acc-content').forEach(c=>{
-            if(c!==content){
-                c.style.maxHeight=null;
-                c.previousElementSibling.querySelector('i').className='fa-solid fa-plus small';
+            // Close others
+            document.querySelectorAll('.acc-content').forEach(c=>{
+                if(c !== content){
+                    c.style.maxHeight = null;
+                    c.previousElementSibling.querySelector('i').className='fa-solid fa-plus small';
+                    c.previousElementSibling.style.color = 'var(--primary-dark)';
+                }
+            });
+
+            // Toggle current
+            if(content.style.maxHeight){
+                content.style.maxHeight = null;
+                icon.className = 'fa-solid fa-plus small';
+                btn.style.color = 'var(--primary-dark)';
+            } else {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                icon.className = 'fa-solid fa-minus small';
+                btn.style.color = 'var(--primary)';
             }
         });
-
-        if(content.style.maxHeight){
-            content.style.maxHeight=null;
-            icon.className='fa-solid fa-plus small';
-        }else{
-            content.style.maxHeight=content.scrollHeight+'px';
-            icon.className='fa-solid fa-minus small';
-        }
     });
-});
 </script>
 
 <?php include dirname(__DIR__) . '/backend/includes/footer.php'; ?>
-

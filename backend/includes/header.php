@@ -1,334 +1,333 @@
 <?php
 require_once __DIR__ . '/config.php';
 
+// Smart Active State Logic
+// Handles query parameters (e.g., blog.php?page=2) so the link stays active
+function isActive($pageName) {
+    $currentUri = $_SERVER['REQUEST_URI'];
+    $currentPath = parse_url($currentUri, PHP_URL_PATH);
+    $fileName = basename($currentPath);
+    
+    // Handle Homepage (root / or index.php)
+    if ($pageName === 'index.php' && ($fileName === '' || $fileName === 'index.php')) {
+        return 'active';
+    }
+    
+    // Handle other pages
+    return ($fileName === $pageName) ? 'active' : '';
+}
 ?>
 
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    
     <title>ReSEED — Restoring Hope, Reseeding Life</title>
-
     <meta name="description" content="South Sudanese social enterprise dedicated to restoring livelihoods, regenerating ecosystems, and rebuilding communities.">
 
-    
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-
-
-   <style>
+    <style>
         :root {
-            /* --- Brand Identity --- */
-            --color-primary: #0f8c04;       /* Deep Green */
-            --color-primary-dark: #0a6302;
-            --color-primary-light: #e6f4e5; /* Very light green for backgrounds */
-            --color-primary-rgb: 15, 140, 4;
+            /* --- Core Brand Colors --- */
+            --primary: #0f8c04;        /* ReSEED Green */
+            --primary-dark: #0a6302;
+            --accent: #E67E22;         /* Earth/Sun Orange */
+            --accent-hover: #D35400;
 
-            --color-accent: #E67E22;        /* Earth Orange */
-            --color-accent-hover: #D35400;
-
-            /* --- Surface & UI --- */
-            --color-bg: #F8FAFC;            /* Ultra light grey/blue tint */
-            --color-surface: #FFFFFF;
-            --color-surface-trans: rgba(255, 255, 255, 0.85);
+            /* --- UI Colors --- */
+            --bg-body: #F8FAFC;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
             
-            /* --- Typography --- */
-            --color-heading: #0F172A;       /* Slate 900 */
-            --color-text: #334155;          /* Slate 700 */
-            --color-text-muted: #64748B;    /* Slate 500 */
-
-            /* --- Dimensions & Physics --- */
-            --header-height: 80px;
-            --header-height-scrolled: 70px;
-            --container-width: 1240px;
-            --radius-sm: 8px;
-            --radius-md: 16px;
-            --radius-lg: 24px;
-            --radius-pill: 100px;
-            
-            /* --- Shadows --- */
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --shadow-green: 0 10px 25px -5px rgba(15, 140, 4, 0.25);
-            
-            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* --- Layout --- */
+            --header-h: 80px;
+            --header-h-scroll: 70px;
+            --container-w: 1240px;
+            --radius-pill: 50px;
+            --shadow-nav: 0 4px 20px -5px rgba(0,0,0,0.1);
         }
 
-        /* --- Global Reset & Base --- */
+        /* --- Critical Layout Reset --- */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; font-size: 16px; }
+        
+        html { scroll-behavior: smooth; }
         
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: var(--color-bg);
-            color: var(--color-text);
-            line-height: 1.7;
-            padding-top: var(--header-height);
-            -webkit-font-smoothing: antialiased;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            /* CRITICAL: Prevents content from hiding behind fixed header */
+            padding-top: var(--header-h); 
+            transition: padding-top 0.3s ease;
         }
 
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Merriweather', serif;
-            color: var(--color-heading);
-            line-height: 1.25;
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-
-        a { text-decoration: none; color: inherit; transition: var(--transition-smooth); }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Merriweather', serif; font-weight: 700; }
+        a { text-decoration: none; color: inherit; transition: 0.3s ease; }
         ul { list-style: none; }
-        img { max-width: 100%; display: block; }
+        img { display: block; max-width: 100%; }
 
-        /* --- Utilities --- */
-        .container { max-width: var(--container-width); margin: 0 auto; padding: 0 1.5rem; }
-        .section-padding { padding: 6rem 0; }
-        .text-center { text-align: center; }
-        
-        /* Buttons */
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-            padding: 0.85rem 2rem;
-            font-weight: 600;
-            border-radius: var(--radius-pill);
-            transition: var(--transition-smooth);
-            cursor: pointer; border: none; font-size: 1rem;
-        }
-        
-        .btn-primary {
-            background-color: var(--color-primary);
-            color: #fff;
-            box-shadow: var(--shadow-green);
-        }
-        .btn-primary:hover {
-            background-color: var(--color-primary-dark);
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px -5px rgba(15, 140, 4, 0.4);
-        }
-
-        /* --- Navigation Bar --- */
+        /* --- Header Structure --- */
         .site-header {
-            position: fixed; top: 0; left: 0; right: 0;
-            height: var(--header-height);
-            z-index: 1000;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(8px);
-            transition: var(--transition-smooth);
-            border-bottom: 1px solid transparent;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: var(--header-h);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 999;
             display: flex;
             align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
         }
 
+        /* Scrolled State */
         .site-header.scrolled {
-            height: var(--header-height-scrolled);
-            background: #ffffff;
-            box-shadow: var(--shadow-md);
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            height: var(--header-h-scroll);
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: var(--shadow-nav);
+        }
+
+        /* Update body padding when header shrinks to avoid jump */
+        body.header-shrunk { padding-top: var(--header-h-scroll); }
+
+        .container {
+            width: 100%;
+            max-width: var(--container-w);
+            margin: 0 auto;
+            padding: 0 1.5rem;
         }
 
         .nav-wrapper {
-            display: flex; justify-content: space-between; align-items: center;
-            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
+        /* --- Brand --- */
         .brand {
-            display: flex; align-items: center; gap: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
             font-family: 'Merriweather', serif;
-            font-weight: 900; font-size: 1.5rem;
-            color: var(--color-primary);
+            font-weight: 900;
+            font-size: 1.4rem;
+            color: var(--primary);
         }
-        .brand img { height: 48px; width: 48px; border-radius: 50%; object-fit: cover; transition: var(--transition-smooth); }
-        .site-header.scrolled .brand img { height: 40px; width: 40px; }
-
-        .main-nav { display: flex; align-items: center; gap: 2rem; }
         
+        .brand img {
+            height: 45px;
+            width: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            transition: 0.3s;
+        }
+        
+        .site-header.scrolled .brand img { transform: scale(0.9); }
+
+        /* --- Desktop Navigation --- */
+        .main-nav {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
         .nav-link {
-            font-weight: 500;
-            color: var(--color-heading);
-            position: relative;
-            padding: 0.5rem 0;
             font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Space between icon and text */
+            position: relative;
+            padding: 5px 0;
         }
-        
-        .nav-link::before {
-            content: ''; position: absolute; bottom: 0; left: 50%;
-            width: 0; height: 2px;
-            background: var(--color-accent);
-            transition: var(--transition-smooth);
-            transform: translateX(-50%);
-        }
-        
-        .nav-link:hover { color: var(--color-primary); }
-        .nav-link:hover::before, .nav-link.active::before { width: 100%; }
-        .nav-link.active { color: var(--color-primary); font-weight: 600; }
 
-        .donate-btn-nav {
-            background: var(--color-accent);
-            color: white !important;
-            padding: 0.6rem 1.5rem;
+        .nav-link i { 
+            color: var(--text-muted); 
+            font-size: 0.9rem;
+            transition: 0.3s; 
+        }
+
+        /* Hover & Active States */
+        .nav-link:hover, .nav-link.active { color: var(--primary); }
+        .nav-link:hover i, .nav-link.active i { color: var(--primary); transform: translateY(-2px); }
+
+        /* Underline Effect */
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; width: 0; height: 2px;
+            background: var(--accent);
+            transition: 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+
+        /* Donate Button */
+        .btn-donate {
+            background: var(--accent);
+            color: #fff !important;
+            padding: 10px 24px;
             border-radius: var(--radius-pill);
             font-weight: 600;
-            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.25);
         }
-        .donate-btn-nav:hover {
-            background: var(--color-accent-hover);
+        
+        .btn-donate:hover {
+            background: var(--accent-hover);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
+            box-shadow: 0 6px 20px rgba(230, 126, 34, 0.35);
+        }
+        
+        .btn-donate::after { display: none; } /* Remove underline */
+
+        /* --- Mobile Toggle --- */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            cursor: pointer;
         }
 
-        /* Mobile Toggle */
-        .nav-toggle { 
-            display: none; 
-            background: none; 
-            border: none; 
-            font-size: 1.6rem; 
-            cursor: pointer; 
-            color: var(--color-heading); 
-            z-index: 1100;
-            transition: var(--transition-smooth);
-        }
-
-        /* --- Mobile Responsive --- */
-        @media (max-width: 992px) {
+        /* --- Mobile Responsive Styles --- */
+        @media (max-width: 991px) {
             .nav-toggle { display: block; }
 
             .main-nav {
-                position: fixed; 
-                top: 0; 
-                right: -100%; 
-                bottom: 0;
-                width: 80%; 
-                max-width: 300px;
-                background: var(--color-surface);
-                flex-direction: column; 
-                justify-content: center;
-                align-items: center;
-                box-shadow: -10px 0 30px rgba(0,0,0,0.1);
-                transition: right 0.4s cubic-bezier(0.77, 0, 0.175, 1);
-                padding: 2rem;
-                gap: 2rem;
-                z-index: 1050;
+                position: fixed;
+                top: 0; right: -100%; /* Hidden by default */
+                width: 80%;
+                max-width: 320px;
+                height: 100vh;
+                background: var(--surface);
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 80px 30px;
+                box-shadow: -5px 0 30px rgba(0,0,0,0.1);
+                transition: 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+                z-index: 1000;
             }
 
-            .main-nav.active { right: 0; }
+            .main-nav.open { right: 0; }
+
+            .nav-link {
+                font-size: 1.1rem;
+                width: 100%;
+                padding: 15px 0;
+                border-bottom: 1px solid rgba(0,0,0,0.05);
+            }
             
-            .nav-link { font-size: 1.1rem; }
+            .btn-donate { margin-top: 20px; width: 100%; justify-content: center; }
 
+            /* Backdrop */
             .nav-backdrop {
-                position: fixed; 
-                inset: 0; 
-                background: rgba(15, 23, 42, 0.5);
-                backdrop-filter: blur(4px); 
-                z-index: 1040;
-                opacity: 0; 
-                pointer-events: none; 
-                transition: opacity 0.3s;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.4);
+                backdrop-filter: blur(4px);
+                opacity: 0;
+                pointer-events: none;
+                transition: 0.3s;
+                z-index: 999;
             }
-            .nav-backdrop.active { opacity: 1; pointer-events: all; }
+            .nav-backdrop.open { opacity: 1; pointer-events: all; }
         }
-
-        /* --- Components --- */
-        .card {
-            background: var(--color-surface);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid rgba(0,0,0,0.03);
-            transition: var(--transition-smooth);
-            overflow: hidden;
-        }
-        .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
     </style>
-
 </head>
-
 <body>
 
-
-
-<header class="site-header">
+<header class="site-header" id="mainHeader">
     <div class="container nav-wrapper">
-
-        <!-- Brand -->
+        
         <a href="/" class="brand">
-            <img 
-                src="/assets/images/Re-logo.jpeg"
-                alt="ReSEED Logo"
-                loading="lazy"
-            >
+            <img src="/assets/images/Re-logo.jpeg" alt="ReSEED Logo">
             <span>ReSEED</span>
         </a>
 
-
-
-
-        <!-- Mobile Toggle -->
-        <button class="nav-toggle" aria-label="Open Navigation">
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle Navigation">
             <i class="fa-solid fa-bars"></i>
         </button>
 
-      <!-- Navigation -->
-<nav class="main-nav">
-    <?php
-        // Determine current page safely
-        $current_page = basename(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+        <nav class="main-nav" id="mainNav">
+            
+            <a href="/" class="nav-link <?= isActive('index.php'); ?>">
+                <i class="fa-solid fa-house"></i> Home
+            </a>
 
-        function isActive(string $page, string $current): string {
-            return $page === $current ? 'active' : '';
-        }
-    ?>
+            <a href="/projects.php" class="nav-link <?= isActive('projects.php'); ?>">
+                <i class="fa-solid fa-hand-holding-seedling"></i> Projects
+            </a>
 
-    <a href="/"
-       class="nav-link <?= isActive('', $current_page) || isActive('index.php', $current_page); ?>">
-        Home
-    </a>
+            <a href="/blog.php" class="nav-link <?= isActive('blog.php'); ?>">
+                <i class="fa-solid fa-newspaper"></i> News
+            </a>
 
-    <a href="/projects.php"
-       class="nav-link <?= isActive('projects.php', $current_page); ?>">
-        Projects
-    </a>
+            <a href="/gallery.php" class="nav-link <?= isActive('gallery.php'); ?>">
+                <i class="fa-solid fa-images"></i> Gallery
+            </a>
+            
+            <a href="#contact" class="nav-link open-contact-modal">
+                <i class="fa-solid fa-envelope"></i> Contact
+            </a>
 
-    <a href="/blog.php"
-       class="nav-link <?= isActive('blog.php', $current_page); ?>">
-        News
-    </a>
+            <a href="https://api.reseed.org/donate" target="_blank" class="btn-donate">
+                <i class="fa-solid fa-heart"></i> Donate
+            </a>
+        </nav>
 
-    <a href="/gallery.php"
-       class="nav-link <?= isActive('gallery.php', $current_page); ?>">
-        Gallery
-    </a>
-
-    <a href="#contact"
-       class="nav-link open-contact-modal">
-        Contact
-    </a>
-
-    <a href="https://api.reseed.org/donate"
-       class="btn btn-primary"
-       target="_blank"
-       rel="noopener noreferrer">
-        Donate Now
-    </a>
-</nav>
-
-<div class="nav-backdrop"></div>
-
+        <div class="nav-backdrop" id="navBackdrop"></div>
+    </div>
 </header>
 
+<script>
+    // --- Header Scroll Effect ---
+    const header = document.getElementById('mainHeader');
+    const body = document.body;
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+            header.classList.add('scrolled');
+            body.classList.add('header-shrunk');
+        } else {
+            header.classList.remove('scrolled');
+            body.classList.remove('header-shrunk');
+        }
+    });
+
+    // --- Mobile Menu Toggle ---
+    const toggleBtn = document.getElementById('navToggle');
+    const nav = document.getElementById('mainNav');
+    const backdrop = document.getElementById('navBackdrop');
+
+    function toggleMenu() {
+        nav.classList.toggle('open');
+        backdrop.classList.toggle('open');
+        
+        // Change icon from bars to X
+        const icon = toggleBtn.querySelector('i');
+        if (nav.classList.contains('open')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-xmark');
+        } else {
+            icon.classList.remove('fa-xmark');
+            icon.classList.add('fa-bars');
+        }
+    }
+
+    toggleBtn.addEventListener('click', toggleMenu);
+    backdrop.addEventListener('click', toggleMenu);
+</script>
