@@ -49,7 +49,7 @@
                 
                 <div class="social-links">
                     <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" aria-label="X (Twitter)"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="https://x.com/yourhandle" target="_blank" rel="noopener" aria-label="Follow us on X (formerly Twitter)"><i class="fa-brands fa-x-twitter"></i></a>
                     <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
                     <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
                 </div>
@@ -114,7 +114,7 @@
     /* --- MODAL STYLES --- */
     .modal-overlay {
         position: fixed; inset: 0;
-        background: rgba(15, 23, 42, 0.6); /* Slate 900 with opacity */
+        background: rgba(15, 42, 15, 0.6); /* Slate 900 with opacity */
         backdrop-filter: blur(8px);
         z-index: 2000;
         display: flex;
@@ -185,7 +185,7 @@
         border-radius: 4px;
     }
 
-    .btn-block { width: 100%; padding: 1rem; font-size: 1rem; }
+    .btn-block { width: 100%; padding: 1rem; font-size: 1rem; background-color: green; color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: background-color 0.3s ease; }
 
     /* Status Messages */
     .contact-status {

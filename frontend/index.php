@@ -13,7 +13,7 @@ require_once dirname(__DIR__) . '/backend/includes/header.php';
 
 :root {
     /* Palette: Deep Forest & Vibrant Life */
-     --primary: #099227ff;
+    --primary: #099227ff;
     --primary-dark: #022c10ff;
     --primary-light: #078f1eff;
     --accent: #53b810ff;
@@ -31,6 +31,7 @@ require_once dirname(__DIR__) . '/backend/includes/header.php';
     --blur-strength: 12px;
 
     /* Spacing & Motion */
+    --radius-pill: 50px;
     --radius-xl: 32px;
     --radius-lg: 20px;
     --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -39,7 +40,6 @@ require_once dirname(__DIR__) . '/backend/includes/header.php';
 
 /* ================= RESET & CORE ================= */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; overflow-x: hidden; }
 
 body {
@@ -47,7 +47,6 @@ body {
     color: var(--text-main);
     line-height: 1.7;
     background-color: var(--bg-body);
-    overflow-x: hidden;
 }
 
 h1, h2, h3, h4, .font-heading {
@@ -57,7 +56,7 @@ h1, h2, h3, h4, .font-heading {
 }
 
 img, video { max-width: 100%; height: auto; display: block; }
-a { text-decoration: none; }
+a { text-decoration: none; transition: 0.3s; }
 
 .container {
     max-width: 1280px;
@@ -67,109 +66,156 @@ a { text-decoration: none; }
     z-index: 2;
 }
 
-.section { padding: 120px 0; position: relative; }
-.section-title {
-    font-size: clamp(2.5rem, 5vw, 3.5rem);
-    font-weight: 800;
-    margin-bottom: 1rem;
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+.section { padding: clamp(60px, 10vw, 120px) 0; position: relative; }
+
+/* ================= BUTTONS & SHINE EFFECT ================= */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 2.5rem;
+    border-radius: var(--radius-pill);
+    font-weight: 700;
+    transition: all 0.4s var(--ease-elastic);
+    cursor: pointer;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.95rem;
 }
 
-/* ================= 1. SEXY HERO SECTION ================= */
+/* The Shine Animation */
+.btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 20%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: rotate(30deg);
+    transition: none;
+    pointer-events: none;
+}
+
+.btn:hover::after {
+    left: 120%;
+    transition: all 0.6s ease-in-out;
+}
+
+/* Primary Hero Button */
+.btn-hero-primary {
+    background: var(--primary);
+    color: white !important;
+    box-shadow: 0 10px 20px rgba(9, 146, 39, 0.3);
+}
+
+.btn-hero-primary:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(9, 146, 39, 0.4);
+    background: var(--primary-light);
+}
+
+/* Outline Hero Button */
+.btn-hero-outline {
+    background: rgba(255, 255, 255, 0.05);
+    color: white !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.btn-hero-outline:hover {
+    background: white;
+    color: var(--primary-dark) !important;
+    border-color: white;
+    transform: translateY(-5px);
+}
+
+/* Luxury Partnership Button */
+.btn-luxury {
+    background: white;
+    color: var(--primary-dark);
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.2);
+}
+
+.btn-luxury:hover {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 0 0 8px rgba(83, 184, 16, 0.3);
+}
+
+/* ================= CTA GROUPS & STATUS ================= */
+.cta-luxury-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.cta-status { display: flex; align-items: center; gap: 0.75rem; }
+
+.status-text {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+.pulse-dot {
+    width: 8px; height: 8px;
+    background-color: var(--accent);
+    border-radius: 50%;
+    position: relative;
+}
+
+.pulse-dot::after {
+    content: ""; position: absolute; inset: 0;
+    background-color: inherit; border-radius: 50%;
+    animation: luxury-pulse 2s infinite;
+}
+
+@keyframes luxury-pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(3); opacity: 0; }
+}
+
+/* ================= HERO SECTION ================= */
 .hero {
     min-height: 100vh;
     position: relative;
     display: flex;
     align-items: center;
-    background: #022c15; /* Fallback */
+    background: #022c15;
     overflow: hidden;
     color: white;
+    padding: 100px 0;
 }
 
-/* Dynamic Background Layers */
 .hero-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.4;
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; opacity: 0.4;
     filter: saturate(1.2) contrast(1.1);
-    transform: scale(1.05); /* Slight zoom for depth */
+    transform: scale(1.05);
 }
 
-/* Gradient Mesh Overlay */
 .hero-overlay {
-    position: absolute;
-    inset: 0;
+    position: absolute; inset: 0;
     background: radial-gradient(circle at 10% 20%, rgba(6, 78, 59, 0.8) 0%, rgba(2, 44, 21, 0.95) 100%);
     z-index: 2;
 }
 
-/* Floating Orbs (The "Sexy" Factor) */
-.hero::before, .hero::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    z-index: 3;
-    animation: floatOrb 10s ease-in-out infinite alternate;
-}
-
-.hero::before {
-    top: -10%;
-    right: -5%;
-    width: 500px;
-    height: 500px;
-    background: rgba(16, 185, 129, 0.2);
-}
-
-.hero::after {
-    bottom: -10%;
-    left: -10%;
-    width: 400px;
-    height: 400px;
-    background: rgba(245, 158, 11, 0.15); /* Subtle gold hint */
-    animation-delay: -5s;
-}
-
-@keyframes floatOrb {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(30px, 50px); }
-}
-
-.hero-content {
-    position: relative;
-    z-index: 10;
-    max-width: 850px;
-}
-
-/* Glass Badge */
-.hero-badge {
-    display: inline-block;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 10px 24px;
-    border-radius: 100px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    color: var(--accent);
-    text-transform: uppercase;
-    margin-bottom: 2.5rem;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
+.hero-content { position: relative; z-index: 10; max-width: 850px; }
 
 .hero h1 {
-    font-size: clamp(3rem, 7vw, 5.5rem);
-    line-height: 1;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    line-height: 1.1;
     font-weight: 800;
     margin-bottom: 2rem;
-    color: #fff;
-    -webkit-text-fill-color: #fff; /* Override global gradient */
 }
 
 .hero h1 span {
@@ -179,379 +225,93 @@ a { text-decoration: none; }
     -webkit-text-fill-color: transparent;
 }
 
-.hero .lead {
-    font-size: clamp(1.1rem, 2vw, 1.35rem);
-    color: rgba(255, 255, 255, 0.85);
-    margin-bottom: 3.5rem;
-    font-weight: 300;
-    max-width: 600px;
-}
-
-/* Modern Buttons */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.4s var(--ease-elastic);
-}
-
-.btn-hero-primary {
-    background: var(--primary);
-    color: #022c15 !important;
-    border: none;
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-}
-
-.btn-hero-primary::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 100%);
-    z-index: -1;
-    transition: opacity 0.3s;
-}
-
-.btn-hero-primary:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.5);
-}
-
-.btn-hero-outline {
-    color: #fff !important;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(4px);
-}
-
-.btn-hero-outline:hover {
-    background: rgba(255, 255, 255, 1);
-    color: var(--primary-dark) !important;
-    transform: translateY(-4px);
-}
-
-/* ================= 2. ABOUT SECTION (Asymmetrical) ================= */
+/* ================= ABOUT SECTION ================= */
 .about-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 100px;
+    gap: clamp(40px, 8vw, 100px);
     align-items: center;
 }
 
-.about-img-wrapper {
-    position: relative;
-}
-
-/* The "Off-Axis" Border Effect */
+.about-img-wrapper { position: relative; }
 .about-img-wrapper::before {
-    content: '';
-    position: absolute;
-    top: 20px;
-    left: -20px;
-    width: 100%;
-    height: 100%;
-    border: 2px solid var(--primary);
-    border-radius: var(--radius-xl);
-    z-index: 0;
+    content: ''; position: absolute; top: 20px; left: -20px;
+    width: 100%; height: 100%; border: 2px solid var(--primary);
+    border-radius: var(--radius-xl); z-index: 0;
     transition: transform 0.5s var(--ease-elastic);
 }
 
-.about-img-wrapper:hover::before {
-    transform: translate(10px, -10px);
-}
-
 .about-img {
-    position: relative;
-    z-index: 1;
+    position: relative; z-index: 1;
     border-radius: var(--radius-xl);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
-/* Modern Accordion */
-.accordion-box { margin-top: 3rem; }
-.acc-item { border-bottom: 1px solid rgba(0,0,0,0.08); }
-
-.acc-trigger {
-    width: 100%;
-    padding: 24px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1.25rem;
-    font-weight: 700;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--primary-dark);
-    transition: color 0.3s;
-}
-
-.acc-trigger:hover { color: var(--primary); }
-
-.acc-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease-out;
-    color: var(--text-muted);
-}
-
-/* ================= 3. PILLARS (Glassmorphism Cards) ================= */
-.bg-light {
-    background-color: var(--bg-surface);
-    background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
-                      radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.05) 0px, transparent 50%);
-}
-
+/* ================= CARDS (Pillars & News) ================= */
 .h-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 40px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
 }
 
 .card-elegant {
     background: var(--glass-bg);
     backdrop-filter: blur(var(--blur-strength));
     border: 1px solid var(--glass-border);
-    padding: 50px 40px;
+    padding: 40px;
     border-radius: var(--radius-lg);
     transition: all 0.4s var(--ease-smooth);
-    position: relative;
-    overflow: hidden;
-}
-
-/* Card Hover Glow */
-.card-elegant::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
-    opacity: 0;
-    transition: opacity 0.4s;
 }
 
 .card-elegant:hover {
-    transform: translateY(-15px);
-    box-shadow: 0 30px 60px -15px rgba(16, 185, 129, 0.2);
-    border-color: var(--primary);
-}
-
-.card-elegant:hover::after { opacity: 1; }
-
-.icon-box {
-    width: 70px;
-    height: 70px;
-    background: white;
-    color: var(--primary);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-    margin-bottom: 30px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    position: relative;
-    z-index: 2;
-}
-
-/* ================= 4. JOURNEY (Dark Theme) ================= */
-/* We invert the colors here for high impact */
-.section-dark {
-    background: #0f172a;
-    color: white;
-}
-
-.section-dark .section-title {
-    background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.journey-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 30px;
-    margin-top: 60px;
-}
-
-.journey-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 40px 30px;
-    border-radius: var(--radius-lg);
-    text-align: left;
-    transition: all 0.4s ease;
-    position: relative;
-}
-
-.journey-step {
-    font-size: 3.5rem;
-    font-weight: 800;
-    color: transparent;
-    -webkit-text-stroke: 1px rgba(255,255,255,0.2);
-    line-height: 1;
-    margin-bottom: 20px;
-    transition: all 0.4s;
-}
-
-.journey-card:hover {
-    background: var(--primary);
-    border-color: var(--primary);
-}
-
-.journey-card:hover .journey-step {
-    -webkit-text-stroke: 1px rgba(255,255,255,0.6);
-    transform: scale(1.1) translateX(10px);
-}
-
-.journey-card h5 { color: white; margin-bottom: 10px; font-size: 1.25rem; }
-.journey-card p { color: rgba(255,255,255,0.6); font-size: 0.95rem; }
-.journey-card:hover p { color: rgba(255,255,255,0.9); }
-
-/* ================= 5. FIELD STORIES ================= */
-.news-card {
-    background: white;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    border: none;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-    transition: all 0.4s var(--ease-smooth);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.news-card:hover {
     transform: translateY(-10px);
-    box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    border-color: var(--primary);
 }
 
-.news-media-container {
-    height: 280px;
-    width: 100%;
-    overflow: hidden;
-    position: relative;
-}
-
-.news-media-container img, 
-.news-media-container video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.8s var(--ease-smooth);
-}
-
-.news-card:hover .news-media-container img,
-.news-card:hover .news-media-container video {
-    transform: scale(1.1);
-}
-
-.news-body { padding: 35px; flex-grow: 1; display: flex; flex-direction: column; }
-
-.news-body small {
-    color: var(--primary);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 0.75rem;
-}
-
-.news-body h4 {
-    font-size: 1.35rem;
-    font-weight: 800;
-    margin: 10px 0 15px;
-    line-height: 1.3;
-}
-
-.news-body .btn { margin-top: auto; align-self: flex-start; }
-
-/* ================= 6. PARTNERSHIP (Parallax Effect) ================= */
+/* ================= PARTNERSHIP ================= */
 .partnership-section {
-    position: relative;
-    padding: 160px 0;
-    color: white;
-    overflow: hidden;
+    position: relative; padding: 120px 0;
+    background: #022c10; color: white; overflow: hidden;
 }
 
 .partnership-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 1;
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; z-index: 1; opacity: 0.5;
 }
 
-/* Advanced Dark Gradient */
 .partnership-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, #022c10 0%, rgba(2, 44, 16, 0.8) 60%, rgba(2, 44, 16, 0.2) 100%);
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, #022c10 30%, rgba(2, 44, 16, 0.4) 100%);
     z-index: 2;
 }
 
-.partnership-content {
-    position: relative;
-    z-index: 3;
-    max-width: 650px;
-}
-
-.impact-label {
-    color: var(--accent);
-    font-weight: 700;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 1.5rem;
-}
-
-.impact-label::before {
-    content: '';
-    width: 40px; height: 2px;
-    background: var(--accent);
-}
-
-.partnership-content h2 {
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    color: white;
-    margin-bottom: 1.5rem;
-}
-
-.partnership-content .lead {
-    font-size: 1.25rem;
-    color: rgba(255,255,255,0.8);
-    margin-bottom: 3rem;
-    font-weight: 300;
-}
-
-.btn-luxury {
-    background: white;
-    color: var(--primary-dark);
-    padding: 20px 50px;
-    border-radius: 100px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 0 0 4px rgba(255,255,255,0.2);
-    transition: all 0.3s;
-}
-
-.btn-luxury:hover {
-    background: var(--accent);
-    color: white;
-    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.3);
-    transform: translateY(-2px);
-}
-
-/* Mobile Tweaks */
+/* ================= MOBILE RESPONSIVENESS ================= */
 @media (max-width: 991px) {
-    .about-grid { grid-template-columns: 1fr; gap: 50px; }
-    .hero::before, .hero::after { opacity: 0.5; }
-    .h-grid { gap: 20px; }
+    .about-grid { grid-template-columns: 1fr; text-align: center; }
+    .about-img-wrapper { max-width: 500px; margin: 0 auto; }
+}
+
+@media (max-width: 768px) {
+    /* Hero Buttons stack on mobile */
+    .hero .d-flex {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn { width: 100%; }
+
+    .cta-luxury-group {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero h1 { font-size: 2.5rem; }
+    .section { padding: 60px 0; }
 }
 </style>
 
@@ -729,9 +489,15 @@ a { text-decoration: none; }
             <h2>Let's Restore the Land Together</h2>
             <p class="lead">We are building a network of partners to transform South Sudan’s landscapes. Join us in creating a resilient future.</p>
             
-            <div class="d-flex align-items-center flex-wrap gap-4">
-                <button class="btn btn-luxury open-contact-modal">Partner With Us</button>
-                <span class="text-white-50 fw-bold small text-uppercase tracking-widest">Donations Opening Soon</span>
+            <div class="cta-luxury-group">
+                <button class="btn-luxury open-contact-modal">
+                    <span>Partner With Us</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+                <div class="cta-status">
+                    <span class="pulse-dot"></span>
+                    <span class="status-text">Donations Opening Soon</span>
+                </div>
             </div>
         </div>
     </div>

@@ -3,13 +3,11 @@ declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
-| Admin Entry Point
+| Admin Entry Point (Public)
 |--------------------------------------------------------------------------
-| Single responsibility:
-| - Redirect users to the admin login page
-| - Avoid duplicate UI / logic
+| This file lives in /frontend (public web root)
+| It safely loads the admin login from backend
 |--------------------------------------------------------------------------
 */
 
-header('Location: /backend/admin/login.php');
-exit;
+require_once __DIR__ . '/../backend/admin/login.php';
