@@ -1,7 +1,10 @@
 # Environment & secrets
 .env
 .env.*
-config.php
+
+# Local-only config (DO NOT COMMIT)
+backend/includes/config.local.php
+
 
 # Uploads
 backend/uploads/
