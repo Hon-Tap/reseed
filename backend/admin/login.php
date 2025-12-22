@@ -1,30 +1,20 @@
 <?php
 declare(strict_types=1);
 
-/* =========================================================
-   SESSION
-========================================================= */
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-/* =========================================================
-   DEPENDENCIES
-========================================================= */
 require_once dirname(__DIR__) . '/includes/config.php';
 require_once __DIR__ . '/includes/csrf.php';
 
-/* =========================================================
-   REDIRECT IF AUTHENTICATED
-========================================================= */
+/* Redirect if already logged in */
 if (!empty($_SESSION['admin_id'])) {
     header('Location: dashboard.php');
     exit;
 }
 
-/* =========================================================
-   ERROR HANDLING
-========================================================= */
+/* Error handling */
 $errorCode = $_GET['error'] ?? null;
 
 $errorMessages = [
@@ -69,8 +59,7 @@ body{
     padding:20px;
     color:var(--text-main);
 }
-.login-container{width:100%;max-width:420px;animation:fadeIn .6s ease-out}
-@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.login-container{width:100%;max-width:420px}
 .login-card{
     background:var(--white);
     padding:40px;
@@ -90,7 +79,6 @@ body{
     width:80px;height:80px;
     border-radius:50%;
     margin-bottom:16px;
-    box-shadow:0 4px 12px rgba(9,146,39,.2);
 }
 .logo-area h2{
     font-family:'Plus Jakarta Sans',sans-serif;
@@ -116,17 +104,15 @@ body{
     background:#f8fafc;
     font-size:1rem;
 }
-.input-wrapper input:focus{
-    outline:none;
-    border-color:var(--primary);
-    background:#fff;
-    box-shadow:0 0 0 4px rgba(9,146,39,.1);
-}
-.toggle-pass{
-    position:absolute;
-    right:16px;
-    top:50%;
-    transform:translateY(-50%);
+.btn-login{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:var(--primary);
+    color:#fff;
+    font-size:1rem;
+    font-weight:700;
     cursor:pointer;
 }
 .error-banner{
@@ -138,21 +124,7 @@ body{
     margin-bottom:20px;
     display:flex;
     gap:10px;
-    border-left:4px solid #dc2626;
 }
-.btn-login{
-    width:100%;
-    padding:14px;
-    border:none;
-    border-radius:12px;
-    background:var(--primary);
-    color:#fff;
-    font-size:1rem;
-    font-weight:700;
-    cursor:pointer;
-    transition:.3s;
-}
-.btn-login:hover{background:var(--primary-hover)}
 .login-footer{
     margin-top:24px;
     text-align:center;
@@ -161,13 +133,6 @@ body{
     text-decoration:none;
     color:var(--text-muted);
     font-size:.9rem;
-    display:flex;
-    gap:8px;
-    justify-content:center;
-}
-.back-link:hover{color:var(--primary)}
-@media(max-width:480px){
-    .login-card{padding:30px 20px}
 }
 </style>
 </head>
@@ -178,7 +143,7 @@ body{
 <div class="login-card">
 
     <div class="logo-area">
-        <img src="<?= BASE_URL ?>/frontend/assets/images/Re-logo.jpeg" alt="ReSEED Logo">
+        <img src="/assets/images/Re-logo.jpeg" alt="ReSEED Logo">
         <h2>ReSEED Admin</h2>
         <p>Secure access portal</p>
     </div>
@@ -190,27 +155,22 @@ body{
         </div>
     <?php endif; ?>
 
-    <form id="loginForm"
-          method="POST"
-          action="<?= BASE_URL ?>/backend/admin/handlers/login-handler.php"
-          novalidate>
-
+    <form method="POST" action="/admin.php">
         <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
         <div class="form-group">
-            <label for="username">Username</label>
+            <label>Username</label>
             <div class="input-wrapper">
                 <i class="fa-solid fa-user"></i>
-                <input type="text" id="username" name="username" required autofocus>
+                <input type="text" name="username" required autofocus>
             </div>
         </div>
 
         <div class="form-group">
-            <label for="password">Password</label>
+            <label>Password</label>
             <div class="input-wrapper">
                 <i class="fa-solid fa-lock"></i>
-                <input type="password" id="password" name="password" required>
-                <i class="fa-solid fa-eye toggle-pass" id="eyeIcon"></i>
+                <input type="password" name="password" required>
             </div>
         </div>
 
@@ -218,57 +178,13 @@ body{
     </form>
 
     <div class="login-footer">
-        <a href="<?= BASE_URL ?>/frontend/index.php" class="back-link">
+        <a href="/" class="back-link">
             <i class="fa-solid fa-house"></i> Back to Home
         </a>
     </div>
 
 </div>
 </div>
-
-<script>
-const eye = document.getElementById('eyeIcon');
-const pwd = document.getElementById('password');
-
-eye.addEventListener('click', () => {
-    pwd.type = pwd.type === 'password' ? 'text' : 'password';
-    eye.classList.toggle('fa-eye-slash');
-});
-
-const form = document.getElementById('loginForm');
-
-form.addEventListener('submit', async (e) => {
-    if (!window.fetch) return;
-
-    e.preventDefault();
-
-    const btn = form.querySelector('button');
-    btn.disabled = true;
-    btn.textContent = 'Signing in…';
-
-    try {
-        const res = await fetch(form.action, {
-            method: 'POST',
-            body: new FormData(form),
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-            window.location.href = data.redirect;
-        } else {
-            alert(data.message || 'Login failed');
-            btn.disabled = false;
-            btn.textContent = 'Sign In';
-        }
-    } catch {
-        btn.disabled = false;
-        btn.textContent = 'Sign In';
-        alert('Network error');
-    }
-});
-</script>
 
 </body>
 </html>
