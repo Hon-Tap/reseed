@@ -53,8 +53,9 @@
                     </a>
 
                     <a href="https://x.com/yourhandle" target="_blank" rel="noopener" aria-label="Follow us on X (formerly Twitter)">
-                        <i class="fa-brands fa-x-twitter"></i>
+                        <i class="fa-brands fa-twitter"></i>
                     </a>
+
 
                     <a href="#" target="_blank" rel="noopener" aria-label="LinkedIn">
                         <i class="fa-brands fa-linkedin-in"></i>

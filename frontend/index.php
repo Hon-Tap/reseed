@@ -568,14 +568,30 @@ a { text-decoration: none; }
             <h1>Restoring Nature.<br><span>Reseeding Prosperity.</span></h1>
             <p class="lead">A community-led movement transforming fragile landscapes into resilient ecosystems and sustainable livelihoods.</p>
             
-            <div class="flex flex-wrap items-center gap-4">
-                <a href="#about" class="inline-block px-10 py-4 text-lg font-bold text-white bg-blue-600 rounded-full shadow-lg transition-all duration-300 hover:bg-blue-700 hover:shadow-xl hover:-translate-y-1 active:scale-95">
+            <div class="flex flex-wrap items-center gap-5">
+                <!-- Primary -->
+                <a href="#about"
+                class="inline-flex items-center justify-center px-9 py-4 text-base font-semibold text-white
+                        bg-blue-600 rounded-full shadow-md
+                        transition-all duration-200
+                        hover:bg-blue-700 hover:shadow-lg
+                        focus:outline-none focus:ring-4 focus:ring-blue-300
+                        active:scale-[0.98]">
                     Our Mission
                 </a>
-                <a href="#get-involved" class="inline-block px-10 py-4 text-lg font-bold text-blue-600 border-2 border-blue-600 rounded-full transition-all duration-300 hover:bg-blue-50 hover:-translate-y-1 active:scale-95">
-                    Join The Movement
+
+                <!-- Secondary -->
+                <a href="#get-involved"
+                class="inline-flex items-center justify-center px-9 py-4 text-base font-semibold text-blue-600
+                        border-2 border-blue-600 rounded-full
+                        transition-all duration-200
+                        hover:bg-blue-50
+                        focus:outline-none focus:ring-4 focus:ring-blue-200
+                        active:scale-[0.98]">
+                    Join the Movement
                 </a>
             </div>
+
         </div>
     </div>
 </section>
@@ -733,13 +749,24 @@ a { text-decoration: none; }
             <p class="lead">We are building a network of partners to transform South Sudan’s landscapes. Join us in creating a resilient future.</p>
             
             <div class="flex flex-wrap items-center gap-6">
-                <button class="open-contact-modal px-8 py-3 font-bold text-white uppercase tracking-widest bg-gradient-to-r from-gray-900 to-gray-700 border border-gray-600 rounded-sm shadow-2xl transition-all duration-300 hover:from-black hover:to-gray-800 hover:tracking-[0.2em] active:scale-95">
-                    Partner With Us
-                </button>
-                <span class="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] opacity-80">
-                    Donations Opening Soon
-                </span>
-            </div>
+            <button
+                class="open-contact-modal inline-flex items-center justify-center
+                    px-8 py-3 text-sm font-semibold uppercase tracking-wider
+                    text-white
+                    bg-gray-900 rounded-md
+                    shadow-md
+                    transition-all duration-200
+                    hover:bg-gray-800 hover:shadow-lg
+                    focus:outline-none focus:ring-4 focus:ring-gray-400
+                    active:scale-[0.97]">
+                Partner With Us
+            </button>
+
+            <span class="text-xs font-semibold uppercase tracking-widest text-gray-400">
+                Donations opening soon
+            </span>
+        </div>
+
         </div>
     </div>
 </section>

@@ -1,5 +1,4 @@
 <?php
-include "includes/admin_auth.php";
 include "includes/admin_header.php";
 
 // --- Metrics ---
