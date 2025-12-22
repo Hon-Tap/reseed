@@ -11,8 +11,10 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 /* =====================================================
    DEPENDENCIES
 ===================================================== */
+
 require_once dirname(__DIR__, 2) . '/includes/config.php';
-require_once dirname(__DIR__, 1) . '/includes/csrf.php';
+require_once dirname(__DIR__, 2) . '/includes/csrf.php';
+
 
 /* =====================================================
    REQUEST + MODE DETECTION
