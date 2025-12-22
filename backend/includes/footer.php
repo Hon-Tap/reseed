@@ -101,7 +101,10 @@
                 <p>&copy; <span id="year"></span> ReSEED. All rights reserved.</p>
                 <span class="separator">•</span>
                 <a href="/privacy.php">Privacy</a>
-                <a href="<?= BASE_URL ?>/frontend/admin.php" class="admin-link"><i class="fa-solid fa-lock"></i> Staff</a>
+                <a href="/admin.php" class="admin-link">
+                    <i class="fa-solid fa-lock"></i> Staff
+                </a>
+
             </div>
 
             <button id="backToTop" class="back-to-top" aria-label="Back to top">
