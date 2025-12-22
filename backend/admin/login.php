@@ -155,7 +155,7 @@ body{
         </div>
     <?php endif; ?>
 
-    <form method="POST" action="handlers/login-handler.php">
+    <form method="POST" action="/backend/admin/handlers/login-handler.php">
         <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
         <div class="form-group">
