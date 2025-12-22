@@ -568,28 +568,20 @@ a { text-decoration: none; }
             <h1>Restoring Nature.<br><span>Reseeding Prosperity.</span></h1>
             <p class="lead">A community-led movement transforming fragile landscapes into resilient ecosystems and sustainable livelihoods.</p>
             
-            <div class="flex flex-wrap items-center gap-5">
+            <div style="display:flex;flex-wrap:wrap;gap:20px;">
                 <!-- Primary -->
-                <a href="#about"
-                class="inline-flex items-center justify-center px-9 py-4 text-base font-semibold text-white
-                        bg-blue-600 rounded-full shadow-md
-                        transition-all duration-200
-                        hover:bg-blue-700 hover:shadow-lg
-                        focus:outline-none focus:ring-4 focus:ring-blue-300
-                        active:scale-[0.98]">
+               <a href="#about"
+                class="btn btn-hero-primary"
+                style="padding:18px 48px;border-radius:100px;font-weight:700;">
                     Our Mission
                 </a>
 
-                <!-- Secondary -->
                 <a href="#get-involved"
-                class="inline-flex items-center justify-center px-9 py-4 text-base font-semibold text-blue-600
-                        border-2 border-blue-600 rounded-full
-                        transition-all duration-200
-                        hover:bg-blue-50
-                        focus:outline-none focus:ring-4 focus:ring-blue-200
-                        active:scale-[0.98]">
+                class="btn btn-hero-outline"
+                style="padding:18px 48px;border-radius:100px;font-weight:700;">
                     Join the Movement
                 </a>
+
             </div>
 
         </div>
@@ -748,24 +740,23 @@ a { text-decoration: none; }
             <h2>Let's Restore the Land Together</h2>
             <p class="lead">We are building a network of partners to transform South Sudan’s landscapes. Join us in creating a resilient future.</p>
             
-            <div class="flex flex-wrap items-center gap-6">
-            <button
-                class="open-contact-modal inline-flex items-center justify-center
-                    px-8 py-3 text-sm font-semibold uppercase tracking-wider
-                    text-white
-                    bg-gray-900 rounded-md
-                    shadow-md
-                    transition-all duration-200
-                    hover:bg-gray-800 hover:shadow-lg
-                    focus:outline-none focus:ring-4 focus:ring-gray-400
-                    active:scale-[0.97]">
-                Partner With Us
-            </button>
+            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:24px;">
 
-            <span class="text-xs font-semibold uppercase tracking-widest text-gray-400">
-                Donations opening soon
-            </span>
-        </div>
+                <button class="btn-luxury open-contact-modal">
+                    Partner With Us
+                </button>
+
+                <span style="
+                    font-size:0.75rem;
+                    font-weight:700;
+                    text-transform:uppercase;
+                    letter-spacing:0.25em;
+                    color:#9ca3af;
+                ">
+                    Donations opening soon
+                </span>
+
+            </div>
 
         </div>
     </div>
