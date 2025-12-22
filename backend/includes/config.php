@@ -5,30 +5,24 @@ declare(strict_types=1);
 |--------------------------------------------------------------------------
 | APPLICATION ENVIRONMENT
 |--------------------------------------------------------------------------
-| Change only if you know why.
 */
 define('APP_ENV', $_ENV['APP_ENV'] ?? 'production');
 
 /*
 |--------------------------------------------------------------------------
-| BASE URL (CRITICAL)
+| BASE URL
 |--------------------------------------------------------------------------
-| This MUST match how the app is deployed.
-| Render deployment lives under /reseed
+| IMPORTANT:
+| Render is serving `frontend/` as the public document root.
+| Therefore the application lives at `/`, NOT `/reseed`.
 */
-if (!defined('BASE_URL')) {
-    if (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'onrender.com')) {
-        define('BASE_URL', '/reseed');
-    } else {
-        // Local development (XAMPP)
-        define('BASE_URL', '/reseed'); // keep consistent
-    }
-}
+define('BASE_URL', '');
 
 /*
 |--------------------------------------------------------------------------
-| ROOT PATH (FILE SYSTEM)
+| ROOT PATH (FILESYSTEM)
 |--------------------------------------------------------------------------
+| backend/includes → project root
 */
 define('ROOT_PATH', dirname(__DIR__, 2));
 
@@ -49,9 +43,8 @@ if (APP_ENV === 'development') {
 
 /*
 |--------------------------------------------------------------------------
-| DATABASE CONFIG
+| DATABASE CONFIG (PRODUCTION)
 |--------------------------------------------------------------------------
-| Uses environment variables in production
 */
 $dbHost = $_ENV['DB_HOST'] ?? null;
 $dbName = $_ENV['DB_NAME'] ?? null;
