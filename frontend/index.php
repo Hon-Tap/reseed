@@ -107,7 +107,7 @@ a { text-decoration: none; }
 .hero-overlay {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 10% 20%, rgba(6, 68, 14, 0.8) 0%, rgba(9, 44, 2, 0.95) 100%);
+    background: linear-gradient(90deg, #022c10 0%, rgba(2, 44, 16, 0.8) 60%, rgba(2, 44, 16, 0.2) 100%);
     z-index: 2;
 }
 
@@ -126,7 +126,7 @@ a { text-decoration: none; }
     right: -5%;
     width: 500px;
     height: 500px;
-    background: rgba(16, 185, 129, 0.2);
+    background: rgba(69, 185, 16, 0.2);
 }
 
 .hero::after {
@@ -134,7 +134,7 @@ a { text-decoration: none; }
     left: -10%;
     width: 400px;
     height: 400px;
-    background: rgba(245, 158, 11, 0.15); /* Subtle gold hint */
+    background: rgba(136, 245, 11, 0.15); /* Subtle gold hint */
     animation-delay: -5s;
 }
 
@@ -568,11 +568,11 @@ a { text-decoration: none; }
             <h1>Restoring Nature.<br><span>Reseeding Prosperity.</span></h1>
             <p class="lead">A community-led movement transforming fragile landscapes into resilient ecosystems and sustainable livelihoods.</p>
             
-            <div class="d-flex gap-3 flex-wrap align-items-center">
-                <a href="#about" class="btn btn-hero-primary btn-lg px-5 rounded-pill py-3 fw-bold">
+            <div class="flex flex-wrap items-center gap-4">
+                <a href="#about" class="inline-block px-10 py-4 text-lg font-bold text-white bg-blue-600 rounded-full shadow-lg transition-all duration-300 hover:bg-blue-700 hover:shadow-xl hover:-translate-y-1 active:scale-95">
                     Our Mission
                 </a>
-                <a href="#get-involved" class="btn btn-hero-outline btn-lg px-5 rounded-pill py-3 fw-bold">
+                <a href="#get-involved" class="inline-block px-10 py-4 text-lg font-bold text-blue-600 border-2 border-blue-600 rounded-full transition-all duration-300 hover:bg-blue-50 hover:-translate-y-1 active:scale-95">
                     Join The Movement
                 </a>
             </div>
@@ -732,9 +732,13 @@ a { text-decoration: none; }
             <h2>Let's Restore the Land Together</h2>
             <p class="lead">We are building a network of partners to transform South Sudan’s landscapes. Join us in creating a resilient future.</p>
             
-            <div class="d-flex align-items-center flex-wrap gap-4">
-                <button class="btn btn-luxury open-contact-modal">Partner With Us</button>
-                <span class="text-white-50 fw-bold small text-uppercase tracking-widest">Donations Opening Soon</span>
+            <div class="flex flex-wrap items-center gap-6">
+                <button class="open-contact-modal px-8 py-3 font-bold text-white uppercase tracking-widest bg-gradient-to-r from-gray-900 to-gray-700 border border-gray-600 rounded-sm shadow-2xl transition-all duration-300 hover:from-black hover:to-gray-800 hover:tracking-[0.2em] active:scale-95">
+                    Partner With Us
+                </button>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] opacity-80">
+                    Donations Opening Soon
+                </span>
             </div>
         </div>
     </div>
