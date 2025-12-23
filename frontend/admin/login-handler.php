@@ -1,5 +1,6 @@
 <?php
+// frontend/admin/login-handler.php
 declare(strict_types=1);
 
-// Public entry point → delegate to private backend logic
-require_once dirname(__DIR__, 2) . '/backend/admin/handlers/login-handler.php';
+// Move up one level to root, then to backend
+require_once dirname(__DIR__, 1) . '/backend/admin/handlers/login-handler.php';

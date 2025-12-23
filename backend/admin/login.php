@@ -154,7 +154,8 @@ body{
             <?= htmlspecialchars($errorText, ENT_QUOTES, 'UTF-8') ?>
         </div>
     <?php endif; ?>
-    <form method="POST" action="handlers/login-handler.php">
+
+    <form method="POST" action="/admin/login-handler.php">
         <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
         <div class="form-group">
