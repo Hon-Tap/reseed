@@ -16,18 +16,19 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 /* =====================================================
-    DEPENDENCIES (Path Correction based on Logs)
+    DEPENDENCIES
 ===================================================== */
 /**
- * Your Logs indicated:
- * 1. config.php is in: /var/www/html/includes/
- * 2. csrf.php is in:   /var/www/html/backend/admin/includes/
+ * PATH ANALYSIS:
+ * Current: /var/www/html/backend/admin/handlers/login-handler.php
+ * Target 1 (Config): /var/www/html/backend/includes/config.php 
+ * Target 2 (CSRF):   /var/www/html/backend/admin/includes/csrf.php
  */
 
-// Moves up 3 levels: backend/admin/handlers -> root/includes/config.php
-require_once dirname(__DIR__, 3) . '/includes/config.php';
+// Move up 2 levels: handlers -> admin -> backend. Then into includes/
+require_once dirname(__DIR__, 2) . '/includes/config.php';
 
-// Moves up 1 level: backend/admin/handlers -> backend/admin/includes/csrf.php
+// Move up 1 level: handlers -> admin. Then into includes/
 require_once dirname(__DIR__) . '/includes/csrf.php';
 
 /* =====================================================
@@ -49,7 +50,7 @@ if (!csrf_verify($_POST['csrf_token'] ?? null)) {
         echo json_encode(['success' => false, 'message' => 'Security check failed']);
         exit;
     }
-    header('Location: /admin.php?error=csrf'); // Adjusted to your admin.php filename
+    header('Location: /admin.php?error=csrf');
     exit;
 }
 
@@ -69,21 +70,20 @@ if ($username === '' || $password === '') {
 }
 
 /* =====================================================
-    BRUTE-FORCE THROTTLING (IP + Username)
+    BRUTE-FORCE THROTTLING
 ===================================================== */
 $ip  = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 $key = 'login_throttle_' . md5($ip . '|' . $username);
 
 $_SESSION[$key] ??= ['count' => 0, 'last' => time()];
 
-// Reset after 10 minutes
 if (time() - $_SESSION[$key]['last'] > 600) {
     $_SESSION[$key] = ['count' => 0, 'last' => time()];
 }
 
 if ($_SESSION[$key]['count'] >= 5) {
     if ($isAjax) {
-        echo json_encode(['success' => false, 'message' => 'Too many attempts. Try again later.']);
+        echo json_encode(['success' => false, 'message' => 'Too many attempts.']);
         exit;
     }
     header('Location: /admin.php?error=locked');
@@ -91,9 +91,10 @@ if ($_SESSION[$key]['count'] >= 5) {
 }
 
 /* =====================================================
-    DATABASE LOOKUP & AUTHENTICATION
+    DATABASE LOOKUP
 ===================================================== */
 try {
+    // Ensure $pdo is defined in your backend/includes/config.php
     $stmt = $pdo->prepare(
         'SELECT id, username, password_hash, role 
          FROM users 
@@ -104,7 +105,6 @@ try {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($password, $user['password_hash'])) {
-        // Success: Clear throttle and refresh session
         unset($_SESSION[$key]);
         session_regenerate_id(true);
 
@@ -117,20 +117,18 @@ try {
             exit;
         }
 
-        // Relative path to backend/admin/dashboard.php
         header('Location: ../dashboard.php');
         exit;
     }
 } catch (PDOException $e) {
-    // Log error and show 500
     error_log("Login DB Error: " . $e->getMessage());
     http_response_code(500);
-    die("A database error occurred. Please check logs.");
+    die("Database connection error. Ensure Render environment variables are set.");
 }
 
 /* =====================================================
     FAILED LOGIN
-===================================================== */
+==================================================== */
 $_SESSION[$key]['count']++;
 $_SESSION[$key]['last'] = time();
 
