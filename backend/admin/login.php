@@ -5,9 +5,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-require_once dirname(__DIR__, 2) . '/includes/config.php';
-require_once ROOT_PATH . '/backend/admin/includes/csrf.php';
-
+require_once dirname(__DIR__) . '/includes/config.php';
+require_once __DIR__ . '/includes/csrf.php';
 
 /* Redirect if already logged in */
 if (!empty($_SESSION['admin_id'])) {

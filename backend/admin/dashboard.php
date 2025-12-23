@@ -1,7 +1,5 @@
 <?php
-require_once ROOT_PATH . '/backend/admin/includes/admin_header.php';
-
-
+include "includes/admin_header.php";
 
 // --- Metrics ---
 try {
@@ -159,4 +157,4 @@ try {
   </div>
 </div>
 
-<?php include ROOT_PATH . '/backend/admin/includes/admin_footer.php'; ?>
+<?php include "includes/admin_footer.php"; ?>

@@ -15,7 +15,7 @@ if (
     empty($_SESSION['admin_id']) ||
     empty($_SESSION['admin_role'])
 ) {
-    header('Location: login.php');
+    header('Location: /admin/login.php');
     exit;
 }
 
