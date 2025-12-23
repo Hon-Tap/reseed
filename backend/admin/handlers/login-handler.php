@@ -21,8 +21,11 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
    DEPENDENCIES
 ===================================================== */
 
-require_once dirname(__DIR__, 2) . '/includes/config.php';
-require_once dirname(__DIR__, 2) . '/includes/csrf.php';
+// config.php is 3 levels up: handlers -> admin -> backend -> [root]/includes/
+require_once dirname(__DIR__, 3) . '/includes/config.php';
+
+// csrf.php is 1 level up and inside the admin's own includes folder
+require_once dirname(__DIR__) . '/includes/csrf.php';
 
 
 /* =====================================================
