@@ -17,8 +17,10 @@ include "includes/admin_header.php";
             <p class="text-gray-500">You can upload a single image or multiple files at once.</p>
         </div>
 
-        <form action="handlers/gallery-handler.php" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
+        <form action="<?= admin_url('handlers/gallery-handler.php') ?>"
+      method="POST"
+      enctype="multipart/form-data"
+      class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-6">
                 <div class="bg-white p-8 rounded-2xl shadow-sm border-2 border-dashed border-gray-200 text-center transition hover:border-green-400 group">
                     <input type="file" name="images[]" id="image-input" multiple accept="image/*" class="hidden" onchange="handleFiles(this.files)">

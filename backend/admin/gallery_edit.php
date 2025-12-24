@@ -13,7 +13,10 @@ $item = $stmt->fetch();
 <h2>Edit Gallery Item</h2>
 
 <div class="form-card">
-    <form action="handlers/gallery-handler.php" method="POST" enctype="multipart/form-data" id="editGalleryForm">
+    <form action="<?= admin_url('handlers/gallery-handler.php') ?>"
+      method="POST"
+      enctype="multipart/form-data"
+      id="editGalleryForm">
         <input type="hidden" name="id" value="<?= $item['id'] ?>">
 
         <label for="caption">Caption</label>

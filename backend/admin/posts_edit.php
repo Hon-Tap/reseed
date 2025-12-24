@@ -38,11 +38,13 @@ if (!$post) {
 
     <!-- ================= FORM ================= -->
     <form
-      action="handlers/post-handler.php"
-      method="POST"
-      enctype="multipart/form-data"
-      class="grid grid-cols-1 lg:grid-cols-3 gap-8"
-    >
+  action="<?= admin_url('handlers/post-handler.php') ?>"
+  method="POST"
+  enctype="multipart/form-data"
+  class="grid grid-cols-1 lg:grid-cols-3 gap-8"
+>
+
+
       <input type="hidden" name="id" value="<?= $post['id'] ?>">
 
       <!-- ================= MAIN CONTENT ================= -->

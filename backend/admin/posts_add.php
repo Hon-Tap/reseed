@@ -6,7 +6,10 @@ include "includes/admin_header.php";
 
 <h2>Add News / Post</h2>
 
-<form action="handlers/post-handler.php" method="POST" enctype="multipart/form-data" class="form-card">
+<form action="<?= admin_url('handlers/post-handler.php') ?>"
+      method="POST"
+      enctype="multipart/form-data"
+      class="form-card">
 
     <label>Title</label>
     <input type="text" name="title" required>
