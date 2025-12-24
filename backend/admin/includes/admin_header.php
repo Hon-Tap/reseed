@@ -2,9 +2,10 @@
 declare(strict_types=1);
 
 /**
- * Admin Header
+ * Admin Header (REAL FILE)
  * --------------------------------------------------
  * Shared layout + navigation for Admin Panel
+ * Executed via proxy: /frontend/admin/*.php
  */
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -18,8 +19,12 @@ require_once __DIR__ . '/admin_auth.php';
    CONSTANTS & HELPERS
 ================================================== */
 
+/**
+ * IMPORTANT:
+ * This must point to the PROXY URL, not the real folder
+ */
 if (!defined('ADMIN_BASE_URL')) {
-    define('ADMIN_BASE_URL', '/backend/admin');
+    define('ADMIN_BASE_URL', '/admin');
 }
 
 $currentPage = basename($_SERVER['PHP_SELF']);
@@ -243,7 +248,7 @@ $adminInitials = strtoupper(substr($adminName, 0, 2));
 
 <body>
 
-<aside class="sidebar" id="sidebar">
+<aside class="sidebar">
     <div class="brand">
         <img src="/assets/images/Re-logo.png" alt="ReSEED">
         <div>

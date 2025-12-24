@@ -2,15 +2,27 @@
 declare(strict_types=1);
 
 /**
- * Admin Dashboard
+ * Admin Dashboard (REAL FILE)
  * --------------------------------------------------
- * Central overview for ReSEED Admin Panel
+ * This file is NOT web-accessible directly.
+ * It is executed via proxy: /frontend/admin/dashboard.php
  */
 
-$adminDir = __DIR__;
+/**
+ * IMPORTANT:
+ * - This file must work when INCLUDED, not requested directly
+ * - Never rely on URL paths here
+ * - Always rely on filesystem paths
+ */
 
-require_once $adminDir . '/includes/admin_auth.php';
-require_once $adminDir . '/includes/admin_header.php';
+$adminRoot = __DIR__;
+
+/* ==================================================
+   BOOTSTRAP
+================================================== */
+
+require_once $adminRoot . '/includes/admin_auth.php';
+require_once $adminRoot . '/includes/admin_header.php';
 
 /* ==================================================
    DASHBOARD METRICS
@@ -269,4 +281,4 @@ try {
     </div>
 </div>
 
-<?php require_once $adminDir . '/includes/admin_footer.php'; ?>
+<?php require_once $adminRoot . '/includes/admin_footer.php'; ?>
