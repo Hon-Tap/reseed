@@ -1,4 +1,4 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../admin/create_admin.php';
+require_once __DIR__ . '/../../backend/admin/create_admin.php';
