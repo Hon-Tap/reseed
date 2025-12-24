@@ -10,13 +10,14 @@ $adminDir = __DIR__;
 // 1. Include Auth Check (Ensures user is logged in)
 require_once $adminDir . '/includes/admin_auth.php';
 
-// 2. Include Header
+// 2. Include Header (Logo and Sidebar are inside here)
 require_once $adminDir . '/includes/admin_header.php';
 
 /* =====================================================
-   METRICS (Using $pdo from config.php included in admin_header or auth)
+   METRICS
    ===================================================== */
 try {
+    // We use $pdo from config.php (which is included via admin_auth.php)
     $stats = [
         'projects' => $pdo->query("SELECT COUNT(*) FROM projects")->fetchColumn(),
         'posts'    => $pdo->query("SELECT COUNT(*) FROM posts")->fetchColumn(),
@@ -94,19 +95,19 @@ try {
     <div class="action-card">
         <h4>Manage Projects</h4>
         <p>Create, update and showcase field activities.</p>
-        <a href="projects.php">Go to Projects →</a>
+        <a href="dashboard.php?page=projects">Go to Projects →</a>
     </div>
 
     <div class="action-card">
         <h4>Publish News</h4>
         <p>Keep donors and communities informed.</p>
-        <a href="posts.php">Manage Posts →</a>
+        <a href="dashboard.php?page=posts">Manage Posts →</a>
     </div>
 
     <div class="action-card">
         <h4>View Messages</h4>
         <p>Read and respond to inquiries.</p>
-        <a href="contacts.php">Open Inbox →</a>
+        <a href="dashboard.php?page=contacts">Open Inbox →</a>
     </div>
 </div>
 

@@ -7,15 +7,17 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Adjusted paths for the new router structure
 require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/admin_auth.php';
 
 
 /* ===================== HELPERS ===================== */
-$currentPage = basename($_SERVER['PHP_SELF']);
+// We now check the 'page' query parameter instead of the filename
+$currentPage = $_GET['page'] ?? 'dashboard';
 
-function isActive(string $page, string $current): string {
-    return $page === $current ? 'active' : '';
+function isActive(string $pageSlug, string $current): string {
+    return $pageSlug === $current ? 'active' : '';
 }
 
 /* ===================== NOTIFICATIONS ===================== */
@@ -263,7 +265,7 @@ a{text-decoration:none;color:inherit}
   <div>
 
     <div class="brand">
-      <img src="/reseed/assets/images/Re-logo.png" alt="ReSEED Logo">
+      <img src="/assets/images/Re-logo.png" alt="ReSEED Logo">
       <div class="brand-text">
         <h1>ReSEED Admin</h1>
         <small>Control Panel</small>
@@ -273,30 +275,37 @@ a{text-decoration:none;color:inherit}
     <div class="nav">
 
       <div class="nav-section-title">Overview</div>
-      <a href="dashboard.php" data-tooltip="Dashboard" class="<?= isActive('dashboard.php',$currentPage) ?>">
+      
+      <a href="dashboard.php?page=dashboard" data-tooltip="Dashboard" class="<?= isActive('dashboard',$currentPage) ?>">
         <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
       </a>
 
       <div class="nav-section-title">Content</div>
-      <a href="projects.php" data-tooltip="Projects" class="<?= isActive('projects.php',$currentPage) ?>">
+      
+      <a href="dashboard.php?page=projects" data-tooltip="Projects" class="<?= isActive('projects',$currentPage) ?>">
         <i class="fa-solid fa-diagram-project"></i><span>Projects</span>
       </a>
-      <a href="posts.php" data-tooltip="Posts" class="<?= isActive('posts.php',$currentPage) ?>">
+
+      <a href="dashboard.php?page=posts" data-tooltip="Posts" class="<?= isActive('posts',$currentPage) ?>">
         <i class="fa-solid fa-newspaper"></i><span>Posts</span>
       </a>
-      <a href="gallery.php" data-tooltip="Gallery" class="<?= isActive('gallery.php',$currentPage) ?>">
+
+      <a href="dashboard.php?page=gallery" data-tooltip="Gallery" class="<?= isActive('gallery',$currentPage) ?>">
         <i class="fa-solid fa-images"></i><span>Gallery</span>
       </a>
 
       <div class="nav-section-title">System</div>
-      <a href="contacts.php" data-tooltip="Contacts" class="<?= isActive('contacts.php',$currentPage) ?>">
+
+      <a href="dashboard.php?page=contacts" data-tooltip="Contacts" class="<?= isActive('contacts',$currentPage) ?>">
         <i class="fa-solid fa-envelope"></i><span>Contacts</span>
         <?php if ($contactCount > 0): ?><span class="badge"><?= $contactCount ?></span><?php endif; ?>
       </a>
-      <a href="create_admin.php" data-tooltip="Admins" class="<?= isActive('create_admin.php',$currentPage) ?>">
+
+      <a href="dashboard.php?page=create_admin" data-tooltip="Admins" class="<?= isActive('create_admin',$currentPage) ?>">
         <i class="fa-solid fa-user-shield"></i><span>Admins</span>
       </a>
-      <a href="logout.php" data-tooltip="Logout" class="logout">
+
+      <a href="dashboard.php?page=logout" data-tooltip="Logout" class="logout">
         <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
       </a>
 
