@@ -1,23 +1,20 @@
 <?php
-// includes/admin_header.php
+// backend/admin/includes/admin_header.php
 declare(strict_types=1);
 
-/* ===================== SESSION & AUTH ===================== */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Adjusted paths for the new router structure
 require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/admin_auth.php';
 
-
 /* ===================== HELPERS ===================== */
-// We now check the 'page' query parameter instead of the filename
-$currentPage = $_GET['page'] ?? 'dashboard';
+$currentPage = basename($_SERVER['PHP_SELF']);
 
-function isActive(string $pageSlug, string $current): string {
-    return $pageSlug === $current ? 'active' : '';
+function isActive(string $fileName): string {
+    $current = basename($_SERVER['PHP_SELF']);
+    return ($current === $fileName) ? 'active' : '';
 }
 
 /* ===================== NOTIFICATIONS ===================== */
@@ -31,299 +28,254 @@ try {
 $adminName     = $_SESSION['admin_name'] ?? 'Admin';
 $adminInitials = strtoupper(substr($adminName, 0, 2));
 ?>
-
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>ReSEED Admin</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <title>ReSEED | Admin Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #166534;
+            --primary-light: #dcfce7;
+            --accent: #22c55e;
+            --danger: #ef4444;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --nav-width: 280px;
+        }
 
-<style>
-/* ===================== THEME ===================== */
-:root{
-  --bg:#f4f7fb;
-  --surface:#ffffff;
-  --text:#0f172a;
-  --muted:#6b7280;
-  --primary:#166534;
-  --accent:#16a34a;
-  --danger:#ef4444;
-  --radius:14px;
-  --shadow:0 10px 30px rgba(0,0,0,.08);
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        
+        body {
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
 
-  --nav-width:260px;
-  --nav-collapsed:72px;
-}
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--nav-width);
+            background: #0f172a; /* Dark sleek professional look */
+            color: #f8fafc;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-/* ===================== RESET ===================== */
-*{box-sizing:border-box}
-html,body{
-  margin:0;
-  height:100%;
-  font-family:Inter,system-ui;
-  background:var(--bg);
-  color:var(--text);
-}
-a{text-decoration:none;color:inherit}
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 12px 32px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 24px;
+        }
 
-/* ===================== APP ===================== */
-.app{display:flex;min-height:100vh}
-.main{
-  flex:1;
-  margin-left:var(--nav-width);
-  transition:margin .3s ease;
-  display:flex;
-  flex-direction:column;
-}
+        .brand img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
+            background: white;
+            border-radius: 8px;
+            padding: 4px;
+        }
 
-/* ===================== SIDEBAR ===================== */
-.sidebar{
-  position:fixed;
-  inset:0 auto 0 0;
-  width:var(--nav-width);
-  background:linear-gradient(180deg,var(--accent),var(--primary));
-  color:#fff;
-  padding:18px 10px;
-  display:flex;
-  flex-direction:column;
-  z-index:100;
-  transition:width .3s ease, transform .3s ease;
-}
+        .brand h1 { font-size: 18px; font-weight: 800; margin: 0; letter-spacing: -0.5px; }
 
-/* Collapsed (desktop) */
-.sidebar.collapsed{width:var(--nav-collapsed)}
-.sidebar.collapsed .brand-text,
-.sidebar.collapsed .nav span,
-.sidebar.collapsed .nav-section-title,
-.sidebar.collapsed .badge{display:none}
-.sidebar.collapsed .nav a{justify-content:center}
+        /* Nav Links */
+        .nav-group { margin-bottom: 24px; }
+        .nav-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            padding: 0 16px 12px;
+            font-weight: 700;
+        }
 
-/* ===================== BRAND ===================== */
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:8px 10px;
-  margin-bottom:20px;
-}
-.brand img{
-  width:40px;height:40px;
-  border-radius:10px;
-  background:#fff;
-  object-fit:contain;
-}
-.brand-text h1{
-  margin:0;
-  font-size:15px;
-  font-weight:800;
-}
-.brand-text small{
-  font-size:11px;
-  opacity:.8;
-}
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
 
-/* ===================== NAV ===================== */
-.nav{display:flex;flex-direction:column;gap:8px}
+        .nav-link i { font-size: 18px; width: 24px; text-align: center; }
 
-/* Section */
-.nav-section-title{
-  padding:8px 14px;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  opacity:.7;
-}
+        .nav-link:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
 
-/* Links */
-.nav a{
-  position:relative;
-  display:flex;
-  align-items:center;
-  gap:14px;
-  padding:12px 14px;
-  border-radius:12px;
-  font-weight:600;
-  font-size:14px;
-  transition:.2s;
-}
-.nav a i{
-  width:22px;
-  text-align:center;
-  font-size:16px;
-}
-.nav a:hover{background:rgba(255,255,255,.15)}
-.nav a.active{
-  background:rgba(255,255,255,.28);
-  box-shadow:inset 4px 0 0 #fff;
-}
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(22, 101, 52, 0.3);
+        }
 
-/* Badge */
-.badge{
-  margin-left:auto;
-  background:var(--danger);
-  color:#fff;
-  font-size:11px;
-  font-weight:800;
-  padding:2px 8px;
-  border-radius:999px;
-}
+        .badge {
+            margin-left: auto;
+            background: var(--danger);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            color: white;
+        }
 
-/* Tooltip (collapsed only) */
-.sidebar.collapsed .nav a::after{
-  content:attr(data-tooltip);
-  position:absolute;
-  left:78px;
-  top:50%;
-  transform:translateY(-50%);
-  background:#111827;
-  color:#fff;
-  padding:6px 10px;
-  border-radius:6px;
-  font-size:12px;
-  white-space:nowrap;
-  opacity:0;
-  pointer-events:none;
-  transition:.2s;
-}
-.sidebar.collapsed .nav a:hover::after{opacity:1}
+        /* Main Content Area */
+        .main-wrapper {
+            flex: 1;
+            margin-left: var(--nav-width);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-/* Logout */
-.nav a.logout{
-  margin-top:16px;
-  background:rgba(255,255,255,.18);
-}
-.nav a.logout:hover{background:rgba(239,68,68,.35)}
+        .top-header {
+            height: 72px;
+            background: var(--surface);
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+        }
 
-/* ===================== TOPBAR ===================== */
-.topbar{
-  height:72px;
-  background:var(--surface);
-  box-shadow:var(--shadow);
-  display:flex;
-  align-items:center;
-  padding:0 20px;
-  gap:16px;
-  position:sticky;
-  top:0;
-  z-index:1000;
-}
-.hamburger{
-  border:0;
-  background:none;
-  font-size:20px;
-  cursor:pointer;
-}
-.spacer{flex:1}
-.user-menu{display:flex;align-items:center;gap:10px}
-.user-avatar{
-  width:38px;height:38px;
-  border-radius:12px;
-  background:linear-gradient(135deg,var(--accent),var(--primary));
-  display:grid;
-  place-items:center;
-  color:#fff;
-  font-weight:800;
-}
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 16px 6px 6px;
+            background: #f1f5f9;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+        }
 
-/* ===================== CONTENT ===================== */
-.container{
-  padding:24px;
-  max-width:1400px;
-  width:100%;
-}
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 12px;
+        }
 
-/* ===================== MOBILE ===================== */
-.overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.45);
-  display:none;
-  z-index:95;
-}
-.overlay.show{display:block}
+        .container-fluid { padding: 32px; max-width: 1400px; margin: 0 auto; width: 100%; }
 
-@media(max-width:900px){
-  .sidebar{transform:translateX(-100%)}
-  .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0}
-}
-</style>
+        .logout-btn {
+            margin-top: auto;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 24px;
+        }
+
+        .logout-link:hover { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-wrapper { margin-left: 0; }
+            .sidebar.open { transform: translateX(0); }
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="overlay" id="overlay"></div>
-
-<div class="app">
-
-<nav class="sidebar" id="sidebar">
-  <div>
-
+<aside class="sidebar" id="sidebar">
     <div class="brand">
-      <img src="/assets/images/Re-logo.png" alt="ReSEED Logo">
-      <div class="brand-text">
-        <h1>ReSEED Admin</h1>
-        <small>Control Panel</small>
-      </div>
+        <img src="/assets/images/Re-logo.png" alt="ReSEED">
+        <div>
+            <h1>ReSEED</h1>
+            <div style="font-size: 10px; opacity: 0.6; font-weight: 600;">ADMIN PANEL</div>
+        </div>
     </div>
 
-    <div class="nav">
+    <nav style="flex: 1">
+        <div class="nav-group">
+            <div class="nav-label">Overview</div>
+            <a href="dashboard.php" class="nav-link <?= isActive('dashboard.php') ?>">
+                <i class="fa-solid fa-grid-2"></i> Dashboard
+            </a>
+        </div>
 
-      <div class="nav-section-title">Overview</div>
-      
-      <a href="dashboard.php?page=dashboard" data-tooltip="Dashboard" class="<?= isActive('dashboard',$currentPage) ?>">
-        <i class="fa-solid fa-chart-pie"></i><span>Dashboard</span>
-      </a>
+        <div class="nav-group">
+            <div class="nav-label">Content Management</div>
+            <a href="projects.php" class="nav-link <?= isActive('projects.php') ?>">
+                <i class="fa-solid fa-leaf"></i> Projects
+            </a>
+            <a href="posts.php" class="nav-link <?= isActive('posts.php') ?>">
+                <i class="fa-solid fa-pen-nib"></i> Blog Posts
+            </a>
+            <a href="gallery.php" class="nav-link <?= isActive('gallery.php') ?>">
+                <i class="fa-solid fa-layer-group"></i> Gallery
+            </a>
+        </div>
 
-      <div class="nav-section-title">Content</div>
-      
-      <a href="dashboard.php?page=projects" data-tooltip="Projects" class="<?= isActive('projects',$currentPage) ?>">
-        <i class="fa-solid fa-diagram-project"></i><span>Projects</span>
-      </a>
+        <div class="nav-group">
+            <div class="nav-label">System</div>
+            <a href="contacts.php" class="nav-link <?= isActive('contacts.php') ?>">
+                <i class="fa-solid fa-envelope"></i> Contacts
+                <?php if ($contactCount > 0): ?>
+                    <span class="badge"><?= $contactCount ?></span>
+                <?php endif; ?>
+            </a>
+            <a href="create_admin.php" class="nav-link <?= isActive('create_admin.php') ?>">
+                <i class="fa-solid fa-shield-halved"></i> Administrators
+            </a>
+        </div>
+    </nav>
 
-      <a href="dashboard.php?page=posts" data-tooltip="Posts" class="<?= isActive('posts',$currentPage) ?>">
-        <i class="fa-solid fa-newspaper"></i><span>Posts</span>
-      </a>
-
-      <a href="dashboard.php?page=gallery" data-tooltip="Gallery" class="<?= isActive('gallery',$currentPage) ?>">
-        <i class="fa-solid fa-images"></i><span>Gallery</span>
-      </a>
-
-      <div class="nav-section-title">System</div>
-
-      <a href="dashboard.php?page=contacts" data-tooltip="Contacts" class="<?= isActive('contacts',$currentPage) ?>">
-        <i class="fa-solid fa-envelope"></i><span>Contacts</span>
-        <?php if ($contactCount > 0): ?><span class="badge"><?= $contactCount ?></span><?php endif; ?>
-      </a>
-
-      <a href="dashboard.php?page=create_admin" data-tooltip="Admins" class="<?= isActive('create_admin',$currentPage) ?>">
-        <i class="fa-solid fa-user-shield"></i><span>Admins</span>
-      </a>
-
-      <a href="dashboard.php?page=logout" data-tooltip="Logout" class="logout">
-        <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
-      </a>
-
+    <div class="logout-btn">
+        <a href="logout.php" class="nav-link logout-link">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+        </a>
     </div>
-  </div>
-</nav>
+</aside>
 
-<main class="main">
-
-<header class="topbar">
-  <button class="hamburger" id="hamburger" aria-label="Toggle sidebar">
-    <i class="fa-solid fa-bars"></i>
-  </button>
-  <div class="spacer"></div>
-  <div class="user-menu">
-    <div class="user-avatar"><?= $adminInitials ?></div>
-    <strong><?= htmlspecialchars($adminName) ?></strong>
-  </div>
-</header>
-
-<section class="container">
+<div class="main-wrapper">
+    <header class="top-header">
+        <button id="mobile-toggle" style="display: none; background: none; border: none; font-size: 20px; cursor: pointer;">
+            <i class="fa-solid fa-bars-staggered"></i>
+        </button>
+        <div class="page-context">
+            <span style="color: var(--text-muted); font-size: 14px;">Welcome back,</span>
+            <span style="font-weight: 700; color: var(--text-main);"> <?= htmlspecialchars($adminName) ?></span>
+        </div>
+        
+        <div class="user-pill">
+            <div class="user-avatar"><?= $adminInitials ?></div>
+            <span>Admin Account</span>
+        </div>
+    </header>
+    
+    <div class="container-fluid">

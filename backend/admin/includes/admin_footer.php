@@ -1,130 +1,101 @@
 <?php
-// includes/admin_footer.php
+// backend/admin/includes/admin_footer.php
 ?>
-
-        </section>
-
-        <!-- ===================== FOOTER ===================== -->
-        <footer class="app-footer">
-            © <?= date('Y') ?> ReSEED Admin · Built for clarity & control
+        </section> <footer class="app-footer">
+            <div class="footer-content">
+                <span>© <?= date('Y') ?> <strong>ReSEED</strong> Admin Panel</span>
+                <span class="footer-tag">Refined Control • v2.0</span>
+            </div>
         </footer>
-
-    </main>
-</div>
-
-<script>
-/* =========================================================
-   RESEED ADMIN UI ENGINE
-   (Footer Scoped — Safe & Predictable)
-   ========================================================= */
+    </main> </div> <script>
 (() => {
-  const sidebar   = document.getElementById('sidebar');
-  const hamburger = document.getElementById('hamburger');
-  const overlay   = document.getElementById('overlay');
+    const sidebar = document.getElementById('sidebar');
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const body = document.body;
 
-  if (!sidebar || !hamburger) return;
-
-  const MOBILE = 900;
-  const STORE  = 'reseed_sidebar_collapsed';
-
-  /* =====================
-     INITIAL STATE
-  ===================== */
-  if (window.innerWidth > MOBILE) {
-    sidebar.classList.toggle(
-      'collapsed',
-      localStorage.getItem(STORE) === 'true'
-    );
-  }
-
-  /* =====================
-     SIDEBAR ACTIONS
-  ===================== */
-  function openMobile() {
-    sidebar.classList.add('open');
-    overlay?.classList.add('show');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeMobile() {
-    sidebar.classList.remove('open');
-    overlay?.classList.remove('show');
-    document.body.style.overflow = '';
-  }
-
-  function toggleDesktop() {
-    const collapsed = sidebar.classList.toggle('collapsed');
-    localStorage.setItem(STORE, String(collapsed));
-  }
-
-  hamburger.addEventListener('click', () => {
-    window.innerWidth <= MOBILE ? openMobile() : toggleDesktop();
-  });
-
-  overlay?.addEventListener('click', closeMobile);
-
-  /* =====================
-     KEYBOARD SUPPORT
-  ===================== */
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeMobile();
-  });
-
-  /* =====================
-     TOUCH GESTURES
-  ===================== */
-  let startX = 0;
-
-  document.addEventListener('touchstart', e => {
-    if (e.touches.length === 1) {
-      startX = e.touches[0].clientX;
+    // 1. Mobile Sidebar Toggle
+    if (mobileToggle && sidebar) {
+        mobileToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('open');
+        });
     }
-  }, { passive: true });
 
-  document.addEventListener('touchend', e => {
-    if (!startX) return;
+    // 2. Close sidebar when clicking outside on mobile
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 1024 && 
+            sidebar.classList.contains('open') && 
+            !sidebar.contains(e.target) && 
+            e.target !== mobileToggle) {
+            sidebar.classList.remove('open');
+        }
+    });
 
-    const endX = e.changedTouches[0].clientX;
-    const diff = endX - startX;
+    // 3. Smooth fade-in for page content
+    const container = document.querySelector('.container-fluid');
+    if (container) {
+        container.style.opacity = '0';
+        container.style.transition = 'opacity 0.4s ease-in-out';
+        setTimeout(() => container.style.opacity = '1', 50);
+    }
 
-    if (Math.abs(diff) < 80) return;
-
-    if (diff > 0 && startX < 40) openMobile();
-    if (diff < 0) closeMobile();
-
-    startX = 0;
-  }, { passive: true });
-
-  /* =====================
-     LIVE CONTACT BADGE
-  ===================== */
-  async function refreshContactBadge() {
-    try {
-      const res = await fetch('ajax/contact_count.php', { cache: 'no-store' });
-      if (!res.ok) return;
-
-      const { count } = await res.json();
-      const badge = document.querySelector('.nav .badge');
-      if (!badge) return;
-
-      badge.textContent = count;
-      badge.style.display = count > 0 ? 'inline-flex' : 'none';
-    } catch (_) {}
-  }
-
-  setInterval(refreshContactBadge, 30000);
+    // 4. Contact Badge Auto-Refresh (Optional)
+    async function refreshContactBadge() {
+        try {
+            const res = await fetch('ajax/contact_count.php');
+            if (res.ok) {
+                const data = await res.json();
+                const badge = document.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = data.count;
+                    badge.style.display = data.count > 0 ? 'block' : 'none';
+                }
+            }
+        } catch (err) { /* silent fail */ }
+    }
+    // setInterval(refreshContactBadge, 60000); 
 })();
 </script>
 
 <style>
-/* ===================== FOOTER ===================== */
-.app-footer{
-  padding:16px 24px;
-  font-size:13px;
-  color:#64748b;
-  text-align:center;
-  background:transparent;
-}
+    .app-footer {
+        margin-top: auto;
+        padding: 24px 32px;
+        border-top: 1px solid #e2e8f0;
+        background: white;
+    }
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #64748b;
+        font-size: 13px;
+    }
+    .footer-tag {
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 11px;
+        opacity: 0.7;
+    }
+
+    /* Mobile specific footer tweaks */
+    @media (max-width: 768px) {
+        .footer-content {
+            flex-direction: column;
+            gap: 8px;
+            text-align: center;
+        }
+    }
+
+    /* Custom Scrollbar for modern look */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { 
+        background: #cbd5e1; 
+        border-radius: 10px; 
+    }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 </style>
 
 </body>

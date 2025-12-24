@@ -2,30 +2,39 @@
 declare(strict_types=1);
 
 /* =====================================================
-   SESSION BOOTSTRAP
+   SESSION BOOTSTRAP & SECURITY
 ===================================================== */
 if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
+    // Set secure cookie params before starting session
+    session_start([
+        'cookie_httponly' => true,
+        'cookie_secure'   => isset($_SERVER['HTTPS']),
+        'use_strict_mode' => true,
+    ]);
 }
 
 /* =====================================================
    DEPENDENCIES
-===================================================== */
-/**
- * Current Path: /backend/admin/includes/admin_auth.php
- * Config Path:  /backend/includes/config.php
- */
+==================================================== */
 require_once dirname(__DIR__, 2) . '/includes/config.php';
 
 /* =====================================================
    BASE AUTH CHECK
 ===================================================== */
-if (
-    empty($_SESSION['admin_id']) ||
-    empty($_SESSION['admin_role'])
-) {
-    // Redirect to the public-facing login page at the root
-    header('Location: /admin.php');
+// Check if user is logged in
+if (empty($_SESSION['admin_id']) || empty($_SESSION['admin_role'])) {
+    // Use a relative path or a defined constant to avoid 404s
+    header('Location: login.php'); 
+    exit;
+}
+
+// Session Hijacking Protection: Check User Agent
+if (!isset($_SESSION['user_agent'])) {
+    $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
+} else if ($_SESSION['user_agent'] !== $_SERVER['HTTP_USER_AGENT']) {
+    session_unset();
+    session_destroy();
+    header('Location: login.php?error=session_invalid');
     exit;
 }
 
@@ -40,6 +49,7 @@ function require_role(string $role): void
 {
     if (($_SESSION['admin_role'] ?? '') !== $role) {
         http_response_code(403);
+        include __DIR__ . '/../403.php'; // Optional: show a nice error page
         exit('Forbidden: Insufficient permissions.');
     }
 }
