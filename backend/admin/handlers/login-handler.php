@@ -18,13 +18,6 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 /* =====================================================
     DEPENDENCIES
 ===================================================== */
-/**
- * PATH ANALYSIS:
- * Current: /var/www/html/backend/admin/handlers/login-handler.php
- * Target 1 (Config): /var/www/html/backend/includes/config.php 
- * Target 2 (CSRF):   /var/www/html/backend/admin/includes/csrf.php
- */
-
 // Move up 2 levels: handlers -> admin -> backend. Then into includes/
 require_once dirname(__DIR__, 2) . '/includes/config.php';
 
@@ -94,7 +87,6 @@ if ($_SESSION[$key]['count'] >= 5) {
     DATABASE LOOKUP
 ===================================================== */
 try {
-    // Ensure $pdo is defined in your backend/includes/config.php
     $stmt = $pdo->prepare(
         'SELECT id, username, password_hash, role 
          FROM users 
@@ -113,17 +105,19 @@ try {
         $_SESSION['admin_role'] = (string) ($user['role'] ?? 'admin');
 
         if ($isAjax) {
-            echo json_encode(['success' => true, 'redirect' => 'dashboard.php']);
+            // Pointing to the frontend proxy
+            echo json_encode(['success' => true, 'redirect' => '/dashboard.php']);
             exit;
         }
 
-        header('Location: ../dashboard.php');
+        // REDIRECT FIX: Point to the root frontend proxy
+        header('Location: /dashboard.php');
         exit;
     }
 } catch (PDOException $e) {
     error_log("Login DB Error: " . $e->getMessage());
     http_response_code(500);
-    die("Database connection error. Ensure Render environment variables are set.");
+    die("Database connection error.");
 }
 
 /* =====================================================
