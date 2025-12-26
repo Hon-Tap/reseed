@@ -1,8 +1,11 @@
 <?php
 declare(strict_types=1);
 
-include "includes/admin_auth.php";
-include "../includes/config.php";
+/**
+ * Admin Projects Index
+ * Backend source file (proxied via frontend/admin/projects.php)
+ */
+
 require_once __DIR__ . '/includes/admin_header.php';
 
 /* ===================== SEARCH ===================== */
@@ -12,14 +15,16 @@ $stmt = $pdo->prepare("
     SELECT id, title, slug, status, location, start_date, end_date,
            cover_image, media_type, featured, created_at
     FROM projects
-    WHERE title LIKE ?
+    WHERE title ILIKE ?
     ORDER BY created_at DESC
 ");
-$stmt->execute(["%$search%"]);
+$stmt->execute(["%{$search}%"]);
 $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$uploadPath = '../uploads/projects/';
+/* Public uploads path */
+$uploadPath = '/uploads/projects/';
 ?>
+
 
 <!-- Tailwind (page-local, like posts.php) -->
 <script src="https://cdn.tailwindcss.com"></script>
