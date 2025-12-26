@@ -1,79 +1,77 @@
 <?php
 declare(strict_types=1);
 
-require_once dirname(__DIR__) . '/includes/config.php';
-require_once __DIR__ . '/includes/admin_auth.php';
-require_once __DIR__ . '/includes/admin_header.php';
+$adminRoot = __DIR__;
+require_once $adminRoot . '/includes/config.php';
+require_once $adminRoot . '/includes/admin_auth.php';
+require_once $adminRoot . '/includes/admin_header.php';
 
 $stmt = $pdo->query("SELECT * FROM gallery ORDER BY id DESC");
 $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 $uploadPath = UPLOAD_URL . '/gallery/';
 ?>
 
-
 <script src="https://cdn.tailwindcss.com"></script>
 
-<div class="p-6 bg-gray-50 min-h-screen">
+<div class="p-8 bg-[#f8fafc] min-h-screen">
     <div class="max-w-7xl mx-auto">
         
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
             <div>
-                <h2 class="text-3xl font-bold text-gray-800 tracking-tight">Gallery Manager</h2>
-                <p class="text-gray-500 text-sm">Organize and manage your site's visual library.</p>
+                <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Gallery Library</h1>
+                <p class="text-slate-500 mt-2 font-medium">Manage the visual storytelling assets for ReSEED.</p>
             </div>
-            <div class="mt-4 md:mt-0 flex gap-3">
-                <a href="gallery_add.php" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition shadow-sm">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Upload Images
-                </a>
-            </div>
+            <a href="gallery_add.php" class="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition shadow-lg shadow-emerald-200">
+                <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Upload Images
+            </a>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200 overflow-hidden">
             <?php if (empty($images)): ?>
-                <div class="py-20 text-center">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 text-gray-400 mb-4">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <div class="py-24 text-center">
+                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+                        <i class="fa-solid fa-images text-3xl"></i>
                     </div>
-                    <h3 class="text-sm font-medium text-gray-900">Gallery is empty</h3>
-                    <p class="text-sm text-gray-500">Start uploading images to showcase your impact.</p>
+                    <h3 class="text-xl font-bold text-slate-800">No images found</h3>
+                    <p class="text-slate-400 mt-2">Start your collection by uploading your first impact photo.</p>
                 </div>
             <?php else: ?>
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left">
                     <thead>
-                        <tr class="bg-gray-100 border-b border-gray-200 text-gray-600 text-[11px] uppercase font-bold tracking-widest">
-                            <th class="px-6 py-4">Preview</th>
-                            <th class="px-6 py-4">Image Details</th>
-                            <th class="px-6 py-4">Category</th>
-                            <th class="px-6 py-4 text-right">Actions</th>
+                        <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-400 text-[11px] uppercase font-bold tracking-[0.15em]">
+                            <th class="px-8 py-5">Preview</th>
+                            <th class="px-8 py-5">Details</th>
+                            <th class="px-8 py-5">Category</th>
+                            <th class="px-8 py-5 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 text-sm">
+                    <tbody class="divide-y divide-slate-100">
                         <?php foreach ($images as $g): ?>
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-4">
-                                <img src="<?= $uploadPath . htmlspecialchars($g['filename']) ?>" 
-                                     class="h-14 w-20 object-cover rounded shadow-sm border border-gray-200">
+                        <tr class="group hover:bg-slate-50/50 transition-colors">
+                            <td class="px-8 py-5">
+                                <div class="relative w-24 h-16 overflow-hidden rounded-xl border border-slate-200 shadow-sm">
+                                    <img src="<?= $uploadPath . htmlspecialchars($g['filename']) ?>" 
+                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                </div>
                             </td>
-                            <td class="px-6 py-4">
-                                <div class="font-bold text-gray-800"><?= $g['caption'] ?: 'Untitled' ?></div>
-                                <div class="text-[10px] font-mono text-gray-400"><?= htmlspecialchars($g['filename']) ?></div>
+                            <td class="px-8 py-5">
+                                <div class="font-bold text-slate-800 text-base"><?= $g['caption'] ?: 'Untitled Image' ?></div>
+                                <div class="text-[11px] font-mono text-slate-400 mt-1 uppercase tracking-tighter"><?= htmlspecialchars($g['filename']) ?></div>
                             </td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 text-[10px] font-bold uppercase rounded bg-blue-50 text-blue-600 border border-blue-100">
+                            <td class="px-8 py-5">
+                                <span class="inline-block px-3 py-1 text-[10px] font-black uppercase rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
                                     <?= htmlspecialchars($g['category']) ?>
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-right">
-                                <div class="flex justify-end space-x-1">
-                                    <a href="gallery_edit.php?id=<?= $g['id'] ?>" class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            <td class="px-8 py-5 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <a href="gallery_edit.php?id=<?= $g['id'] ?>" class="w-10 h-10 flex items-center justify-center text-blue-500 hover:bg-blue-50 rounded-xl transition">
+                                        <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
                                     <a href="handlers/gallery-handler.php?delete=<?= $g['id'] ?>" 
-                                       onclick="return confirm('Delete this image?')"
-                                       class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                       onclick="return confirm('Permanently delete this image?')"
+                                       class="w-10 h-10 flex items-center justify-center text-rose-500 hover:bg-rose-50 rounded-xl transition">
+                                        <i class="fa-solid fa-trash-can"></i>
                                     </a>
                                 </div>
                             </td>
@@ -85,5 +83,3 @@ $uploadPath = UPLOAD_URL . '/gallery/';
         </div>
     </div>
 </div>
-
-<?php include "includes/admin_footer.php"; ?>

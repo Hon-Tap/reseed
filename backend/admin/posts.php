@@ -3,9 +3,8 @@ include "includes/admin_auth.php";
 include "../includes/config.php";
 include "includes/admin_header.php";
 
-// Simple search logic
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-$query = "SELECT * FROM posts WHERE title LIKE ? ORDER BY created_at DESC";
+$search = $_GET['search'] ?? '';
+$query = "SELECT * FROM posts WHERE title ILIKE ? ORDER BY created_at DESC"; // ILIKE for Postgres
 $stmt = $pdo->prepare($query);
 $stmt->execute(["%$search%"]);
 $posts = $stmt->fetchAll();
@@ -13,97 +12,93 @@ $posts = $stmt->fetchAll();
 
 <script src="https://cdn.tailwindcss.com"></script>
 
-<div class="p-6 bg-gray-50 min-h-screen">
+<div class="p-8 bg-[#f8fafc] min-h-screen">
     <div class="max-w-7xl mx-auto">
         
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
             <div>
-                <h2 class="text-3xl font-bold text-gray-800">Project Posts</h2>
-                <p class="text-gray-500 text-sm">Manage and monitor your Reseed project updates.</p>
+                <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Project Updates</h1>
+                <p class="text-slate-500 mt-2 font-medium">Draft and publish field reports and news stories.</p>
             </div>
-            <div class="mt-4 md:mt-0">
-                <a href="posts_add.php" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition shadow-sm">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    Add New Project
-                </a>
-            </div>
+            <a href="posts_add.php" class="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition shadow-lg shadow-emerald-200">
+                <i class="fa-solid fa-plus mr-2"></i> Create Update
+            </a>
         </div>
 
-        <div class="mb-6">
-            <form method="GET" class="relative max-w-sm">
-                <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search projects..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition">
-                <div class="absolute left-3 top-2.5 text-gray-400">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <div class="mb-8 max-w-md">
+            <form method="GET" class="relative group">
+                <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" 
+                       placeholder="Search updates..." 
+                       class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition shadow-sm">
+                <div class="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-emerald-500 transition-colors">
+                    <i class="fa-solid fa-magnifying-glass"></i>
                 </div>
             </form>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <table class="w-full text-left border-collapse">
+        <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200 overflow-hidden">
+            <table class="w-full text-left">
                 <thead>
-                    <tr class="bg-gray-100 border-b border-gray-200 text-gray-600 text-sm uppercase font-semibold">
-                        <th class="px-6 py-4">Media</th>
-                        <th class="px-6 py-4">Project Details</th>
-                        <th class="px-6 py-4">Status</th>
-                        <th class="px-6 py-4 text-right">Actions</th>
+                    <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-400 text-[11px] uppercase font-bold tracking-widest">
+                        <th class="px-8 py-5">Media</th>
+                        <th class="px-8 py-5">Article Content</th>
+                        <th class="px-8 py-5">Status</th>
+                        <th class="px-8 py-5 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
-                    <?php if (count($posts) > 0): ?>
-                        <?php foreach($posts as $p): ?>
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-4">
-                                <?php if($p['media_type'] == 'image'): ?>
-                                    <img src="../uploads/posts/<?= $p['cover_image'] ?>" class="w-16 h-16 object-cover rounded-lg shadow-sm border">
-                                <?php else: ?>
-                                    <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
-                                        <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm6 4l-3 3h9l-3-3-2 2-1-2z"></path></svg>
-                                    </div>
-                                <?php endif; ?>
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="font-bold text-gray-800 text-lg"><?= htmlspecialchars($p['title']) ?></div>
-                                <div class="text-gray-500 text-xs flex items-center mt-1">
-                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                    <?= htmlspecialchars($p['author']) ?> 
-                                    <span class="mx-2">•</span>
-                                    <?= date('M d, Y', strtotime($p['published_at'])) ?>
+                <tbody class="divide-y divide-slate-100">
+                    <?php if ($posts): foreach($posts as $p): 
+                        $statusColor = match(strtolower($p['status'] ?? '')) {
+                            'completed' => 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                            'ongoing'   => 'bg-blue-50 text-blue-600 border-blue-100',
+                            default     => 'bg-slate-100 text-slate-600 border-slate-200',
+                        };
+                    ?>
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                        <td class="px-8 py-6">
+                            <?php if($p['media_type'] == 'image'): ?>
+                                <img src="../uploads/posts/<?= $p['cover_image'] ?>" class="w-14 h-14 object-cover rounded-xl shadow-sm border border-slate-100">
+                            <?php else: ?>
+                                <div class="w-14 h-14 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 border border-slate-200">
+                                    <i class="fa-solid fa-newspaper text-xl"></i>
                                 </div>
-                            </td>
-                            <td class="px-6 py-4">
-                                <?php 
-                                    $status = strtolower($p['status'] ?? 'planned');
-                                    $color = $status == 'completed' ? 'green' : ($status == 'ongoing' ? 'blue' : 'gray');
-                                ?>
-                                <span class="px-3 py-1 text-xs font-bold uppercase rounded-full bg-<?= $color ?>-100 text-<?= $color ?>-700">
-                                    <?= $status ?>
+                            <?php endif; ?>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="font-bold text-slate-800 text-lg hover:text-emerald-600 transition-colors cursor-pointer"><?= htmlspecialchars($p['title']) ?></div>
+                            <div class="flex items-center gap-3 mt-1.5">
+                                <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                                    <i class="fa-regular fa-user text-[10px]"></i> <?= htmlspecialchars($p['author']) ?>
                                 </span>
-                            </td>
-                            <td class="px-6 py-4 text-right">
-                                <div class="flex justify-end space-x-2">
-                                    <a href="posts_edit.php?id=<?= $p['id'] ?>" class="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition" title="Edit">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                    </a>
-                                    <a href="handlers/post-handler.php?delete=<?= $p['id'] ?>" 
-                                       onclick="return confirm('Are you sure you want to delete this project? This cannot be undone.')" 
-                                       class="p-2 text-red-600 hover:bg-red-50 rounded-md transition" title="Delete">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="4" class="px-6 py-10 text-center text-gray-500">
-                                No projects found matching your criteria.
-                            </td>
-                        </tr>
+                                <span class="text-slate-300">•</span>
+                                <span class="text-xs font-medium text-slate-400">
+                                    <?= date('M d, Y', strtotime($p['published_at'])) ?>
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <span class="px-3 py-1 text-[10px] font-black uppercase rounded-full border <?= $statusColor ?>">
+                                <?= $p['status'] ?>
+                            </span>
+                        </td>
+                        <td class="px-8 py-6 text-right">
+                            <div class="flex justify-end gap-2">
+                                <a href="posts_edit.php?id=<?= $p['id'] ?>" class="w-10 h-10 flex items-center justify-center text-blue-500 hover:bg-blue-50 rounded-xl transition">
+                                    <i class="fa-solid fa-edit"></i>
+                                </a>
+                                <a href="handlers/post-handler.php?delete=<?= $p['id'] ?>" 
+                                   onclick="return confirm('Delete this article?')" 
+                                   class="w-10 h-10 flex items-center justify-center text-rose-500 hover:bg-rose-50 rounded-xl transition">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; else: ?>
+                        <tr><td colspan="4" class="p-16 text-center text-slate-400 font-medium">No results found.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
-<?php include "includes/admin_footer.php"; ?>

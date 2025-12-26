@@ -7,8 +7,13 @@ declare(strict_types=1);
 |--------------------------------------------------------------------------
 */
 
-require_once dirname(__DIR__, 2) . '/includes/config.php';
-require_once dirname(__DIR__) . '/includes/csrf.php';
+// __DIR__ is .../backend/admin/handlers
+// dirname(__DIR__) goes up one level to .../backend/admin
+$basePath = dirname(__DIR__); 
+
+require_once $basePath . '/includes/config.php';
+require_once $basePath . '/includes/csrf.php';
+
 
 /* ===================== SESSION ===================== */
 

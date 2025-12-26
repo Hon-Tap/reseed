@@ -2,17 +2,8 @@
 declare(strict_types=1);
 
 /**
- * Admin Dashboard (REAL FILE)
- * --------------------------------------------------
- * This file is NOT web-accessible directly.
- * It is executed via proxy: /frontend/admin/dashboard.php
- */
-
-/**
- * IMPORTANT:
- * - This file must work when INCLUDED, not requested directly
- * - Never rely on URL paths here
- * - Always rely on filesystem paths
+ * Admin Dashboard
+ * Path: C:\xampp1\htdocs\reseed\backend\admin\dashboard.php
  */
 
 $adminRoot = __DIR__;
@@ -20,57 +11,66 @@ $adminRoot = __DIR__;
 /* ==================================================
    BOOTSTRAP
 ================================================== */
-
 require_once $adminRoot . '/includes/admin_auth.php';
 require_once $adminRoot . '/includes/admin_header.php';
 
 /* ==================================================
-   DASHBOARD METRICS
+   DASHBOARD METRICS (Optimized for PostgreSQL)
 ================================================== */
-
 try {
+    // Single trip to the database for all counts
+    $sql = "SELECT 
+        (SELECT COUNT(*) FROM projects) as projects_count,
+        (SELECT COUNT(*) FROM posts) as posts_count,
+        (SELECT COUNT(*) FROM contacts) as contacts_count,
+        (SELECT COUNT(*) FROM users) as admins_count";
+    
+    $statsData = $pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
+    
     $stats = [
-        'projects' => (int) $pdo->query("SELECT COUNT(*) FROM projects")->fetchColumn(),
-        'posts'    => (int) $pdo->query("SELECT COUNT(*) FROM posts")->fetchColumn(),
-        'contacts' => (int) $pdo->query("SELECT COUNT(*) FROM contacts")->fetchColumn(),
-        'admins'   => (int) $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn(),
+        'projects' => (int)($statsData['projects_count'] ?? 0),
+        'posts'    => (int)($statsData['posts_count'] ?? 0),
+        'contacts' => (int)($statsData['contacts_count'] ?? 0),
+        'admins'   => (int)($statsData['admins_count'] ?? 0),
     ];
+
+    // Fetch 3 most recent inquiries for a "Recent Activity" feel
+    $recentInquiries = $pdo->query("SELECT name, email, created_at FROM contacts ORDER BY created_at DESC LIMIT 3")->fetchAll();
+
 } catch (Throwable $e) {
-    $stats = [
-        'projects' => 0,
-        'posts'    => 0,
-        'contacts' => 0,
-        'admins'   => 0,
-    ];
+    error_log("Dashboard Error: " . $e->getMessage());
+    $stats = ['projects' => 0, 'posts' => 0, 'contacts' => 0, 'admins' => 0];
+    $recentInquiries = [];
 }
 ?>
 
 <style>
 /* ==================================================
-   DASHBOARD LAYOUT
+   ENHANCED UI STYLES
 ================================================== */
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.3);
+}
 
 .dashboard-header {
     margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
 }
 
 .dashboard-header h1 {
-    font-size: 2.3rem;
+    font-size: 2.5rem;
     font-weight: 800;
     color: #0f172a;
-    letter-spacing: -0.03em;
-    margin-bottom: 6px;
+    letter-spacing: -0.04em;
+    margin: 0;
 }
 
-.dashboard-header p {
-    color: #64748b;
-    font-size: 1.05rem;
-}
+.dashboard-header p { color: #64748b; font-size: 1.1rem; margin-top: 5px; }
 
-/* ==================================================
-   STATS GRID
-================================================== */
-
+/* Stats Grid with Glassmorphism subtle touch */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -79,147 +79,107 @@ try {
 
 .stat-card {
     background: #ffffff;
-    border-radius: 20px;
-    padding: 28px;
+    border-radius: 24px;
+    padding: 30px;
     display: flex;
     align-items: center;
     gap: 20px;
     border: 1px solid #f1f5f9;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
-    transition: transform .2s ease, box-shadow .2s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 30px rgba(15, 23, 42, 0.08);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 .stat-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 16px;
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
     display: grid;
     place-items: center;
-    font-size: 24px;
-    color: #ffffff;
+    font-size: 22px;
+    color: #fff;
 }
 
-/* Gradient Themes */
-.bg-green  { background: linear-gradient(135deg, #22c55e, #166534); }
-.bg-blue   { background: linear-gradient(135deg, #3b82f6, #1e40af); }
-.bg-orange { background: linear-gradient(135deg, #f97316, #9a3412); }
-.bg-purple { background: linear-gradient(135deg, #a855f7, #6b21a8); }
+.bg-green  { background: linear-gradient(135deg, #10b981, #059669); }
+.bg-blue   { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.bg-orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.bg-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
 
-.stat-info h3 {
-    margin: 0;
-    font-size: 1.9rem;
-    font-weight: 800;
-    color: #1e293b;
+.stat-info h3 { font-size: 2rem; font-weight: 800; color: #1e293b; margin: 0; }
+.stat-info span { font-size: 0.85rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; }
+
+/* Quick Actions & Recent Activity Layout */
+.dashboard-content-split {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+    margin-top: 48px;
 }
-
-.stat-info span {
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #64748b;
-}
-
-/* ==================================================
-   QUICK ACTIONS
-================================================== */
 
 .section-title {
-    margin: 56px 0 24px;
     font-size: 1.25rem;
     font-weight: 800;
     color: #1e293b;
+    margin-bottom: 24px;
     display: flex;
     align-items: center;
-    gap: 12px;
-}
-
-.section-title::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: #e2e8f0;
+    gap: 10px;
 }
 
 .quick-actions {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 24px;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
 }
 
 .action-card {
-    background: #ffffff;
-    padding: 32px;
+    background: #fff;
+    padding: 24px;
     border-radius: 20px;
     border: 1px solid #f1f5f9;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
-    display: flex;
-    flex-direction: column;
-    transition: all .25s ease;
-}
-
-.action-card:hover {
-    border-color: #22c55e;
-    box-shadow: 0 25px 40px rgba(15, 23, 42, 0.12);
-}
-
-.action-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: #f0fdf4;
-    color: #166534;
-    display: grid;
-    place-items: center;
-    font-size: 20px;
-    margin-bottom: 20px;
-}
-
-.action-card h4 {
-    margin: 0 0 10px;
-    font-size: 1.25rem;
-    font-weight: 800;
-}
-
-.action-card p {
-    color: #64748b;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    flex: 1;
-    margin-bottom: 24px;
-}
-
-.action-card a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 20px;
-    border-radius: 12px;
-    font-weight: 800;
     text-decoration: none;
-    background: #f8fafc;
-    color: #166534;
-    transition: all .2s ease;
+    transition: all 0.2s ease;
 }
 
-.action-card a:hover {
-    background: #166534;
-    color: #ffffff;
+.action-card:hover { border-color: #10b981; background: #f0fdf4; }
+.action-card i { color: #10b981; margin-bottom: 15px; font-size: 1.5rem; display: block; }
+.action-card h4 { margin: 0 0 5px; color: #1e293b; font-weight: 700; }
+.action-card p { font-size: 0.9rem; color: #64748b; margin: 0; }
+
+/* Activity Sidebar */
+.activity-card {
+    background: #fff;
+    padding: 24px;
+    border-radius: 20px;
+    border: 1px solid #f1f5f9;
+}
+
+.activity-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #f8fafc;
+}
+
+.activity-item:last-child { border: none; }
+.activity-item strong { display: block; font-size: 0.95rem; color: #1e293b; }
+.activity-item small { color: #94a3b8; font-size: 0.8rem; }
+
+@media (max-width: 1024px) {
+    .dashboard-content-split { grid-template-columns: 1fr; }
 }
 </style>
 
-<!-- ==================================================
-     DASHBOARD VIEW
-================================================== -->
-
 <div class="dashboard-header">
-    <h1>Dashboard</h1>
-    <p>System overview and administration for <strong>ReSEED</strong>.</p>
+    <div>
+        <h1>Welcome, <?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin') ?></h1>
+        <p>System overview for <strong>ReSEED</strong></p>
+    </div>
+    <div class="date-badge" style="background: #fff; padding: 10px 20px; border-radius: 12px; font-weight: 600; color: #64748b; border: 1px solid #f1f5f9;">
+        <i class="fa-regular fa-calendar"></i> <?= date('M d, Y') ?>
+    </div>
 </div>
 
 <div class="stats-grid">
@@ -230,7 +190,6 @@ try {
             <span>Projects</span>
         </div>
     </div>
-
     <div class="stat-card">
         <div class="stat-icon bg-blue"><i class="fa-solid fa-pen-nib"></i></div>
         <div class="stat-info">
@@ -238,46 +197,63 @@ try {
             <span>Blog Posts</span>
         </div>
     </div>
-
     <div class="stat-card">
-        <div class="stat-icon bg-orange"><i class="fa-solid fa-envelope-open-text"></i></div>
+        <div class="stat-icon bg-orange"><i class="fa-solid fa-envelope"></i></div>
         <div class="stat-info">
             <h3><?= $stats['contacts'] ?></h3>
             <span>Inquiries</span>
         </div>
     </div>
-
     <div class="stat-card">
-        <div class="stat-icon bg-purple"><i class="fa-solid fa-user-gear"></i></div>
+        <div class="stat-icon bg-purple"><i class="fa-solid fa-user-shield"></i></div>
         <div class="stat-info">
             <h3><?= $stats['admins'] ?></h3>
-            <span>Admins</span>
+            <span>Team</span>
         </div>
     </div>
 </div>
 
-<div class="section-title">Quick Actions</div>
-
-<div class="quick-actions">
-    <div class="action-card">
-        <div class="action-icon"><i class="fa-solid fa-plus"></i></div>
-        <h4>Project Hub</h4>
-        <p>Manage restoration projects, field updates, and environmental impact records.</p>
-        <a href="<?= ADMIN_BASE_URL ?>/projects.php">Go to Projects</a>
+<div class="dashboard-content-split">
+    <div class="main-column">
+        <h2 class="section-title"><i class="fa-solid fa-bolt"></i> Quick Actions</h2>
+        <div class="quick-actions">
+            <a href="projects.php" class="action-card">
+                <i class="fa-solid fa-folder-plus"></i>
+                <h4>Manage Projects</h4>
+                <p>Update restoration progress.</p>
+            </a>
+            <a href="posts.php" class="action-card">
+                <i class="fa-solid fa-plus"></i>
+                <h4>New Blog Post</h4>
+                <p>Share a success story.</p>
+            </a>
+            <a href="contacts.php" class="action-card">
+                <i class="fa-solid fa-inbox"></i>
+                <h4>Inbox</h4>
+                <p>View latest inquiries.</p>
+            </a>
+            <a href="users.php" class="action-card">
+                <i class="fa-solid fa-users-cog"></i>
+                <h4>Settings</h4>
+                <p>Manage admin access.</p>
+            </a>
+        </div>
     </div>
 
-    <div class="action-card">
-        <div class="action-icon"><i class="fa-solid fa-newspaper"></i></div>
-        <h4>Content Creator</h4>
-        <p>Create and publish blog posts, news, and community success stories.</p>
-        <a href="<?= ADMIN_BASE_URL ?>/posts.php">Manage Blog</a>
-    </div>
-
-    <div class="action-card">
-        <div class="action-icon"><i class="fa-solid fa-message"></i></div>
-        <h4>Communication</h4>
-        <p>You have <?= $stats['contacts'] ?> total messages awaiting review.</p>
-        <a href="<?= ADMIN_BASE_URL ?>/contacts.php">Open Inbox</a>
+    <div class="side-column">
+        <h2 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h2>
+        <div class="activity-card">
+            <?php if (empty($recentInquiries)): ?>
+                <p style="color: #94a3b8; font-size: 0.9rem;">No recent messages.</p>
+            <?php else: ?>
+                <?php foreach($recentInquiries as $msg): ?>
+                    <div class="activity-item">
+                        <strong><?= htmlspecialchars((string)$msg['name']) ?> sent a message</strong>
+                        <small><?= date('M d, H:i', strtotime((string)$msg['created_at'])) ?></small>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
     </div>
 </div>
 
