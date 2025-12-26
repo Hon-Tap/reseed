@@ -1,18 +1,12 @@
 <?php
 declare(strict_types=1);
 
-/**
- * Admin Dashboard
- * Path: C:\xampp1\htdocs\reseed\backend\admin\dashboard.php
- */
+$backendPath = dirname(__DIR__);
 
-$adminRoot = __DIR__;
+require_once $backendPath . '/includes/config.php';
+require_once $backendPath . '/admin/includes/admin_auth.php';
+require_once $backendPath . '/admin/includes/admin_header.php';
 
-/* ==================================================
-   BOOTSTRAP
-================================================== */
-require_once $adminRoot . '/includes/admin_auth.php';
-require_once $adminRoot . '/includes/admin_header.php';
 
 /* ==================================================
    DASHBOARD METRICS (Optimized for PostgreSQL)
