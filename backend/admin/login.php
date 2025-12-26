@@ -1,31 +1,27 @@
 <?php
+
 declare(strict_types=1);
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-/**
- * FIXED PATHS:
- * We use the ROOT_PATH constant defined in admin.php 
- * or calculate it relative to this file.
- */
-if (!defined('ROOT_PATH')) {
-    // This file is in /backend/admin/, so we go up 2 levels to reach the root
-    define('ROOT_PATH', dirname(__DIR__, 2));
-}
+/*
+|--------------------------------------------------------------------------
+| Path-safe includes (NO ROOT_PATH, NO GUESSING)
+|--------------------------------------------------------------------------
+| This file is: backend/admin/login.php
+*/
 
-// Config is in /backend/includes/
-require_once ROOT_PATH . '/backend/includes/config.php';
-// CSRF is usually also in /backend/includes/ or /backend/admin/includes/
-// Check your file tree and adjust the path below if needed:
-require_once ROOT_PATH . '/backend/includes/csrf.php'; 
+require_once dirname(__DIR__) . '/includes/config.php';
+require_once __DIR__ . '/includes/csrf.php';
 
 /* Redirect if already logged in */
 if (!empty($_SESSION['admin_id'])) {
     header('Location: dashboard.php');
     exit;
 }
+
 
 /* Error handling */
 $errorCode = $_GET['error'] ?? null;
@@ -213,7 +209,7 @@ $successText = ($errorCode === 'sent') ? $errorMessages['sent'] : null;
             <div class="form-group">
                 <div class="form-label-flex">
                     <label>Password</label>
-                    <a href="forgot-password.php" class="forgot-link">Forgot password?</a>
+                    <a href="/frontend/admin/forgot-password.php" class="forgot-link">Forgot password?</a>
                 </div>
                 <div class="input-wrapper">
                     <i class="fa-solid fa-lock"></i>
