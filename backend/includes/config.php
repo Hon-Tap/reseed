@@ -6,24 +6,15 @@ declare(strict_types=1);
 | APPLICATION ENVIRONMENT
 |--------------------------------------------------------------------------
 */
-define('APP_ENV', $_ENV['APP_ENV'] ?? 'production');
+// getenv() is more reliable on hosted platforms like Render
+define('APP_ENV', getenv('APP_ENV') ?: 'production');
 
 /*
 |--------------------------------------------------------------------------
-| BASE URL
+| BASE URL & PATHS
 |--------------------------------------------------------------------------
-| IMPORTANT:
-| Render is serving `frontend/` as the public document root.
-| Therefore the application lives at `/`, NOT `/reseed`.
 */
 define('BASE_URL', '');
-
-/*
-|--------------------------------------------------------------------------
-| ROOT PATH (FILESYSTEM)
-|--------------------------------------------------------------------------
-| backend/includes → project root
-*/
 define('ROOT_PATH', dirname(__DIR__, 2));
 
 /*
@@ -40,19 +31,24 @@ if (APP_ENV === 'development') {
     error_reporting(E_ALL);
     ini_set('display_errors', '0');
     ini_set('log_errors', '1');
-    ini_set('error_log', ROOT_PATH . '/logs/php-error.log');
+    
+    // Ensure logs directory exists or fallback to system log to avoid 500 error
+    $logPath = ROOT_PATH . '/logs/php-error.log';
+    if (is_dir(dirname($logPath)) && is_writable(dirname($logPath))) {
+        ini_set('error_log', $logPath);
+    }
 }
 
 /*
 |--------------------------------------------------------------------------
-| DATABASE CONFIG (PRODUCTION)
+| DATABASE CONFIGURATION
 |--------------------------------------------------------------------------
 */
-$dbHost = $_ENV['DB_HOST'] ?? null;
-$dbName = $_ENV['DB_NAME'] ?? null;
-$dbUser = $_ENV['DB_USER'] ?? null;
-$dbPass = $_ENV['DB_PASS'] ?? null;
-$dbPort = $_ENV['DB_PORT'] ?? '5432';
+$dbHost = getenv('DB_HOST') ?: null;
+$dbName = getenv('DB_NAME') ?: null;
+$dbUser = getenv('DB_USER') ?: null;
+$dbPass = getenv('DB_PASS') ?: null;
+$dbPort = getenv('DB_PORT') ?: '5432';
 
 /*
 |--------------------------------------------------------------------------
@@ -69,25 +65,28 @@ if (
 
 /*
 |--------------------------------------------------------------------------
-| HARD FAIL IF DB CONFIG IS MISSING
+| PDO INITIALIZATION (PostgreSQL)
 |--------------------------------------------------------------------------
 */
 if (!$dbHost || !$dbName || !$dbUser) {
+    error_log("Missing DB configuration. Host: $dbHost, Name: $dbName, User: $dbUser");
     http_response_code(500);
     die('Application misconfigured: database credentials missing.');
 }
 
-/*
-|--------------------------------------------------------------------------
-| PDO INITIALIZATION (PostgreSQL)
-|--------------------------------------------------------------------------
-*/
 try {
+    /**
+     * Render's managed PostgreSQL requires sslmode=require in production.
+     * We append it here to ensure a secure connection.
+     */
+    $sslMode = (APP_ENV === 'production') ? '?sslmode=require' : '';
+    
     $dsn = sprintf(
-        'pgsql:host=%s;port=%s;dbname=%s',
+        'pgsql:host=%s;port=%s;dbname=%s%s',
         $dbHost,
         $dbPort,
-        $dbName
+        $dbName,
+        $sslMode
     );
 
     $pdo = new PDO($dsn, $dbUser, $dbPass, [
@@ -95,13 +94,14 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES   => false,
     ]);
+    
 } catch (PDOException $e) {
-    http_response_code(500);
+    // Log the actual error to Render's log tab
+    error_log("PDO Connection Error: " . $e->getMessage());
 
+    http_response_code(500);
     if (APP_ENV === 'development') {
         die('Database connection failed: ' . $e->getMessage());
     }
-
-    error_log($e->getMessage());
-    die('Database connection failed.');
+    die('Database connection failed. Please check server logs.');
 }
