@@ -1,4 +1,6 @@
 <?php
+// File: backend/admin/handlers/login-handler.php
+
 declare(strict_types=1);
 
 /*
@@ -7,12 +9,15 @@ declare(strict_types=1);
 |--------------------------------------------------------------------------
 */
 
-// __DIR__ is .../backend/admin/handlers
-// dirname(__DIR__) goes up one level to .../backend/admin
-$basePath = dirname(__DIR__); 
+// From handlers → admin → backend
+$backendPath = dirname(__DIR__, 2);
 
-require_once $basePath . '/includes/config.php';
-require_once $basePath . '/includes/csrf.php';
+// Config lives in /backend/includes
+require_once $backendPath . '/includes/config.php';
+
+// CSRF lives in /backend/admin/includes
+require_once $backendPath . '/admin/includes/csrf.php';
+
 
 
 /* ===================== SESSION ===================== */
