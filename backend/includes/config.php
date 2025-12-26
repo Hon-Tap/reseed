@@ -81,8 +81,9 @@ if (!$dbHost || !$dbName || !$dbUser) {
 |--------------------------------------------------------------------------
 */
 try {
+    // Separate the SSL mode from the database name
     $dsn = sprintf(
-        'pgsql:host=%s;port=%s;dbname=%s',
+        'pgsql:host=%s;port=%s;dbname=%s;sslmode=require', // Added sslmode here
         $dbHost,
         $dbPort,
         $dbName

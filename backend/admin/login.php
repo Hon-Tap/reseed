@@ -6,15 +6,20 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 }
 
 /**
- * PATH ADJUSTMENT
- * Since this is in /frontend/admin/login.php
- * __DIR__ is /frontend/admin
- * dirname(__DIR__, 2) gets us to the project root, then we go into /backend/admin/
+ * FIXED PATHS:
+ * We use the ROOT_PATH constant defined in admin.php 
+ * or calculate it relative to this file.
  */
-$backendPath = dirname(__DIR__, 2) . '/backend/admin';
+if (!defined('ROOT_PATH')) {
+    // This file is in /backend/admin/, so we go up 2 levels to reach the root
+    define('ROOT_PATH', dirname(__DIR__, 2));
+}
 
-require_once $backendPath . '/includes/config.php';
-require_once $backendPath . '/includes/csrf.php';
+// Config is in /backend/includes/
+require_once ROOT_PATH . '/backend/includes/config.php';
+// CSRF is usually also in /backend/includes/ or /backend/admin/includes/
+// Check your file tree and adjust the path below if needed:
+require_once ROOT_PATH . '/backend/includes/csrf.php'; 
 
 /* Redirect if already logged in */
 if (!empty($_SESSION['admin_id'])) {
