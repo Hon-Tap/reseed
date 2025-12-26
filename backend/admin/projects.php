@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 include "includes/admin_auth.php";
 include "../includes/config.php";
-include "includes/admin_header.php";
+require_once __DIR__ . '/includes/admin_header.php';
 
 /* ===================== SEARCH ===================== */
 $search = $_GET['search'] ?? '';
@@ -35,7 +35,7 @@ $uploadPath = '../uploads/projects/';
       </div>
 
       <div class="mt-4 md:mt-0">
-        <a href="projects_add.php"
+        <a href="<?= admin_url('projects_add.php') ?>"
            class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition shadow-sm">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -140,7 +140,7 @@ $uploadPath = '../uploads/projects/';
               <!-- Actions -->
               <td class="px-6 py-4 text-right">
                 <div class="flex justify-end space-x-2">
-                  <a href="projects_edit.php?id=<?= $p['id'] ?>"
+                  <a href="<?= admin_url('projects_edit.php?id=' . $p['id']) ?>"
                      class="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition"
                      title="Edit">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,9 +149,9 @@ $uploadPath = '../uploads/projects/';
                     </svg>
                   </a>
 
-                  <form action="handlers/project-handler.php"
-                        method="POST"
-                        onsubmit="return confirm('Delete this project permanently?')">
+                  <form action="<?= admin_url('handlers/project-handler.php') ?>"
+                    method="POST"
+                    onsubmit="return confirm('Delete this project permanently?')">
                     <input type="hidden" name="id" value="<?= $p['id'] ?>">
                     <button name="delete"
                             class="p-2 text-red-600 hover:bg-red-50 rounded-md transition"
