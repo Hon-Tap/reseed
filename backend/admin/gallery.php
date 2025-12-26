@@ -6,6 +6,8 @@ $backendPath = dirname(__DIR__);
 require_once $backendPath . '/includes/config.php';
 require_once $backendPath . '/admin/includes/admin_auth.php';
 require_once $backendPath . '/admin/includes/admin_header.php';
+require_once $backendPath . '/admin/includes/csrf.php';
+
 
 
 $stmt = $pdo->query("SELECT * FROM gallery ORDER BY id DESC");
