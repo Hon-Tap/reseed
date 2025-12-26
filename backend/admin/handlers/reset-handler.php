@@ -1,13 +1,11 @@
 <?php
 declare(strict_types=1);
 
-/**
- * PATH ADJUSTMENT: 
- * __DIR__ is /var/www/html/backend/admin/handlers/
- */
-$basePath = dirname(__DIR__); 
-require_once $basePath . '/includes/config.php';
-require_once $basePath . '/includes/csrf.php';
+$backendPath = dirname(__DIR__, 2);
+
+require_once $backendPath . '/includes/config.php';
+require_once $backendPath . '/admin/includes/csrf.php';
+
 
 // 1. Method and CSRF Enforcement
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

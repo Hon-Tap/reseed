@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 
+$backendPath = dirname(__DIR__, 2);
+
+require_once $backendPath . '/includes/config.php';
+require_once $backendPath . '/admin/includes/csrf.php';
+
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 

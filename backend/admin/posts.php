@@ -1,7 +1,14 @@
 <?php
-include "includes/admin_auth.php";
-include "../includes/config.php";
-include "includes/admin_header.php";
+declare(strict_types=1);
+
+$backendPath = dirname(__DIR__, 2);
+
+require_once $backendPath . '/includes/config.php';
+require_once $backendPath . '/admin/includes/admin_auth.php';
+require_once $backendPath . '/admin/includes/admin_header.php';
+
+
+
 
 $search = $_GET['search'] ?? '';
 $query = "SELECT * FROM posts WHERE title ILIKE ? ORDER BY created_at DESC"; // ILIKE for Postgres

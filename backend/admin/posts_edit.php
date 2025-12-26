@@ -1,9 +1,12 @@
 <?php
 declare(strict_types=1);
 
-include "includes/admin_auth.php";
-include "../includes/config.php";
-include "includes/admin_header.php";
+$backendPath = dirname(__DIR__, 2);
+
+require_once $backendPath . '/includes/config.php';
+require_once $backendPath . '/admin/includes/admin_auth.php';
+require_once $backendPath . '/admin/includes/admin_header.php';
+
 
 /* ===================== FETCH POST ===================== */
 $id = (int)($_GET['id'] ?? 0);

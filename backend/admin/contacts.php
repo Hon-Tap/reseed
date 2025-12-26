@@ -1,17 +1,10 @@
 <?php
-declare(strict_types=1);
+$backendPath = dirname(__DIR__, 2);
 
-/*
-|--------------------------------------------------------------------------
-| Admin Contacts (Inbox) - Refined with Reply Action
-|--------------------------------------------------------------------------
-*/
+require_once $backendPath . '/includes/config.php';
+require_once $backendPath . '/admin/includes/admin_auth.php';
+require_once $backendPath . '/admin/includes/admin_header.php';
 
-$adminRoot = __DIR__;
-require_once $adminRoot . '/includes/config.php';
-require_once $adminRoot . '/includes/csrf.php';
-require_once $adminRoot . '/includes/admin_auth.php';
-require_once $adminRoot . '/includes/admin_header.php';
 
 /* ===================== DELETE (POST ONLY) ===================== */
 

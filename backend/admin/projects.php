@@ -1,10 +1,12 @@
 <?php
 declare(strict_types=1);
 
-require_once dirname(__DIR__) . '/includes/config.php';
-require_once __DIR__ . '/includes/csrf.php';
-require_once __DIR__ . '/includes/admin_auth.php';
-require_once __DIR__ . '/includes/admin_header.php';
+$backendPath = dirname(__DIR__, 2);
+
+require_once $backendPath . '/includes/config.php';
+require_once $backendPath . '/admin/includes/admin_auth.php';
+require_once $backendPath . '/admin/includes/admin_header.php';
+
 
 $search = $_GET['search'] ?? '';
 $stmt = $pdo->prepare("SELECT * FROM projects WHERE title ILIKE ? ORDER BY created_at DESC");

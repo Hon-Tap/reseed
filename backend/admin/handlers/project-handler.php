@@ -1,14 +1,11 @@
 <?php
 declare(strict_types=1);
 
-/*
-|--------------------------------------------------------------------------
-| Projects Handler (Admin)
-|--------------------------------------------------------------------------
-*/
+$backendPath = dirname(__DIR__, 2);
 
-require_once dirname(__DIR__, 2) . '/includes/config.php';
-require_once dirname(__DIR__) . '/includes/admin_auth.php';
+require_once $backendPath . '/includes/config.php';
+require_once $backendPath . '/admin/includes/csrf.php';
+
 
 /* ===================== METHOD ENFORCEMENT ===================== */
 

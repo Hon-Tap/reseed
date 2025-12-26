@@ -1,10 +1,12 @@
 <?php
 declare(strict_types=1);
 
-$adminRoot = __DIR__;
-require_once $adminRoot . '/includes/config.php';
-require_once $adminRoot . '/includes/admin_auth.php';
-require_once $adminRoot . '/includes/admin_header.php';
+$backendPath = dirname(__DIR__, 2);
+
+require_once $backendPath . '/includes/config.php';
+require_once $backendPath . '/admin/includes/admin_auth.php';
+require_once $backendPath . '/admin/includes/admin_header.php';
+
 
 $stmt = $pdo->query("SELECT * FROM gallery ORDER BY id DESC");
 $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
