@@ -363,6 +363,14 @@ $adminInitials = strtoupper(substr($adminName, 0, 2));
                     <span class="badge"><?= $contactCount ?></span>
                 <?php endif; ?>
             </a>
+            <div class="nav-header">Account</div>
+
+            <a href="<?= admin_url('admin_profile.php') ?>"
+            class="nav-link <?= isActive('admin_profile.php') ?>">
+                <i class="fa-solid fa-user-gear"></i>
+                <span>Admin Profile</span>
+            </a>
+
 
         </div>
 

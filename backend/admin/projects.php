@@ -1,11 +1,8 @@
 <?php
 declare(strict_types=1);
 
-/**
- * Admin Projects Index
- * Backend source file (proxied via frontend/admin/projects.php)
- */
-
+require_once dirname(__DIR__) . '/includes/config.php';
+require_once __DIR__ . '/includes/admin_auth.php';
 require_once __DIR__ . '/includes/admin_header.php';
 
 /* ===================== SEARCH ===================== */
@@ -22,7 +19,7 @@ $stmt->execute(["%{$search}%"]);
 $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 /* Public uploads path */
-$uploadPath = '/uploads/projects/';
+$uploadPath = UPLOAD_URL . '/projects/';
 ?>
 
 

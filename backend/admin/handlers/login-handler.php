@@ -1,43 +1,36 @@
 <?php
 declare(strict_types=1);
 
-/* =====================================================
-    ERROR REPORTING (Debug Mode)
-===================================================== */
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
+/*
+|--------------------------------------------------------------------------
+| Admin Login Handler
+|--------------------------------------------------------------------------
+*/
 
-/* =====================================================
-    SESSION BOOTSTRAP
-===================================================== */
+require_once dirname(__DIR__, 2) . '/includes/config.php';
+require_once dirname(__DIR__) . '/includes/csrf.php';
+
+/* ===================== SESSION ===================== */
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-/* =====================================================
-    DEPENDENCIES
-===================================================== */
-// Move up 2 levels: handlers -> admin -> backend. Then into includes/
-require_once dirname(__DIR__, 2) . '/includes/config.php';
+/* ===================== METHOD ENFORCEMENT ===================== */
 
-// Move up 1 level: handlers -> admin. Then into includes/
-require_once dirname(__DIR__) . '/includes/csrf.php';
-
-/* =====================================================
-    REQUEST VALIDATION
-===================================================== */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
     exit('Method Not Allowed');
 }
 
-$isAjax = isset($_SERVER['HTTP_X_REQUESTED_WITH']) 
-    && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+/* ===================== REQUEST TYPE ===================== */
 
-/* =====================================================
-    CSRF VERIFICATION
-===================================================== */
+$isAjax =
+    isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+    strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+
+/* ===================== CSRF ===================== */
+
 if (!csrf_verify($_POST['csrf_token'] ?? null)) {
     if ($isAjax) {
         echo json_encode(['success' => false, 'message' => 'Security check failed']);
@@ -47,9 +40,8 @@ if (!csrf_verify($_POST['csrf_token'] ?? null)) {
     exit;
 }
 
-/* =====================================================
-    INPUT HANDLING
-===================================================== */
+/* ===================== INPUT ===================== */
+
 $username = trim($_POST['username'] ?? '');
 $password = $_POST['password'] ?? '';
 
@@ -62,11 +54,10 @@ if ($username === '' || $password === '') {
     exit;
 }
 
-/* =====================================================
-    BRUTE-FORCE THROTTLING
-===================================================== */
+/* ===================== BRUTE FORCE THROTTLE ===================== */
+
 $ip  = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-$key = 'login_throttle_' . md5($ip . '|' . $username);
+$key = 'login_throttle_' . hash('sha256', $ip . '|' . $username);
 
 $_SESSION[$key] ??= ['count' => 0, 'last' => time()];
 
@@ -76,27 +67,27 @@ if (time() - $_SESSION[$key]['last'] > 600) {
 
 if ($_SESSION[$key]['count'] >= 5) {
     if ($isAjax) {
-        echo json_encode(['success' => false, 'message' => 'Too many attempts.']);
+        echo json_encode(['success' => false, 'message' => 'Too many attempts. Try again later.']);
         exit;
     }
     header('Location: /admin.php?error=locked');
     exit;
 }
 
-/* =====================================================
-    DATABASE LOOKUP
-===================================================== */
+/* ===================== AUTH ===================== */
+
 try {
     $stmt = $pdo->prepare(
-        'SELECT id, username, password_hash, role 
-         FROM users 
-         WHERE username = :username 
+        'SELECT id, username, password_hash, role
+         FROM users
+         WHERE username = :username
          LIMIT 1'
     );
     $stmt->execute(['username' => $username]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($password, $user['password_hash'])) {
+
         unset($_SESSION[$key]);
         session_regenerate_id(true);
 
@@ -105,24 +96,31 @@ try {
         $_SESSION['admin_role'] = (string) ($user['role'] ?? 'admin');
 
         if ($isAjax) {
-            // Pointing to the frontend proxy
-            echo json_encode(['success' => true, 'redirect' => '/dashboard.php']);
+            echo json_encode([
+                'success'  => true,
+                'redirect' => '/dashboard.php'
+            ]);
             exit;
         }
 
-        // REDIRECT FIX: Point to the root frontend proxy
         header('Location: /dashboard.php');
         exit;
     }
+
 } catch (PDOException $e) {
-    error_log("Login DB Error: " . $e->getMessage());
+    error_log('Login DB Error: ' . $e->getMessage());
     http_response_code(500);
-    die("Database connection error.");
+
+    if ($isAjax) {
+        echo json_encode(['success' => false, 'message' => 'Server error']);
+        exit;
+    }
+
+    die('Database error');
 }
 
-/* =====================================================
-    FAILED LOGIN
-==================================================== */
+/* ===================== FAILED LOGIN ===================== */
+
 $_SESSION[$key]['count']++;
 $_SESSION[$key]['last'] = time();
 

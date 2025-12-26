@@ -1,12 +1,16 @@
 <?php
-include "includes/admin_auth.php";
-include "../includes/config.php";
-include "includes/admin_header.php";
+declare(strict_types=1);
+
+require_once dirname(__DIR__) . '/includes/config.php';
+require_once __DIR__ . '/includes/admin_auth.php';
+require_once __DIR__ . '/includes/admin_header.php';
 
 $stmt = $pdo->query("SELECT * FROM gallery ORDER BY id DESC");
-$images = $stmt->fetchAll();
-$uploadPath = '../uploads/gallery/';
+$images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$uploadPath = UPLOAD_URL . '/gallery/';
 ?>
+
 
 <script src="https://cdn.tailwindcss.com"></script>
 

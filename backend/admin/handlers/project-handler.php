@@ -1,182 +1,245 @@
 <?php
-// handlers/projects-handler.php
+declare(strict_types=1);
 
-// Ensure configuration is loaded and PDO object ($pdo) is available
-include "../../includes/config.php";
+/*
+|--------------------------------------------------------------------------
+| Projects Handler (Admin)
+|--------------------------------------------------------------------------
+*/
 
-// Set the upload directory and ensure it exists
-$uploadDir = $_SERVER['DOCUMENT_ROOT'] . '/reseed/uploads/projects/';
-if (!is_dir($uploadDir)) {
-    // Attempt to create the directory recursively
-    if (!mkdir($uploadDir, 0777, true)) {
-        die("Failed to create upload directory.");
-    }
+require_once dirname(__DIR__, 2) . '/includes/config.php';
+require_once dirname(__DIR__) . '/includes/admin_auth.php';
+
+/* ===================== METHOD ENFORCEMENT ===================== */
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit('Method Not Allowed');
 }
 
-// Function to safely delete a file
-function delete_file_if_exists($fileName, $directory) {
-    if ($fileName && file_exists($directory . $fileName)) {
-        return unlink($directory . $fileName);
-    }
-    return true;
+/* ===================== UPLOAD CONFIG ===================== */
+
+$uploadDir = UPLOAD_ROOT . '/projects/';
+
+$imageMime = [
+    'image/jpeg' => 'jpg',
+    'image/png'  => 'png',
+    'image/webp' => 'webp',
+];
+
+$videoMime = [
+    'video/mp4'  => 'mp4',
+    'video/webm' => 'webm',
+    'video/ogg'  => 'ogg',
+];
+
+/* ===================== HELPERS ===================== */
+
+function slugify(string $value): string
+{
+    return trim(
+        strtolower(preg_replace('/[^a-z0-9]+/', '-', $value)),
+        '-'
+    );
 }
 
-// Function to handle file upload and return the new file name
-function handle_file_upload($fileArray, $uploadDir, $mediaType) {
-    if (isset($fileArray) && $fileArray['error'] === 0) {
-        $file = $fileArray;
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        
-        $allowed = ($mediaType == 'image')
-            ? ['jpg', 'jpeg', 'png', 'webp', 'gif'] // Added gif for completeness
-            : ['mp4', 'webm', 'ogg', 'mov']; // Added mov
-            
-        if (!in_array($ext, $allowed)) {
-            // Throw an exception or redirect with an error message
-            throw new Exception("Invalid file type for $mediaType. Allowed extensions: " . implode(', ', $allowed));
-        }
-        
-        $newFileName = time() . '_' . rand(1000, 9999) . '.' . $ext;
-        if (move_uploaded_file($file['tmp_name'], $uploadDir . $newFileName)) {
-            return $newFileName;
-        } else {
-            throw new Exception("Failed to move uploaded file.");
-        }
-    }
-    return null;
+function generate_filename(string $ext): string
+{
+    return bin2hex(random_bytes(16)) . '.' . $ext;
 }
 
-// =================================================================
-// 1. ADD PROJECT
-// =================================================================
+/* ===================== ADD PROJECT ===================== */
+
 if (isset($_POST['add'])) {
-    try {
-        $title = trim($_POST['title']);
-        $slug = trim($_POST['slug']) ?: strtolower(preg_replace('/[^a-z0-9]+/','-', $title));
-        $summary = trim($_POST['summary']);
-        $description = trim($_POST['description']);
-        $location = trim($_POST['location']);
-        $start_date = $_POST['start_date'] ?: null;
-        $end_date = $_POST['end_date'] ?: null;
-        $status = $_POST['status'];
-        $media_type = $_POST['media_type'];
-        $media_url = $_POST['media_url'] ?: null;
-        $featured = isset($_POST['featured']) ? 1 : 0;
-        
-        $cover_image = handle_file_upload($_FILES['media_file'], $uploadDir, $media_type);
 
-        $sql = "INSERT INTO projects (title, slug, summary, description, location, start_date, end_date, cover_image, media_type, media_url, status, featured, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
-                
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            $title, $slug, $summary, $description, $location, 
-            $start_date, $end_date, $cover_image, $media_type, $media_url, $status, $featured
-        ]);
+    $title        = trim($_POST['title'] ?? '');
+    $slug         = slugify($_POST['slug'] ?? $title);
+    $summary      = trim($_POST['summary'] ?? '');
+    $description  = trim($_POST['description'] ?? '');
+    $location     = trim($_POST['location'] ?? '');
+    $start_date   = $_POST['start_date'] ?: null;
+    $end_date     = $_POST['end_date'] ?: null;
+    $status       = $_POST['status'] ?? 'planned';
+    $media_type   = $_POST['media_type'] ?? 'image';
+    $media_url    = trim($_POST['media_url'] ?? '') ?: null;
+    $featured     = isset($_POST['featured']) ? 1 : 0;
 
-        header("Location: ../projects.php?status=success&action=added");
-        exit();
+    $coverImage = null;
 
-    } catch (Exception $e) {
-        error_log("Project Add Error: " . $e->getMessage());
-        die("Error adding project: " . $e->getMessage());
-    }
-}
+    if (!empty($_FILES['media_file']['tmp_name'])) {
 
-// =================================================================
-// 2. UPDATE PROJECT
-// =================================================================
-if (isset($_POST['update'])) {
-    try {
-        $id = $_POST['id'];
-        $title = trim($_POST['title']);
-        $slug = trim($_POST['slug']) ?: strtolower(preg_replace('/[^a-z0-9]+/','-', $title));
-        $summary = trim($_POST['summary']);
-        $description = trim($_POST['description']);
-        $location = trim($_POST['location']);
-        $start_date = $_POST['start_date'] ?: null;
-        $end_date = $_POST['end_date'] ?: null;
-        $status = $_POST['status'];
-        $media_type = $_POST['media_type'];
-        $media_url = $_POST['media_url'] ?: null;
-        $featured = isset($_POST['featured']) ? 1 : 0;
-        
-        // Handle file upload
-        $new_cover_image = handle_file_upload($_FILES['media_file'], $uploadDir, $media_type);
-        
-        $params = [
-            $title, $slug, $summary, $description, $location, $start_date, $end_date,
-            $media_type, $media_url, $status, $featured
-        ];
-        
-        $sql = "UPDATE projects SET 
-                title=?, slug=?, summary=?, description=?, location=?, start_date=?, end_date=?, 
-                media_type=?, media_url=?, status=?, featured=?";
+        $mime = mime_content_type($_FILES['media_file']['tmp_name']);
+        $map  = $media_type === 'image' ? $imageMime : $videoMime;
 
-        if ($new_cover_image) {
-            // Get the old file name to delete it
-            $stmt_old = $pdo->prepare("SELECT cover_image FROM projects WHERE id=?");
-            $stmt_old->execute([$id]);
-            $old_file = $stmt_old->fetchColumn();
-            
-            delete_file_if_exists($old_file, $uploadDir);
-
-            $sql .= ", cover_image=?";
-            $params[] = $new_cover_image;
+        if (!isset($map[$mime])) {
+            header('Location: ../projects.php?error=type');
+            exit;
         }
 
-        $sql .= " WHERE id=?";
-        $params[] = $id;
+        $coverImage = generate_filename($map[$mime]);
 
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-
-        header("Location: ../projects.php?status=success&action=updated");
-        exit();
-        
-    } catch (Exception $e) {
-        error_log("Project Update Error: " . $e->getMessage());
-        die("Error updating project: " . $e->getMessage());
+        if (!move_uploaded_file(
+            $_FILES['media_file']['tmp_name'],
+            $uploadDir . $coverImage
+        )) {
+            header('Location: ../projects.php?error=upload');
+            exit;
+        }
     }
+
+    $stmt = $pdo->prepare("
+        INSERT INTO projects (
+            title, slug, summary, description, location,
+            start_date, end_date, cover_image,
+            media_type, media_url, status,
+            featured, created_at
+        ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW()
+        )
+    ");
+
+    $stmt->execute([
+        $title,
+        $slug,
+        $summary,
+        $description,
+        $location,
+        $start_date,
+        $end_date,
+        $coverImage,
+        $media_type,
+        $media_url,
+        $status,
+        $featured
+    ]);
+
+    header('Location: ../projects.php?success=added');
+    exit;
 }
 
+/* ===================== UPDATE PROJECT ===================== */
 
-// =================================================================
-// 3. DELETE PROJECT (Refactored to check for POST as well)
-// =================================================================
-// Checks for both the old GET method and the new, preferred POST method.
-if (isset($_POST['delete']) || isset($_GET['delete'])) {
-    try {
-        // Determine ID source
-        $id = isset($_POST['id']) ? $_POST['id'] : (isset($_GET['delete']) ? $_GET['delete'] : null);
+if (isset($_POST['update'], $_POST['id'])) {
 
-        if (!$id) {
-            header("Location: ../projects.php?status=error&message=No ID provided for deletion.");
-            exit();
+    $id           = (int) $_POST['id'];
+    $title        = trim($_POST['title'] ?? '');
+    $slug         = slugify($_POST['slug'] ?? $title);
+    $summary      = trim($_POST['summary'] ?? '');
+    $description  = trim($_POST['description'] ?? '');
+    $location     = trim($_POST['location'] ?? '');
+    $start_date   = $_POST['start_date'] ?: null;
+    $end_date     = $_POST['end_date'] ?: null;
+    $status       = $_POST['status'] ?? 'planned';
+    $media_type   = $_POST['media_type'] ?? 'image';
+    $media_url    = trim($_POST['media_url'] ?? '') ?: null;
+    $featured     = isset($_POST['featured']) ? 1 : 0;
+
+    $newImage = null;
+
+    if (!empty($_FILES['media_file']['tmp_name'])) {
+
+        $mime = mime_content_type($_FILES['media_file']['tmp_name']);
+        $map  = $media_type === 'image' ? $imageMime : $videoMime;
+
+        if (!isset($map[$mime])) {
+            header('Location: ../projects.php?error=type');
+            exit;
         }
 
-        // Fetch the file name associated with the project
-        $stmt = $pdo->prepare("SELECT cover_image FROM projects WHERE id=?");
+        $newImage = generate_filename($map[$mime]);
+
+        if (!move_uploaded_file(
+            $_FILES['media_file']['tmp_name'],
+            $uploadDir . $newImage
+        )) {
+            header('Location: ../projects.php?error=upload');
+            exit;
+        }
+
+        $stmt = $pdo->prepare('SELECT cover_image FROM projects WHERE id = ?');
         $stmt->execute([$id]);
-        $file_to_delete = $stmt->fetchColumn();
-        
-        // Delete the file from the server
-        delete_file_if_exists($file_to_delete, $uploadDir);
-        
-        // Delete the record from the database
-        $pdo->prepare("DELETE FROM projects WHERE id=?")->execute([$id]);
-        
-        header("Location: ../projects.php?status=success&action=deleted");
-        exit();
+        $old = $stmt->fetchColumn();
 
-    } catch (Exception $e) {
-        error_log("Project Delete Error: " . $e->getMessage());
-        // Simple error handling: redirect with an error status
-        header("Location: ../projects.php?status=error&message=Delete failed due to an internal error.");
-        exit();
+        if ($old && file_exists($uploadDir . $old)) {
+            unlink($uploadDir . $old);
+        }
     }
+
+    if ($newImage) {
+        $stmt = $pdo->prepare("
+            UPDATE projects SET
+                title=?, slug=?, summary=?, description=?, location=?,
+                start_date=?, end_date=?, cover_image=?,
+                media_type=?, media_url=?, status=?, featured=?
+            WHERE id=?
+        ");
+
+        $stmt->execute([
+            $title,
+            $slug,
+            $summary,
+            $description,
+            $location,
+            $start_date,
+            $end_date,
+            $newImage,
+            $media_type,
+            $media_url,
+            $status,
+            $featured,
+            $id
+        ]);
+    } else {
+        $stmt = $pdo->prepare("
+            UPDATE projects SET
+                title=?, slug=?, summary=?, description=?, location=?,
+                start_date=?, end_date=?,
+                media_type=?, media_url=?, status=?, featured=?
+            WHERE id=?
+        ");
+
+        $stmt->execute([
+            $title,
+            $slug,
+            $summary,
+            $description,
+            $location,
+            $start_date,
+            $end_date,
+            $media_type,
+            $media_url,
+            $status,
+            $featured,
+            $id
+        ]);
+    }
+
+    header('Location: ../projects.php?success=updated');
+    exit;
 }
 
-// Fallback if no valid action is provided
-header("Location: ../projects.php");
-exit();
+/* ===================== DELETE PROJECT ===================== */
+
+if (isset($_POST['delete'], $_POST['id'])) {
+
+    $id = (int) $_POST['id'];
+
+    $stmt = $pdo->prepare('SELECT cover_image FROM projects WHERE id = ?');
+    $stmt->execute([$id]);
+    $file = $stmt->fetchColumn();
+
+    if ($file && file_exists($uploadDir . $file)) {
+        unlink($uploadDir . $file);
+    }
+
+    $stmt = $pdo->prepare('DELETE FROM projects WHERE id = ?');
+    $stmt->execute([$id]);
+
+    header('Location: ../projects.php?success=deleted');
+    exit;
+}
+
+/* ===================== FALLBACK ===================== */
+
+header('Location: ../projects.php');
+exit;

@@ -31,6 +31,8 @@ define('ROOT_PATH', dirname(__DIR__, 2));
 | ERROR HANDLING
 |--------------------------------------------------------------------------
 */
+require_once __DIR__ . '/upload_bootstrap.php';
+
 if (APP_ENV === 'development') {
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
