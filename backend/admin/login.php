@@ -194,8 +194,7 @@ $successText = ($errorCode === 'sent') ? $errorMessages['sent'] : null;
                 <?= htmlspecialchars($successText, ENT_QUOTES, 'UTF-8') ?>
             </div>
         <?php endif; ?>
-
-        <form method="POST" action="/backend/admin/handlers/login-handler.php">
+        <form method="POST" action="/frontend/admin/handlers/login-handler.php">
             <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
             <div class="form-group">
