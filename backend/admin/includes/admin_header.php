@@ -1,10 +1,6 @@
 <?php
 declare(strict_types=1);
 
-/* =========================================================
- * ADMIN HEADER – SINGLE SOURCE OF TRUTH
- * ======================================================= */
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -12,30 +8,20 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/admin_auth.php';
 
-/* ------------------------------
-   ADMIN ROUTING CONTRACT
------------------------------- */
 if (!defined('ADMIN_BASE_URL')) {
     define('ADMIN_BASE_URL', '/admin');
 }
 
-function admin_url(string $path): string
-{
+function admin_url(string $path): string {
     return ADMIN_BASE_URL . '/' . ltrim($path, '/');
 }
 
-function isActive(string $file): string
-{
+function isActive(string $file): string {
     return basename($_SERVER['PHP_SELF']) === $file ? 'active' : '';
 }
 
-/* ------------------------------
-   DATA FOR UI
------------------------------- */
 try {
-    $contactCount = (int) $pdo
-        ->query("SELECT COUNT(*) FROM contacts")
-        ->fetchColumn();
+    $contactCount = (int) $pdo->query("SELECT COUNT(*) FROM contacts")->fetchColumn();
 } catch (Throwable) {
     $contactCount = 0;
 }
@@ -49,8 +35,6 @@ $adminInitials = strtoupper(substr($adminName, 0, 2));
     <meta charset="utf-8">
     <title>ReSEED Admin Panel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -59,20 +43,18 @@ $adminInitials = strtoupper(substr($adminName, 0, 2));
             --primary: #166534;
             --primary-dark: #14532d;
             --accent: #22c55e;
-
-            --bg-body: #f3f4f6;
+            --bg-body: #f8fafc;
             --bg-surface: #ffffff;
-
-            --text-main: #1e293b;
+            --text-main: #0f172a;
             --text-muted: #64748b;
             --danger: #ef4444;
             --border: #e2e8f0;
-
-            --sidebar-width: 260px;
+            --sidebar-width: 280px;
             --sidebar-collapsed-width: 80px;
             --header-height: 70px;
-
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
 
         * { box-sizing: border-box; }
@@ -82,132 +64,66 @@ $adminInitials = strtoupper(substr($adminName, 0, 2));
             background-color: var(--bg-body);
             color: var(--text-main);
             overflow-x: hidden;
-        }
-        a { text-decoration: none; color: inherit; }
-
-        .wrapper {
-            display: flex;
-            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* ================= SIDEBAR ================= */
+        /* Layout Structure */
+        .wrapper { display: flex; min-height: 100vh; }
 
+        /* Sidebar Styling */
         .sidebar {
             width: var(--sidebar-width);
             background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
             position: fixed;
             inset: 0 auto 0 0;
-            z-index: 1000;
+            z-index: 1050;
             display: flex;
             flex-direction: column;
             transition: var(--transition);
+            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
         }
 
         .brand {
             height: var(--header-height);
             display: flex;
             align-items: center;
-            padding: 0 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 0 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
         }
 
         .brand img {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+            width: 38px; height: 38px;
+            border-radius: 10px;
             background: white;
-            padding: 2px;
+            padding: 4px;
             object-fit: contain;
         }
 
-        .brand-text {
-            margin-left: 12px;
-            white-space: nowrap;
-            overflow: hidden;
-        }
+        .brand-text { margin-left: 14px; transition: var(--transition); }
+        .brand-text h4 { margin: 0; font-size: 18px; letter-spacing: -0.5px; }
+        .brand-text span { font-size: 12px; opacity: 0.7; }
 
-        .brand-text h4 {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        .nav-menu {
-            flex: 1;
-            padding: 20px 12px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .nav-header {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.5);
-            margin: 16px 12px 6px;
-            font-weight: 600;
-        }
+        .nav-menu { flex: 1; padding: 24px 16px; overflow-y: auto; gap: 4px; display: flex; flex-direction: column; }
+        .nav-header { font-size: 11px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin: 12px 12px 8px; font-weight: 700; letter-spacing: 0.05em; }
 
         .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 12px 14px;
-            border-radius: 10px;
-            color: rgba(255,255,255,0.85);
-            font-size: 14px;
-            transition: 0.2s;
-            position: relative;
+            display: flex; align-items: center;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: rgba(255,255,255,0.7);
+            font-size: 14px; font-weight: 500;
+            transition: var(--transition);
+            margin-bottom: 2px;
         }
 
-        .nav-link i {
-            width: 24px;
-            font-size: 16px;
-            text-align: center;
-            margin-right: 12px;
-        }
+        .nav-link i { width: 24px; font-size: 18px; margin-right: 12px; transition: var(--transition); }
+        .nav-link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .nav-link.active { background: #fff; color: var(--primary); box-shadow: var(--shadow-md); }
 
-        .nav-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-        }
+        .badge { margin-left: auto; background: var(--accent); color: var(--primary-dark); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
 
-        .nav-link.active {
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-            box-shadow: inset 3px 0 0 var(--accent);
-        }
-
-        .badge {
-            margin-left: auto;
-            background: var(--danger);
-            color: #fff;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 6px;
-        }
-
-        .sidebar-footer {
-            padding: 16px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .btn-logout {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            background: rgba(0,0,0,0.2);
-            font-size: 13px;
-            transition: 0.2s;
-        }
-
-        /* ================= MAIN ================= */
-
+        /* Main Content area */
         .main-content {
             flex: 1;
             margin-left: var(--sidebar-width);
@@ -219,92 +135,51 @@ $adminInitials = strtoupper(substr($adminName, 0, 2));
 
         .topbar {
             height: var(--header-height);
-            background: var(--bg-surface);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 24px;
-            position: sticky;
-            top: 0;
-            z-index: 900;
+            position: sticky; top: 0; z-index: 1000;
         }
 
         .toggle-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 18px;
-            color: var(--text-muted);
-            padding: 8px;
-            border-radius: 8px;
+            background: #f1f5f9; border: none; cursor: pointer;
+            width: 40px; height: 40px; border-radius: 10px;
+            color: var(--text-main); display: flex; align-items: center; justify-content: center;
+            transition: var(--transition);
         }
+        .toggle-btn:hover { background: var(--border); }
 
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
+        .user-profile { display: flex; align-items: center; gap: 12px; }
         .avatar {
-            width: 36px;
-            height: 36px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
+            width: 40px; height: 40px; background: var(--primary); color: white;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 14px;
         }
 
-        /* ================= STATES ================= */
+        /* Collapsed States (Desktop) */
+        body.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-width); }
+        body.sidebar-collapsed .main-content { margin-left: var(--sidebar-collapsed-width); }
+        body.sidebar-collapsed .brand-text, 
+        body.sidebar-collapsed .nav-link span, 
+        body.sidebar-collapsed .nav-header,
+        body.sidebar-collapsed .badge { display: none; }
+        body.sidebar-collapsed .nav-link i { margin-right: 0; margin: auto; }
 
-        body.sidebar-collapsed .sidebar {
-            width: var(--sidebar-collapsed-width);
-        }
-
-        body.sidebar-collapsed .main-content {
-            margin-left: var(--sidebar-collapsed-width);
-        }
-
-        body.sidebar-collapsed
-        .brand-text,
-        body.sidebar-collapsed
-        .nav-header,
-        body.sidebar-collapsed
-        .nav-link span,
-        body.sidebar-collapsed
-        .badge,
-        body.sidebar-collapsed
-        .btn-logout span {
-            display: none;
-        }
-
+        /* Responsive Mobile Styles */
         .overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 950;
-            opacity: 0;
-            visibility: hidden;
-            transition: 0.3s;
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px); z-index: 1040; opacity: 0; visibility: hidden; transition: 0.3s;
         }
 
         @media (max-width: 991px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .main-content {
-                margin-left: 0 !important;
-            }
-            body.mobile-open .sidebar {
-                transform: translateX(0);
-            }
-            body.mobile-open .overlay {
-                opacity: 1;
-                visibility: visible;
-            }
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0 !important; }
+            body.mobile-open .sidebar { transform: translateX(0); }
+            body.mobile-open .overlay { opacity: 1; visibility: visible; }
         }
     </style>
 </head>
@@ -313,88 +188,66 @@ $adminInitials = strtoupper(substr($adminName, 0, 2));
 <div class="overlay" id="overlay"></div>
 
 <div class="wrapper">
-
-    <!-- ================= SIDEBAR ================= -->
     <nav class="sidebar" id="sidebar">
-
         <div class="brand">
-            <img src="/assets/images/Re-logo.png" alt="ReSEED Logo">
+            <img src="/assets/images/Re-logo.png" alt="Logo">
             <div class="brand-text">
                 <h4>ReSEED</h4>
-                <span>Admin Panel</span>
+                <span>Admin Portal</span>
             </div>
         </div>
 
         <div class="nav-menu">
-
             <div class="nav-header">Overview</div>
-
-            <a href="<?= admin_url('dashboard.php') ?>"
-               class="nav-link <?= isActive('dashboard.php') ?>">
-                <i class="fa-solid fa-chart-pie"></i>
+            <a href="<?= admin_url('dashboard.php') ?>" class="nav-link <?= isActive('dashboard.php') ?>">
+                <i class="fa-solid fa-house-chimney-window"></i>
                 <span>Dashboard</span>
             </a>
 
-            <div class="nav-header">Content</div>
-
-            <a href="<?= admin_url('projects.php') ?>"
-               class="nav-link <?= isActive('projects.php') ?>">
-                <i class="fa-solid fa-diagram-project"></i>
+            <div class="nav-header">Management</div>
+            <a href="<?= admin_url('projects.php') ?>" class="nav-link <?= isActive('projects.php') ?>">
+                <i class="fa-solid fa- layer-group"></i>
                 <span>Projects</span>
             </a>
-
-            <a href="<?= admin_url('posts.php') ?>"
-               class="nav-link <?= isActive('posts.php') ?>">
-                <i class="fa-solid fa-newspaper"></i>
+            <a href="<?= admin_url('posts.php') ?>" class="nav-link <?= isActive('posts.php') ?>">
+                <i class="fa-solid fa-pen-nib"></i>
                 <span>Posts</span>
             </a>
-
-            <a href="<?= admin_url('gallery.php') ?>"
-               class="nav-link <?= isActive('gallery.php') ?>">
-                <i class="fa-solid fa-images"></i>
-                <span>Gallery</span>
-            </a>
-
-            <a href="<?= admin_url('contacts.php') ?>"
-               class="nav-link <?= isActive('contacts.php') ?>">
-                <i class="fa-solid fa-envelope"></i>
-                <span>Contacts</span>
+            <a href="<?= admin_url('contacts.php') ?>" class="nav-link <?= isActive('contacts.php') ?>">
+                <i class="fa-solid fa-comment-dots"></i>
+                <span>Messages</span>
                 <?php if ($contactCount > 0): ?>
                     <span class="badge"><?= $contactCount ?></span>
                 <?php endif; ?>
             </a>
-            <div class="nav-header">Account</div>
-
-            <a href="<?= admin_url('admin_profile.php') ?>"
-            class="nav-link <?= isActive('admin_profile.php') ?>">
-                <i class="fa-solid fa-user-gear"></i>
-                <span>Admin Profile</span>
-            </a>
-
-
-        </div>
-
-        <div class="sidebar-footer">
-            <a href="<?= admin_url('logout.php') ?>" class="btn-logout">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>Logout</span>
+            
+            <div class="nav-header">Settings</div>
+            <a href="<?= admin_url('admin_profile.php') ?>" class="nav-link <?= isActive('admin_profile.php') ?>">
+                <i class="fa-solid fa-circle-user"></i>
+                <span>Profile</span>
             </a>
         </div>
 
+        <div style="padding: 16px; border-top: 1px solid rgba(255,255,255,0.08);">
+            <a href="<?= admin_url('logout.php') ?>" class="nav-link" style="color: #fda4af;">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span>Sign Out</span>
+            </a>
+        </div>
     </nav>
 
-    <!-- ================= MAIN ================= -->
     <main class="main-content">
-
         <header class="topbar">
-            <button class="toggle-btn" id="sidebarToggle" type="button">
-                <i class="fa-solid fa-bars"></i>
+            <button class="toggle-btn" id="sidebarToggle">
+                <i class="fa-solid fa-bars-staggered"></i>
             </button>
 
             <div class="user-profile">
-                <strong><?= htmlspecialchars($adminName) ?></strong>
+                <span style="font-size: 14px; font-weight: 500; color: var(--text-muted);" class="d-none d-md-block">
+                    Welcome, <strong><?= htmlspecialchars($adminName) ?></strong>
+                </span>
                 <div class="avatar"><?= $adminInitials ?></div>
             </div>
         </header>
-
-        <div class="container-fluid">
+        
+        <div class="container-fluid" style="padding: 24px;">
