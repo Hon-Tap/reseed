@@ -1,10 +1,13 @@
 <?php
 declare(strict_types=1);
-// Check if this path actually reaches the backend file
-$backendFile = __DIR__ . '/../../backend/admin/handlers/project-handler.php';
 
-if (file_exists($backendFile)) {
+// This ensures we get the absolute path to the root first
+$basePath = realpath(__DIR__ . '/../../'); 
+$backendFile = $basePath . '/backend/admin/handlers/project-handler.php';
+
+if ($backendFile && file_exists($backendFile)) {
     require_once $backendFile;
 } else {
-    die("Error: Backend handler not found at " . $backendFile);
+    // This will show you the EXACT path being searched so you can see the error
+    die("Error: Backend handler not found. Looking for: " . ($backendFile ?: 'nothing'));
 }

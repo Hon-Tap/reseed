@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-// Use realpath to avoid dots issues
-$basePath = realpath(__DIR__ . '/../../../'); 
+// Since this file is in backend/admin/handlers/, we go up 3 levels to reach the root
+$rootPath = dirname(__DIR__, 2); // This gets you to the 'backend' folder
 
-require_once $basePath . '/backend/includes/config.php';
-require_once $basePath . '/backend/admin/includes/csrf.php';
+require_once $rootPath . '/includes/config.php';
+require_once $rootPath . '/admin/includes/csrf.php';
 
 // Ensure UPLOAD_ROOT is actually defined in config.php
 // If not, define it here temporarily to test:
