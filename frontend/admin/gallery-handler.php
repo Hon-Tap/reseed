@@ -1,4 +1,5 @@
 <?php
 declare(strict_types=1);
 
-require_once dirname(__DIR__, 2) . '/backend/admin/handlers/gallery-handler.php';
+require_once dirname(__DIR__, 3) . '/backend/admin/handlers/gallery-handler.php';
+
