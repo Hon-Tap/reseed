@@ -1,21 +1,22 @@
 <?php
 declare(strict_types=1);
 
-// Since this file is in backend/admin/handlers/, we go up 3 levels to reach the root
-$rootPath = dirname(__DIR__, 2); // This gets you to the 'backend' folder
+// 1. Correct the path to reach backend/includes/config.php
+$rootPath = dirname(__DIR__, 2); 
 
 require_once $rootPath . '/includes/config.php';
 require_once $rootPath . '/admin/includes/csrf.php';
 
-// Ensure UPLOAD_ROOT is actually defined in config.php
-// If not, define it here temporarily to test:
-// define('UPLOAD_ROOT', $basePath . '/backend/uploads');
+// 2. SAFETY CHECK: If UPLOAD_ROOT isn't in config.php, define it here
+if (!defined('UPLOAD_ROOT')) {
+    define('UPLOAD_ROOT', $rootPath . '/uploads');
+}
 
 $uploadDir = UPLOAD_ROOT . '/projects/';
 
-// Ensure the directory exists
+// 3. Ensure the folder exists on the Render server
 if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0777, true);
+    mkdir($uploadDir, 0755, true);
 }
 
 /* ===================== UPLOAD CONFIG ===================== */

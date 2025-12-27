@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-$backendPath = dirname(__DIR__);
+// 1. Correct Pathing: Go up one level to reach 'backend' root
+$backendPath = dirname(__DIR__, 1);
 
 require_once $backendPath . '/includes/config.php';
 require_once $backendPath . '/admin/includes/admin_auth.php';
 require_once $backendPath . '/admin/includes/admin_header.php';
-
 
 /* ==================================================
    DASHBOARD METRICS (Optimized for PostgreSQL)
@@ -28,8 +28,8 @@ try {
         'admins'   => (int)($statsData['admins_count'] ?? 0),
     ];
 
-    // Fetch 3 most recent inquiries for a "Recent Activity" feel
-    $recentInquiries = $pdo->query("SELECT name, email, created_at FROM contacts ORDER BY created_at DESC LIMIT 3")->fetchAll();
+    // Fetch 5 most recent inquiries
+    $recentInquiries = $pdo->query("SELECT name, email, created_at FROM contacts ORDER BY created_at DESC LIMIT 5")->fetchAll();
 
 } catch (Throwable $e) {
     error_log("Dashboard Error: " . $e->getMessage());
@@ -38,217 +38,128 @@ try {
 }
 ?>
 
-<style>
-/* ==================================================
-   ENHANCED UI STYLES
-================================================== */
-:root {
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.3);
-}
+<script src="https://cdn.tailwindcss.com"></script>
 
-.dashboard-header {
-    margin-bottom: 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-}
-
-.dashboard-header h1 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #0f172a;
-    letter-spacing: -0.04em;
-    margin: 0;
-}
-
-.dashboard-header p { color: #64748b; font-size: 1.1rem; margin-top: 5px; }
-
-/* Stats Grid with Glassmorphism subtle touch */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 24px;
-}
-
-.stat-card {
-    background: #ffffff;
-    border-radius: 24px;
-    padding: 30px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    border: 1px solid #f1f5f9;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 18px;
-    display: grid;
-    place-items: center;
-    font-size: 22px;
-    color: #fff;
-}
-
-.bg-green  { background: linear-gradient(135deg, #10b981, #059669); }
-.bg-blue   { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.bg-orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.bg-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-
-.stat-info h3 { font-size: 2rem; font-weight: 800; color: #1e293b; margin: 0; }
-.stat-info span { font-size: 0.85rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; }
-
-/* Quick Actions & Recent Activity Layout */
-.dashboard-content-split {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 32px;
-    margin-top: 48px;
-}
-
-.section-title {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: #1e293b;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.quick-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.action-card {
-    background: #fff;
-    padding: 24px;
-    border-radius: 20px;
-    border: 1px solid #f1f5f9;
-    text-decoration: none;
-    transition: all 0.2s ease;
-}
-
-.action-card:hover { border-color: #10b981; background: #f0fdf4; }
-.action-card i { color: #10b981; margin-bottom: 15px; font-size: 1.5rem; display: block; }
-.action-card h4 { margin: 0 0 5px; color: #1e293b; font-weight: 700; }
-.action-card p { font-size: 0.9rem; color: #64748b; margin: 0; }
-
-/* Activity Sidebar */
-.activity-card {
-    background: #fff;
-    padding: 24px;
-    border-radius: 20px;
-    border: 1px solid #f1f5f9;
-}
-
-.activity-item {
-    padding: 12px 0;
-    border-bottom: 1px solid #f8fafc;
-}
-
-.activity-item:last-child { border: none; }
-.activity-item strong { display: block; font-size: 0.95rem; color: #1e293b; }
-.activity-item small { color: #94a3b8; font-size: 0.8rem; }
-
-@media (max-width: 1024px) {
-    .dashboard-content-split { grid-template-columns: 1fr; }
-}
-</style>
-
-<div class="dashboard-header">
-    <div>
-        <h1>Welcome, <?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin') ?></h1>
-        <p>System overview for <strong>ReSEED</strong></p>
-    </div>
-    <div class="date-badge" style="background: #fff; padding: 10px 20px; border-radius: 12px; font-weight: 600; color: #64748b; border: 1px solid #f1f5f9;">
-        <i class="fa-regular fa-calendar"></i> <?= date('M d, Y') ?>
-    </div>
-</div>
-
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon bg-green"><i class="fa-solid fa-leaf"></i></div>
-        <div class="stat-info">
-            <h3><?= $stats['projects'] ?></h3>
-            <span>Projects</span>
+<div class="min-h-screen bg-gray-50 p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">
+                    Welcome back, <span class="text-green-600"><?= htmlspecialchars($_SESSION['admin_name'] ?? 'Admin') ?></span>
+                </h1>
+                <p class="text-gray-500 mt-1">Here is what is happening with <span class="font-semibold text-gray-700">ReSEED</span> today.</p>
+            </div>
+            <div class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-600">
+                <i class="fa-regular fa-calendar mr-2 text-green-500"></i>
+                <?= date('F d, Y') ?>
+            </div>
         </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon bg-blue"><i class="fa-solid fa-pen-nib"></i></div>
-        <div class="stat-info">
-            <h3><?= $stats['posts'] ?></h3>
-            <span>Blog Posts</span>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon bg-orange"><i class="fa-solid fa-envelope"></i></div>
-        <div class="stat-info">
-            <h3><?= $stats['contacts'] ?></h3>
-            <span>Inquiries</span>
-        </div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-icon bg-purple"><i class="fa-solid fa-user-shield"></i></div>
-        <div class="stat-info">
-            <h3><?= $stats['admins'] ?></h3>
-            <span>Team</span>
-        </div>
-    </div>
-</div>
 
-<div class="dashboard-content-split">
-    <div class="main-column">
-        <h2 class="section-title"><i class="fa-solid fa-bolt"></i> Quick Actions</h2>
-        <div class="quick-actions">
-            <a href="projects.php" class="action-card">
-                <i class="fa-solid fa-folder-plus"></i>
-                <h4>Manage Projects</h4>
-                <p>Update restoration progress.</p>
-            </a>
-            <a href="posts.php" class="action-card">
-                <i class="fa-solid fa-plus"></i>
-                <h4>New Blog Post</h4>
-                <p>Share a success story.</p>
-            </a>
-            <a href="contacts.php" class="action-card">
-                <i class="fa-solid fa-inbox"></i>
-                <h4>Inbox</h4>
-                <p>View latest inquiries.</p>
-            </a>
-            <a href="users.php" class="action-card">
-                <i class="fa-solid fa-users-cog"></i>
-                <h4>Settings</h4>
-                <p>Manage admin access.</p>
-            </a>
-        </div>
-    </div>
-
-    <div class="side-column">
-        <h2 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h2>
-        <div class="activity-card">
-            <?php if (empty($recentInquiries)): ?>
-                <p style="color: #94a3b8; font-size: 0.9rem;">No recent messages.</p>
-            <?php else: ?>
-                <?php foreach($recentInquiries as $msg): ?>
-                    <div class="activity-item">
-                        <strong><?= htmlspecialchars((string)$msg['name']) ?> sent a message</strong>
-                        <small><?= date('M d, H:i', strtotime((string)$msg['created_at'])) ?></small>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3 bg-green-100 rounded-lg text-green-600"><i class="fa-solid fa-leaf text-xl"></i></div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Projects</p>
+                        <p class="text-2xl font-bold text-gray-900"><?= $stats['projects'] ?></p>
                     </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3 bg-blue-100 rounded-lg text-blue-600"><i class="fa-solid fa-pen-nib text-xl"></i></div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Blog Posts</p>
+                        <p class="text-2xl font-bold text-gray-900"><?= $stats['posts'] ?></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3 bg-amber-100 rounded-lg text-amber-600"><i class="fa-solid fa-envelope text-xl"></i></div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Inquiries</p>
+                        <p class="text-2xl font-bold text-gray-900"><?= $stats['contacts'] ?></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3 bg-purple-100 rounded-lg text-purple-600"><i class="fa-solid fa-user-shield text-xl"></i></div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">Team</p>
+                        <p class="text-2xl font-bold text-gray-900"><?= $stats['admins'] ?></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2">
+                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fa-solid fa-bolt mr-2 text-yellow-500"></i> Quick Actions
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <a href="projects.php" class="group p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-green-500 hover:bg-green-50 transition-all">
+                        <i class="fa-solid fa-folder-plus text-green-500 text-2xl mb-3 block"></i>
+                        <h4 class="font-bold text-gray-900 group-hover:text-green-700">Manage Projects</h4>
+                        <p class="text-sm text-gray-500">Add or edit restoration progress.</p>
+                    </a>
+                    <a href="posts.php" class="group p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-blue-500 hover:bg-blue-50 transition-all">
+                        <i class="fa-solid fa-plus text-blue-500 text-2xl mb-3 block"></i>
+                        <h4 class="font-bold text-gray-900 group-hover:text-blue-700">New Blog Post</h4>
+                        <p class="text-sm text-gray-500">Share your latest success story.</p>
+                    </a>
+                    <a href="contacts.php" class="group p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-amber-500 hover:bg-amber-50 transition-all">
+                        <i class="fa-solid fa-inbox text-amber-500 text-2xl mb-3 block"></i>
+                        <h4 class="font-bold text-gray-900 group-hover:text-amber-700">Check Inbox</h4>
+                        <p class="text-sm text-gray-500">Read and respond to messages.</p>
+                    </a>
+                    <a href="users.php" class="group p-5 bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-purple-500 hover:bg-purple-50 transition-all">
+                        <i class="fa-solid fa-users-cog text-purple-500 text-2xl mb-3 block"></i>
+                        <h4 class="font-bold text-gray-900 group-hover:text-purple-700">Team Settings</h4>
+                        <p class="text-sm text-gray-500">Manage administrative permissions.</p>
+                    </a>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fa-solid fa-clock-rotate-left mr-2 text-gray-400"></i> Recent Messages
+                </h3>
+                <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+                    <?php if (empty($recentInquiries)): ?>
+                        <div class="p-8 text-center">
+                            <i class="fa-solid fa-ghost text-gray-200 text-4xl mb-2"></i>
+                            <p class="text-gray-400 text-sm">No recent inquiries.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="divide-y divide-gray-50">
+                            <?php foreach($recentInquiries as $msg): ?>
+                                <div class="p-4 hover:bg-gray-50 transition-colors">
+                                    <p class="text-sm font-bold text-gray-900"><?= htmlspecialchars((string)$msg['name']) ?></p>
+                                    <p class="text-xs text-gray-500 mb-1"><?= htmlspecialchars((string)$msg['email']) ?></p>
+                                    <span class="text-[10px] font-medium px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full">
+                                        <?= date('M d, g:i a', strtotime((string)$msg['created_at'])) ?>
+                                    </span>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <a href="contacts.php" class="block text-center py-3 bg-gray-50 text-xs font-bold text-gray-500 hover:text-green-600 transition-colors uppercase tracking-widest">
+                            View All Messages
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<?php require_once $adminRoot . '/includes/admin_footer.php'; ?>
+<?php 
+// Fixed footer requirement using $backendPath to avoid the previous error
+require_once $backendPath . '/admin/includes/admin_footer.php'; 
+?>
