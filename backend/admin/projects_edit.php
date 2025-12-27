@@ -31,7 +31,7 @@ $project = $stmt->fetch();
             </div>
         </div>
 
-        <form action="<?= admin_url('handlers/project-handler.php') ?>"
+        <form action="<?= admin_url('project-handler.php') ?>"
       method="POST"
       enctype="multipart/form-data"
       class="grid grid-cols-1 lg:grid-cols-3 gap-8">

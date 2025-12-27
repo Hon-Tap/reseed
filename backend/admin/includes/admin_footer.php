@@ -1,102 +1,138 @@
-</div> <footer class="app-footer">
-            <div class="footer-content">
-                <div class="copyright">
-                    &copy; <?= date('Y') ?> <strong>ReSEED</strong>. All rights reserved.
+        </div> <!-- /page-content -->
+
+        <footer class="app-footer">
+            <div class="footer-inner">
+                <div class="footer-left">
+                    &copy; <?= date('Y') ?> <strong>ReSEED</strong>
+                    <span class="footer-separator">•</span>
+                    Admin System
                 </div>
-                <div class="version-tag">
-                    <span class="pulse-dot"></span> System Operational
+
+                <div class="footer-right" title="System status">
+                    <span class="status-dot" aria-hidden="true"></span>
+                    <span class="status-text">Operational</span>
                 </div>
             </div>
         </footer>
-    </main> 
-</div> <style>
-    .app-footer { 
-        margin-top: auto; 
-        padding: 24px 32px; 
-        background: var(--bg-surface); 
-        border-top: 1px solid var(--border);
-    }
-    .footer-content { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        color: var(--text-muted); 
-        font-size: 13px; 
-    }
-    .version-tag { 
-        display: flex; 
-        align-items: center; 
-        gap: 8px; 
-        background: #f1f5f9; 
-        padding: 6px 12px; 
-        border-radius: 20px; 
-        font-size: 11px; 
-        font-weight: 600; 
-        color: var(--primary-dark);
-    }
-    .pulse-dot { 
-        width: 8px; 
-        height: 8px; 
-        background-color: var(--accent); 
-        border-radius: 50%; 
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-        animation: pulse-green 2s infinite; 
-    }
-    
-    @keyframes pulse-green {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-    }
 
-    @media (max-width: 600px) {
-        .footer-content { flex-direction: column; gap: 12px; text-align: center; }
+    </main>
+</div>
+<style>
+/* ===============================
+   Footer
+================================ */
+.app-footer {
+    margin-top: auto;
+    padding: 18px 28px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+}
+
+.footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.footer-left strong {
+    color: var(--text-main);
+}
+
+.footer-separator {
+    margin: 0 6px;
+    opacity: .4;
+}
+
+.footer-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary-dark);
+    white-space: nowrap;
+}
+
+/* Status indicator */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 rgba(34,197,94,.6);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%   { transform: scale(.9); box-shadow: 0 0 0 0 rgba(34,197,94,.6); }
+    70%  { transform: scale(1);  box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    100% { transform: scale(.9); box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+}
+
+@media (max-width: 640px) {
+    .footer-inner {
+        flex-direction: column;
+        text-align: center;
     }
+}
 </style>
-
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const toggleBtn = document.getElementById('sidebarToggle');
-    const overlay   = document.getElementById('overlay');
-    const body      = document.body;
+    const body        = document.body;
+    const toggleBtn   = document.getElementById('sidebarToggle');
+    const overlay     = document.getElementById('overlay');
 
-    // Load initial state
-    if (localStorage.getItem('sidebar-state') === 'collapsed' && window.innerWidth >= 992) {
+    const DESKTOP_BP  = 992;
+    const STORAGE_KEY = 'sidebar-state';
+
+    /* Restore sidebar state (desktop only) */
+    if (
+        window.innerWidth >= DESKTOP_BP &&
+        localStorage.getItem(STORAGE_KEY) === 'collapsed'
+    ) {
         body.classList.add('sidebar-collapsed');
     }
 
     const toggleSidebar = () => {
-        if (window.innerWidth >= 992) {
-            // Desktop toggle
+        if (window.innerWidth >= DESKTOP_BP) {
             body.classList.toggle('sidebar-collapsed');
-            const state = body.classList.contains('sidebar-collapsed') ? 'collapsed' : 'expanded';
-            localStorage.setItem('sidebar-state', state);
+            localStorage.setItem(
+                STORAGE_KEY,
+                body.classList.contains('sidebar-collapsed') ? 'collapsed' : 'expanded'
+            );
         } else {
-            // Mobile toggle
             body.classList.toggle('mobile-open');
         }
     };
 
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleSidebar();
-        });
-    }
+    toggleBtn?.addEventListener('click', e => {
+        e.stopPropagation();
+        toggleSidebar();
+    });
 
-    if (overlay) {
-        overlay.addEventListener('click', () => {
-            body.classList.remove('mobile-open');
-        });
-    }
+    overlay?.addEventListener('click', () => {
+        body.classList.remove('mobile-open');
+    });
 
-    // Auto-close mobile menu on resize if moving to desktop
     window.addEventListener('resize', () => {
-        if (window.innerWidth >= 992 && body.classList.contains('mobile-open')) {
+        if (window.innerWidth >= DESKTOP_BP) {
+            body.classList.remove('mobile-open');
+        }
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
             body.classList.remove('mobile-open');
         }
     });
 });
 </script>
+
 </body>
 </html>

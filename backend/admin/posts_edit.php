@@ -42,7 +42,7 @@ if (!$post) {
 
     <!-- ================= FORM ================= -->
     <form
-  action="<?= admin_url('handlers/post-handler.php') ?>"
+  action="<?= admin_url('post-handler.php') ?>"
   method="POST"
   enctype="multipart/form-data"
   class="grid grid-cols-1 lg:grid-cols-3 gap-8"

@@ -24,7 +24,7 @@ require_once $backendPath . '/admin/includes/admin_header.php';
             <p class="text-gray-500">You can upload a single image or multiple files at once.</p>
         </div>
 
-        <form action="<?= admin_url('handlers/gallery-handler.php') ?>"
+        <form action="<?= admin_url('gallery-handler.php') ?>"
       method="POST"
       enctype="multipart/form-data"
       class="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -12,7 +12,7 @@ require_once $backendPath . '/admin/includes/admin_header.php';
 
 <h2>Add News / Post</h2>
 
-<form action="<?= admin_url('handlers/post-handler.php') ?>"
+<form action="<?= admin_url('post-handler.php') ?>"
       method="POST"
       enctype="multipart/form-data"
       class="form-card">

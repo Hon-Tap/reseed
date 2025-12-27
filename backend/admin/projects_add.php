@@ -12,7 +12,8 @@ require_once $backendPath . '/admin/includes/admin_header.php';
 
 <h2>Add Project</h2>
 
-<form action="<?= admin_url('handlers/project-handler.php') ?>"
+
+<form action="<?= admin_url('project-handler.php') ?>"
       method="POST"
       enctype="multipart/form-data"
       class="form-card">

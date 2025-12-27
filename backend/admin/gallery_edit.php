@@ -18,7 +18,7 @@ $item = $stmt->fetch();
 <h2>Edit Gallery Item</h2>
 
 <div class="form-card">
-    <form action="<?= admin_url('handlers/gallery-handler.php') ?>"
+    <form action="<?= admin_url('gallery-handler.php') ?>"
       method="POST"
       enctype="multipart/form-data"
       id="editGalleryForm">
