@@ -1,17 +1,16 @@
 <?php
 declare(strict_types=1);
 
-$backendPath = dirname(__DIR__, 2);
+// This ensures $backendPath is ALWAYS the actual backend folder 
+// regardless of where the script is called from.
+$backendPath = realpath(__DIR__ . '/../../');
 
 require_once $backendPath . '/includes/config.php';
 require_once $backendPath . '/admin/includes/csrf.php';
 
-
-/* ===================== METHOD ENFORCEMENT ===================== */
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    exit('Method Not Allowed');
+// ADD THIS DEBUG LINE TEMPORARILY:
+if (!isset($pdo)) {
+    die("Fatal Error: Database connection ($pdo) was not initialized. Check config.php path.");
 }
 
 /* ===================== UPLOAD CONFIG ===================== */
