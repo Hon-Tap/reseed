@@ -1,11 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 $backendPath = dirname(__DIR__);
 
 require_once $backendPath . '/includes/config.php';
 require_once $backendPath . '/admin/includes/admin_auth.php';
-require_once $backendPath . '/admin/includes/csrf.php';
 require_once $backendPath . '/admin/includes/admin_header.php';
 
 /*
@@ -13,139 +13,138 @@ require_once $backendPath . '/admin/includes/admin_header.php';
 | Fetch gallery items
 |--------------------------------------------------------------------------
 */
+
 $stmt = $pdo->query("
     SELECT id, filename, caption, category, created_at
     FROM gallery
-    ORDER BY id DESC
+    ORDER BY created_at DESC
 ");
 
-$images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$images     = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $uploadPath = UPLOAD_URL . '/gallery/';
 ?>
 
-<style>
-    .empty-state {
-    text-align: center;
-    padding: 64px 24px;
-    color: var(--text-muted);
-}
+<script src="https://cdn.tailwindcss.com"></script>
 
-.empty-icon {
-    width: 72px;
-    height: 72px;
-    margin: 0 auto 16px;
-    border-radius: 50%;
-    background: #f1f5f9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-}
+<div class="p-8 bg-[#f8fafc] min-h-screen">
+    <div class="max-w-7xl mx-auto">
 
-.thumb {
-    width: 80px;
-    height: 56px;
-    border-radius: 10px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-}
-
-.thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-</style>
-
-<div class="page-card">
-
-    <!-- Header -->
-    <div class="page-header">
-        <div>
-            <h1 class="page-title">Gallery</h1>
-            <p class="page-subtitle">Manage images and visual media.</p>
-        </div>
-
-        <a href="gallery_add.php" class="btn btn-primary">
-            <i class="fa-solid fa-cloud-arrow-up"></i>
-            Upload Image
-        </a>
-    </div>
-
-    <?php if (!$images): ?>
-        <div class="empty-state">
-            <div class="empty-icon">
-                <i class="fa-solid fa-images"></i>
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+            <div>
+                <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Gallery
+                </h1>
+                <p class="text-slate-500 mt-2 font-medium">
+                    Manage images and visual media.
+                </p>
             </div>
-            <h3>No images yet</h3>
-            <p>Upload your first gallery image to get started.</p>
+
+            <a
+                href="gallery_add.php"
+                class="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700
+                       text-white font-bold rounded-xl transition shadow-lg shadow-emerald-200"
+            >
+                <i class="fa-solid fa-cloud-arrow-up mr-2"></i>
+                Upload Image
+            </a>
         </div>
-    <?php else: ?>
 
-    <div class="table-wrap">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Preview</th>
-                    <th>Details</th>
-                    <th>Category</th>
-                    <th class="text-right">Actions</th>
-                </tr>
-            </thead>
+        <!-- Content -->
+        <?php if (!$images): ?>
 
-            <tbody>
-            <?php foreach ($images as $g): ?>
-                <tr>
-                    <td>
-                        <div class="thumb">
-                            <img
-                                src="<?= $uploadPath . htmlspecialchars($g['filename']) ?>"
-                                alt=""
-                            >
-                        </div>
-                    </td>
+            <!-- Empty State -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/60 p-16 text-center">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                    <i class="fa-solid fa-images text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-700 mb-1">
+                    No images yet
+                </h3>
+                <p class="text-slate-400">
+                    Upload your first gallery image to get started.
+                </p>
+            </div>
 
-                    <td>
-                        <strong><?= htmlspecialchars($g['caption'] ?: 'Untitled Image') ?></strong>
-                        <div class="meta">
-                            <code><?= htmlspecialchars($g['filename']) ?></code>
-                        </div>
-                    </td>
+        <?php else: ?>
 
-                    <td>
-                        <span class="badge badge-neutral">
-                            <?= htmlspecialchars($g['category'] ?: 'Uncategorized') ?>
-                        </span>
-                    </td>
+            <!-- Table -->
+            <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200 overflow-hidden">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-400 text-[11px] uppercase font-bold tracking-widest">
+                            <th class="px-8 py-5">Preview</th>
+                            <th class="px-8 py-5">Details</th>
+                            <th class="px-8 py-5">Category</th>
+                            <th class="px-8 py-5 text-right">Actions</th>
+                        </tr>
+                    </thead>
 
-                    <td class="text-right">
-                        <div class="actions">
-                            <a href="gallery_edit.php?id=<?= $g['id'] ?>" class="icon-btn edit">
-                                <i class="fa-solid fa-pen"></i>
-                            </a>
+                    <tbody class="divide-y divide-slate-100">
+                    <?php foreach ($images as $g): ?>
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <!-- Preview -->
+                            <td class="px-8 py-6">
+                                <img
+                                    src="<?= $uploadPath . htmlspecialchars($g['filename']) ?>"
+                                    alt=""
+                                    class="w-20 h-14 object-cover rounded-xl shadow-sm border border-slate-100"
+                                >
+                            </td>
 
-                            <form
-                                action="gallery-handler.php"
-                                method="post"
-                                onsubmit="return confirm('Delete this image permanently?')"
-                            >
-                                <input type="hidden" name="id" value="<?= $g['id'] ?>">
-                                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                                <button name="delete" class="icon-btn delete">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
+                            <!-- Details -->
+                            <td class="px-8 py-6">
+                                <div class="font-bold text-slate-800 text-lg">
+                                    <?= htmlspecialchars($g['caption'] ?: 'Untitled Image') ?>
+                                </div>
+                                <div class="mt-1 text-xs text-slate-400">
+                                    <code><?= htmlspecialchars($g['filename']) ?></code>
+                                </div>
+                            </td>
+
+                            <!-- Category -->
+                            <td class="px-8 py-6">
+                                <span class="px-3 py-1 text-[10px] font-black uppercase rounded-full
+                                             bg-slate-100 text-slate-600 border border-slate-200">
+                                    <?= htmlspecialchars($g['category'] ?: 'Uncategorized') ?>
+                                </span>
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="px-8 py-6 text-right">
+                                <div class="flex justify-end gap-2">
+                                    <a
+                                        href="gallery_edit.php?id=<?= $g['id'] ?>"
+                                        class="w-10 h-10 flex items-center justify-center
+                                               text-blue-500 hover:bg-blue-50 rounded-xl transition"
+                                    >
+                                        <i class="fa-solid fa-edit"></i>
+                                    </a>
+
+                                    <form
+                                        action="handlers/gallery-handler.php"
+                                        method="post"
+                                        onsubmit="return confirm('Delete this image permanently?')"
+                                    >
+                                        <input type="hidden" name="id" value="<?= $g['id'] ?>">
+                                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                                        <button
+                                            name="delete"
+                                            class="w-10 h-10 flex items-center justify-center
+                                                   text-rose-500 hover:bg-rose-50 rounded-xl transition"
+                                        >
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+        <?php endif; ?>
+
     </div>
-
-    <?php endif; ?>
-
 </div>
-
-<?php require_once $backendPath . '/admin/includes/admin_footer.php'; ?>
