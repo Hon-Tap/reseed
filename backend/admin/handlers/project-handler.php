@@ -1,17 +1,21 @@
 <?php
 declare(strict_types=1);
 
-$backendPath = dirname(__DIR__, 2);
+// Use realpath to avoid dots issues
+$basePath = realpath(__DIR__ . '/../../../'); 
 
-require_once $backendPath . '/includes/config.php';
-require_once $backendPath . '/admin/includes/csrf.php';
+require_once $basePath . '/backend/includes/config.php';
+require_once $basePath . '/backend/admin/includes/csrf.php';
 
+// Ensure UPLOAD_ROOT is actually defined in config.php
+// If not, define it here temporarily to test:
+// define('UPLOAD_ROOT', $basePath . '/backend/uploads');
 
-/* ===================== METHOD ENFORCEMENT ===================== */
+$uploadDir = UPLOAD_ROOT . '/projects/';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    exit('Method Not Allowed');
+// Ensure the directory exists
+if (!is_dir($uploadDir)) {
+    mkdir($uploadDir, 0777, true);
 }
 
 /* ===================== UPLOAD CONFIG ===================== */
