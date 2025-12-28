@@ -1,25 +1,30 @@
 <?php
 declare(strict_types=1);
 
-// 1. Correct the path to reach backend/includes/config.php
-$rootPath = dirname(__DIR__, 2); 
+/*
+|--------------------------------------------------------------------------
+| PATHS & BOOTSTRAP
+|--------------------------------------------------------------------------
+*/
+$rootPath = dirname(__DIR__, 2);
 
 require_once $rootPath . '/includes/config.php';
 require_once $rootPath . '/admin/includes/csrf.php';
 
-// 2. SAFETY CHECK: Ensure UPLOAD_ROOT is defined
+/*
+|--------------------------------------------------------------------------
+| UPLOAD CONFIG
+|--------------------------------------------------------------------------
+*/
 if (!defined('UPLOAD_ROOT')) {
     define('UPLOAD_ROOT', $rootPath . '/uploads');
 }
 
 $uploadDir = UPLOAD_ROOT . '/posts/';
 
-// 3. Ensure the folder exists on the server
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
-
-/* ===================== UPLOAD CONFIG ===================== */
 
 $imageMime = [
     'image/jpeg' => 'jpg',
@@ -28,8 +33,11 @@ $imageMime = [
     'image/gif'  => 'gif',
 ];
 
-/* ===================== HELPERS ===================== */
-
+/*
+|--------------------------------------------------------------------------
+| HELPERS
+|--------------------------------------------------------------------------
+*/
 function slugify(string $value): string
 {
     return trim(
@@ -43,22 +51,29 @@ function generate_filename(string $ext): string
     return bin2hex(random_bytes(16)) . '.' . $ext;
 }
 
-/* ===================== ADD POST ===================== */
-
+/*
+|--------------------------------------------------------------------------
+| ADD POST
+|--------------------------------------------------------------------------
+*/
 if (isset($_POST['add'])) {
 
-    $title    = trim($_POST['title'] ?? '');
-    $slug     = slugify($_POST['slug'] ?? $title);
-    $content  = trim($_POST['content'] ?? '');
-    $status   = $_POST['status'] ?? 'draft';
-    $featured = isset($_POST['featured']) ? 1 : 0;
+    csrf_verify($_POST['csrf_token'] ?? '');
+
+    $title        = trim($_POST['title'] ?? '');
+    $slug         = slugify($_POST['slug'] ?? $title);
+    $author       = trim($_POST['author'] ?? '');
+    $excerpt      = trim($_POST['excerpt'] ?? '');
+    $content      = trim($_POST['content'] ?? '');
+    $published_at = $_POST['published_at'] ?? null;
+    $featured     = isset($_POST['featured']) ? true : false;
 
     $coverImage = null;
 
     if (!empty($_FILES['media_file']['tmp_name'])) {
 
         $mime = mime_content_type($_FILES['media_file']['tmp_name']);
-        
+
         if (!isset($imageMime[$mime])) {
             header('Location: ../posts.php?error=type');
             exit;
@@ -76,42 +91,66 @@ if (isset($_POST['add'])) {
     }
 
     try {
-        // Removed category_id to match your database error deduction
         $stmt = $pdo->prepare("
             INSERT INTO posts (
-                title, slug, content, cover_image, 
-                status, featured, created_at
+                title,
+                slug,
+                author,
+                excerpt,
+                content,
+                cover_image,
+                featured,
+                published_at,
+                created_at
             ) VALUES (
-                ?, ?, ?, ?, ?, ?, NOW()
+                :title,
+                :slug,
+                :author,
+                :excerpt,
+                :content,
+                :cover_image,
+                :featured,
+                :published_at,
+                NOW()
             )
         ");
 
         $stmt->execute([
-            $title,
-            $slug,
-            $content,
-            $coverImage,
-            $status,
-            $featured
+            ':title'        => $title,
+            ':slug'         => $slug,
+            ':author'       => $author,
+            ':excerpt'      => $excerpt,
+            ':content'      => $content,
+            ':cover_image'  => $coverImage,
+            ':featured'     => $featured,
+            ':published_at' => $published_at,
         ]);
 
         header('Location: ../posts.php?success=added');
         exit;
+
     } catch (PDOException $e) {
-        die("Database Error: " . $e->getMessage());
+        die('Database Error: ' . $e->getMessage());
     }
 }
 
-/* ===================== UPDATE POST ===================== */
-
+/*
+|--------------------------------------------------------------------------
+| UPDATE POST
+|--------------------------------------------------------------------------
+*/
 if (isset($_POST['update'], $_POST['id'])) {
 
-    $id       = (int) $_POST['id'];
-    $title    = trim($_POST['title'] ?? '');
-    $slug     = slugify($_POST['slug'] ?? $title);
-    $content  = trim($_POST['content'] ?? '');
-    $status   = $_POST['status'] ?? 'draft';
-    $featured = isset($_POST['featured']) ? 1 : 0;
+    csrf_verify($_POST['csrf_token'] ?? '');
+
+    $id           = (int) $_POST['id'];
+    $title        = trim($_POST['title'] ?? '');
+    $slug         = slugify($_POST['slug'] ?? $title);
+    $author       = trim($_POST['author'] ?? '');
+    $excerpt      = trim($_POST['excerpt'] ?? '');
+    $content      = trim($_POST['content'] ?? '');
+    $published_at = $_POST['published_at'] ?? null;
+    $featured     = isset($_POST['featured']) ? true : false;
 
     $newImage = null;
 
@@ -134,13 +173,12 @@ if (isset($_POST['update'], $_POST['id'])) {
             exit;
         }
 
-        // Clean up old image
-        $stmt = $pdo->prepare('SELECT cover_image FROM posts WHERE id = ?');
+        $stmt = $pdo->prepare("SELECT cover_image FROM posts WHERE id = ?");
         $stmt->execute([$id]);
-        $old = $stmt->fetchColumn();
+        $oldImage = $stmt->fetchColumn();
 
-        if ($old && file_exists($uploadDir . $old)) {
-            unlink($uploadDir . $old);
+        if ($oldImage && file_exists($uploadDir . $oldImage)) {
+            unlink($uploadDir . $oldImage);
         }
     }
 
@@ -148,49 +186,85 @@ if (isset($_POST['update'], $_POST['id'])) {
         if ($newImage) {
             $stmt = $pdo->prepare("
                 UPDATE posts SET
-                    title=?, slug=?, content=?, cover_image=?,
-                    status=?, featured=?
-                WHERE id=?
+                    title = :title,
+                    slug = :slug,
+                    author = :author,
+                    excerpt = :excerpt,
+                    content = :content,
+                    cover_image = :cover_image,
+                    featured = :featured,
+                    published_at = :published_at
+                WHERE id = :id
             ");
-            $stmt->execute([$title, $slug, $content, $newImage, $status, $featured, $id]);
         } else {
             $stmt = $pdo->prepare("
                 UPDATE posts SET
-                    title=?, slug=?, content=?, status=?, featured=?
-                WHERE id=?
+                    title = :title,
+                    slug = :slug,
+                    author = :author,
+                    excerpt = :excerpt,
+                    content = :content,
+                    featured = :featured,
+                    published_at = :published_at
+                WHERE id = :id
             ");
-            $stmt->execute([$title, $slug, $content, $status, $featured, $id]);
         }
+
+        $params = [
+            ':title'        => $title,
+            ':slug'         => $slug,
+            ':author'       => $author,
+            ':excerpt'      => $excerpt,
+            ':content'      => $content,
+            ':featured'     => $featured,
+            ':published_at' => $published_at,
+            ':id'           => $id,
+        ];
+
+        if ($newImage) {
+            $params[':cover_image'] = $newImage;
+        }
+
+        $stmt->execute($params);
 
         header('Location: ../posts.php?success=updated');
         exit;
+
     } catch (PDOException $e) {
-        die("Database Error: " . $e->getMessage());
+        die('Database Error: ' . $e->getMessage());
     }
 }
 
-/* ===================== DELETE POST ===================== */
-
+/*
+|--------------------------------------------------------------------------
+| DELETE POST
+|--------------------------------------------------------------------------
+*/
 if (isset($_POST['delete'], $_POST['id'])) {
+
+    csrf_verify($_POST['csrf_token'] ?? '');
 
     $id = (int) $_POST['id'];
 
-    $stmt = $pdo->prepare('SELECT cover_image FROM posts WHERE id = ?');
+    $stmt = $pdo->prepare("SELECT cover_image FROM posts WHERE id = ?");
     $stmt->execute([$id]);
-    $file = $stmt->fetchColumn();
+    $image = $stmt->fetchColumn();
 
-    if ($file && file_exists($uploadDir . $file)) {
-        unlink($uploadDir . $file);
+    if ($image && file_exists($uploadDir . $image)) {
+        unlink($uploadDir . $image);
     }
 
-    $stmt = $pdo->prepare('DELETE FROM posts WHERE id = ?');
+    $stmt = $pdo->prepare("DELETE FROM posts WHERE id = ?");
     $stmt->execute([$id]);
 
     header('Location: ../posts.php?success=deleted');
     exit;
 }
 
-/* ===================== FALLBACK ===================== */
-
+/*
+|--------------------------------------------------------------------------
+| FALLBACK
+|--------------------------------------------------------------------------
+*/
 header('Location: ../posts.php');
 exit;
