@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /*
@@ -6,6 +7,7 @@ declare(strict_types=1);
 | BOOTSTRAP
 |--------------------------------------------------------------------------
 */
+
 $rootPath = dirname(__DIR__, 2);
 
 require_once $rootPath . '/includes/config.php';
@@ -13,19 +15,21 @@ require_once $rootPath . '/admin/includes/csrf.php';
 
 /*
 |--------------------------------------------------------------------------
-| UPLOAD SETUP
+| UPLOAD CONFIG
 |--------------------------------------------------------------------------
 */
+
 if (!defined('UPLOAD_ROOT')) {
     define('UPLOAD_ROOT', $rootPath . '/uploads');
 }
 
 $uploadDir = UPLOAD_ROOT . '/posts/';
+
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
 
-$allowedMime = [
+$imageMime = [
     'image/jpeg' => 'jpg',
     'image/png'  => 'png',
     'image/webp' => 'webp',
@@ -37,6 +41,7 @@ $allowedMime = [
 | HELPERS
 |--------------------------------------------------------------------------
 */
+
 function slugify(string $value): string
 {
     return trim(
@@ -45,7 +50,7 @@ function slugify(string $value): string
     );
 }
 
-function randomFilename(string $ext): string
+function generateFilename(string $ext): string
 {
     return bin2hex(random_bytes(16)) . '.' . $ext;
 }
@@ -55,6 +60,7 @@ function randomFilename(string $ext): string
 | ADD POST
 |--------------------------------------------------------------------------
 */
+
 if (isset($_POST['add'])) {
 
     csrf_verify($_POST['csrf_token'] ?? '');
@@ -65,8 +71,8 @@ if (isset($_POST['add'])) {
     $excerpt      = trim($_POST['excerpt'] ?? '');
     $content      = trim($_POST['content'] ?? '');
     $published_at = $_POST['published_at'] ?: null;
-    $featured     = isset($_POST['featured']);
-    $mediaType    = $_POST['media_type'] ?? 'image';
+    $media_type   = $_POST['media_type'] ?? 'image';
+    $featured     = isset($_POST['featured']) ? 1 : 0;
 
     $coverImage = null;
 
@@ -74,18 +80,18 @@ if (isset($_POST['add'])) {
 
         $mime = mime_content_type($_FILES['media_file']['tmp_name']);
 
-        if (!isset($allowedMime[$mime])) {
-            header('Location: /admin/posts.php?error=invalid_media');
+        if (!isset($imageMime[$mime])) {
+            header('Location: ../posts.php?error=invalid_media');
             exit;
         }
 
-        $coverImage = randomFilename($allowedMime[$mime]);
+        $coverImage = generateFilename($imageMime[$mime]);
 
         if (!move_uploaded_file(
             $_FILES['media_file']['tmp_name'],
             $uploadDir . $coverImage
         )) {
-            header('Location: /admin/posts.php?error=upload_failed');
+            header('Location: ../posts.php?error=upload_failed');
             exit;
         }
     }
@@ -103,32 +109,23 @@ if (isset($_POST['add'])) {
             published_at,
             created_at
         ) VALUES (
-            :title,
-            :slug,
-            :author,
-            :excerpt,
-            :content,
-            :cover_image,
-            :media_type,
-            :featured,
-            :published_at,
-            NOW()
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW()
         )
     ");
 
     $stmt->execute([
-        ':title'        => $title,
-        ':slug'         => $slug,
-        ':author'       => $author,
-        ':excerpt'      => $excerpt,
-        ':content'      => $content,
-        ':cover_image'  => $coverImage,
-        ':media_type'   => $mediaType,
-        ':featured'     => $featured,
-        ':published_at' => $published_at,
+        $title,
+        $slug,
+        $author,
+        $excerpt,
+        $content,
+        $coverImage,
+        $media_type,
+        $featured,
+        $published_at
     ]);
 
-    header('Location: /admin/posts.php?success=added');
+    header('Location: ../posts.php?success=added');
     exit;
 }
 
@@ -137,6 +134,7 @@ if (isset($_POST['add'])) {
 | UPDATE POST
 |--------------------------------------------------------------------------
 */
+
 if (isset($_POST['update'], $_POST['id'])) {
 
     csrf_verify($_POST['csrf_token'] ?? '');
@@ -148,8 +146,8 @@ if (isset($_POST['update'], $_POST['id'])) {
     $excerpt      = trim($_POST['excerpt'] ?? '');
     $content      = trim($_POST['content'] ?? '');
     $published_at = $_POST['published_at'] ?: null;
-    $featured     = isset($_POST['featured']);
-    $mediaType    = $_POST['media_type'] ?? 'image';
+    $media_type   = $_POST['media_type'] ?? 'image';
+    $featured     = isset($_POST['featured']) ? 1 : 0;
 
     $newImage = null;
 
@@ -157,18 +155,18 @@ if (isset($_POST['update'], $_POST['id'])) {
 
         $mime = mime_content_type($_FILES['media_file']['tmp_name']);
 
-        if (!isset($allowedMime[$mime])) {
-            header('Location: /admin/posts.php?error=invalid_media');
+        if (!isset($imageMime[$mime])) {
+            header('Location: ../posts.php?error=invalid_media');
             exit;
         }
 
-        $newImage = randomFilename($allowedMime[$mime]);
+        $newImage = generateFilename($imageMime[$mime]);
 
         if (!move_uploaded_file(
             $_FILES['media_file']['tmp_name'],
             $uploadDir . $newImage
         )) {
-            header('Location: /admin/posts.php?error=upload_failed');
+            header('Location: ../posts.php?error=upload_failed');
             exit;
         }
 
@@ -181,43 +179,61 @@ if (isset($_POST['update'], $_POST['id'])) {
         }
     }
 
-    $sql = "
-        UPDATE posts SET
-            title = :title,
-            slug = :slug,
-            author = :author,
-            excerpt = :excerpt,
-            content = :content,
-            media_type = :media_type,
-            featured = :featured,
-            published_at = :published_at
-    ";
-
     if ($newImage) {
-        $sql .= ", cover_image = :cover_image ";
+        $stmt = $pdo->prepare("
+            UPDATE posts SET
+                title = ?,
+                slug = ?,
+                author = ?,
+                excerpt = ?,
+                content = ?,
+                cover_image = ?,
+                media_type = ?,
+                featured = ?,
+                published_at = ?
+            WHERE id = ?
+        ");
+
+        $stmt->execute([
+            $title,
+            $slug,
+            $author,
+            $excerpt,
+            $content,
+            $newImage,
+            $media_type,
+            $featured,
+            $published_at,
+            $id
+        ]);
+    } else {
+        $stmt = $pdo->prepare("
+            UPDATE posts SET
+                title = ?,
+                slug = ?,
+                author = ?,
+                excerpt = ?,
+                content = ?,
+                media_type = ?,
+                featured = ?,
+                published_at = ?
+            WHERE id = ?
+        ");
+
+        $stmt->execute([
+            $title,
+            $slug,
+            $author,
+            $excerpt,
+            $content,
+            $media_type,
+            $featured,
+            $published_at,
+            $id
+        ]);
     }
 
-    $sql .= " WHERE id = :id";
-
-    $params = [
-        ':title'        => $title,
-        ':slug'         => $slug,
-        ':author'       => $author,
-        ':excerpt'      => $excerpt,
-        ':content'      => $content,
-        ':media_type'   => $mediaType,
-        ':featured'     => $featured,
-        ':published_at' => $published_at,
-        ':id'           => $id,
-    ];
-
-    if ($newImage) {
-        $params[':cover_image'] = $newImage;
-    }
-
-    $pdo->prepare($sql)->execute($params);
-
-    header('Location: /admin/posts.php?success=updated');
+    header('Location: ../posts.php?success=updated');
     exit;
 }
 
@@ -226,6 +242,7 @@ if (isset($_POST['update'], $_POST['id'])) {
 | DELETE POST
 |--------------------------------------------------------------------------
 */
+
 if (isset($_POST['delete'], $_POST['id'])) {
 
     csrf_verify($_POST['csrf_token'] ?? '');
@@ -242,7 +259,7 @@ if (isset($_POST['delete'], $_POST['id'])) {
 
     $pdo->prepare("DELETE FROM posts WHERE id = ?")->execute([$id]);
 
-    header('Location: /admin/posts.php?success=deleted');
+    header('Location: ../posts.php?success=deleted');
     exit;
 }
 
@@ -251,5 +268,6 @@ if (isset($_POST['delete'], $_POST['id'])) {
 | FALLBACK
 |--------------------------------------------------------------------------
 */
-header('Location: /admin/posts.php');
+
+header('Location: ../posts.php');
 exit;
