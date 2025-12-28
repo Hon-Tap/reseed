@@ -7,9 +7,7 @@ require_once $backendPath . '/includes/config.php';
 require_once $backendPath . '/admin/includes/admin_auth.php';
 require_once $backendPath . '/admin/includes/admin_header.php';
 
-
 /* ===================== DELETE (POST ONLY) ===================== */
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'], $_POST['id'])) {
     if (!csrf_verify($_POST['csrf_token'] ?? null)) {
         die('Security check failed');
@@ -24,12 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'], $_POST['id'
 }
 
 /* ===================== FETCH ===================== */
-
-$stmt = $pdo->query("
-    SELECT id, name, email, phone, message, created_at
-    FROM contacts
-    ORDER BY created_at DESC
-");
+$stmt = $pdo->query("SELECT id, name, email, phone, message, created_at FROM contacts ORDER BY created_at DESC");
 $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -57,6 +50,18 @@ $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     .btn-reply:hover { color: #10b981; background-color: #f0fdf4; }
     .btn-delete { color: #94a3b8; }
     .btn-delete:hover { color: #ef4444; background-color: #fef2f2; }
+    
+    /* Better alternative to line-clamp for tables */
+    .msg-truncate {
+        max-width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .msg-truncate:hover {
+        white-space: normal;
+        max-width: 400px;
+    }
 </style>
 
 <div class="p-8 bg-[#f1f5f9] min-h-screen">
@@ -72,14 +77,13 @@ $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             <?php if (isset($_GET['success'])): ?>
                 <div class="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-check-circle"></i> Message removed
+                    Message removed successfully
                 </div>
             <?php endif; ?>
         </div>
 
         <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
-            
-            <?php if (!$contacts): ?>
+            <?php if (empty($contacts)): ?>
                 <div class="p-20 text-center">
                     <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                         <i class="fa-solid fa-envelope-open text-slate-300 text-3xl"></i>
@@ -87,9 +91,8 @@ $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <h3 class="text-xl font-bold text-slate-800">Your inbox is empty</h3>
                 </div>
             <?php else: ?>
-
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left">
+                    <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
                                 <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest">Sender</th>
@@ -101,8 +104,7 @@ $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <tbody class="divide-y divide-slate-100">
                             <?php foreach ($contacts as $c): ?>
                                 <?php 
-                                    // Pre-format the email reply link
-                                    $subject = rawurlencode("Re: Inquiry regarding ReSEED - " . $c['name']);
+                                    $subject = rawurlencode("Re: Inquiry - " . $c['name']);
                                     $mailto = "mailto:" . htmlspecialchars($c['email']) . "?subject=" . $subject;
                                 ?>
                                 <tr class="inbox-card group">
@@ -112,7 +114,7 @@ $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     </td>
                                     
                                     <td class="px-8 py-6">
-                                        <div class="text-slate-600 leading-relaxed max-w-sm lg:max-w-md line-clamp-2 hover:line-clamp-none transition-all">
+                                        <div class="text-slate-600 leading-relaxed msg-truncate transition-all">
                                             <?= nl2br(htmlspecialchars($c['message'])) ?>
                                         </div>
                                     </td>
@@ -125,14 +127,13 @@ $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                                     <td class="px-8 py-6 text-center">
                                         <div class="flex items-center justify-center gap-2">
-                                            <a href="<?= $mailto ?>" class="btn-action btn-reply" title="Reply to <?= htmlspecialchars($c['name']) ?>">
+                                            <a href="<?= $mailto ?>" class="btn-action btn-reply" title="Reply">
                                                 <i class="fa-solid fa-reply"></i>
                                             </a>
-
-                                            <form method="POST" onsubmit="return confirm('Archive this message permanently?')" class="inline">
+                                            <form method="POST" onsubmit="return confirm('Delete this message?')" class="inline">
                                                 <input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
                                                 <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
-                                                <button name="delete" class="btn-action btn-delete" title="Delete">
+                                                <button name="delete" class="btn-action btn-delete">
                                                     <i class="fa-solid fa-trash-can"></i>
                                                 </button>
                                             </form>
@@ -143,10 +144,9 @@ $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </tbody>
                     </table>
                 </div>
-
             <?php endif; ?>
         </div>
     </div>
 </div>
 
-<?php require_once $adminRoot . '/includes/admin_footer.php'; ?>
+<?php require_once $backendPath . '/admin/includes/admin_footer.php'; ?>
