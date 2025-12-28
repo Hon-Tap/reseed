@@ -30,12 +30,8 @@ $project = $stmt->fetch();
                 <h2 class="text-3xl font-extrabold text-gray-900">Update Project Details</h2>
             </div>
         </div>
-
-        <form action="<?= admin_url('project-handler.php') ?>"
-      method="POST"
-      enctype="multipart/form-data"
-      class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <input type="hidden" name="id" value="<?= $project['id'] ?>">
+        <form action="post-handler.php" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <input type="hidden" name="id" value="<?= $project['id'] ?>">
 
                         <label class="block text-sm font-bold text-gray-700 mb-1">Project Title</label>
                         <input type="text" name="title" value="<?= htmlspecialchars($project['title']) ?>" 

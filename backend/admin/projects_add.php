@@ -18,8 +18,7 @@ if (empty($_SESSION['csrf_token'])) {
 <div class="bg-gray-50 min-h-screen p-6">
     <div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow-sm border">
         <h2 class="text-2xl font-bold mb-6">Add New Project</h2>
-
-        <form action="project-handler.php" method="POST" enctype="multipart/form-data" class="space-y-4">
+         <form action="post-handler.php" method="POST" enctype="multipart/form-data" class="space-y-4">
             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
 
             <div class="grid grid-cols-2 gap-4">
