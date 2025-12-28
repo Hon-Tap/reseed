@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
-| PATHS & BOOTSTRAP
+| BOOTSTRAP
 |--------------------------------------------------------------------------
 */
 $rootPath = dirname(__DIR__, 2);
@@ -13,7 +13,7 @@ require_once $rootPath . '/admin/includes/csrf.php';
 
 /*
 |--------------------------------------------------------------------------
-| UPLOAD CONFIG
+| UPLOAD SETUP
 |--------------------------------------------------------------------------
 */
 if (!defined('UPLOAD_ROOT')) {
@@ -21,12 +21,11 @@ if (!defined('UPLOAD_ROOT')) {
 }
 
 $uploadDir = UPLOAD_ROOT . '/posts/';
-
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
 
-$imageMime = [
+$allowedMime = [
     'image/jpeg' => 'jpg',
     'image/png'  => 'png',
     'image/webp' => 'webp',
@@ -46,7 +45,7 @@ function slugify(string $value): string
     );
 }
 
-function generate_filename(string $ext): string
+function randomFilename(string $ext): string
 {
     return bin2hex(random_bytes(16)) . '.' . $ext;
 }
@@ -65,8 +64,9 @@ if (isset($_POST['add'])) {
     $author       = trim($_POST['author'] ?? '');
     $excerpt      = trim($_POST['excerpt'] ?? '');
     $content      = trim($_POST['content'] ?? '');
-    $published_at = $_POST['published_at'] ?? null;
-    $featured     = isset($_POST['featured']) ? true : false;
+    $published_at = $_POST['published_at'] ?: null;
+    $featured     = isset($_POST['featured']);
+    $mediaType    = $_POST['media_type'] ?? 'image';
 
     $coverImage = null;
 
@@ -74,64 +74,62 @@ if (isset($_POST['add'])) {
 
         $mime = mime_content_type($_FILES['media_file']['tmp_name']);
 
-        if (!isset($imageMime[$mime])) {
-            header('Location: ../posts.php?error=type');
+        if (!isset($allowedMime[$mime])) {
+            header('Location: /admin/posts.php?error=invalid_media');
             exit;
         }
 
-        $coverImage = generate_filename($imageMime[$mime]);
+        $coverImage = randomFilename($allowedMime[$mime]);
 
         if (!move_uploaded_file(
             $_FILES['media_file']['tmp_name'],
             $uploadDir . $coverImage
         )) {
-            header('Location: ../posts.php?error=upload');
+            header('Location: /admin/posts.php?error=upload_failed');
             exit;
         }
     }
 
-    try {
-        $stmt = $pdo->prepare("
-            INSERT INTO posts (
-                title,
-                slug,
-                author,
-                excerpt,
-                content,
-                cover_image,
-                featured,
-                published_at,
-                created_at
-            ) VALUES (
-                :title,
-                :slug,
-                :author,
-                :excerpt,
-                :content,
-                :cover_image,
-                :featured,
-                :published_at,
-                NOW()
-            )
-        ");
+    $stmt = $pdo->prepare("
+        INSERT INTO posts (
+            title,
+            slug,
+            author,
+            excerpt,
+            content,
+            cover_image,
+            media_type,
+            featured,
+            published_at,
+            created_at
+        ) VALUES (
+            :title,
+            :slug,
+            :author,
+            :excerpt,
+            :content,
+            :cover_image,
+            :media_type,
+            :featured,
+            :published_at,
+            NOW()
+        )
+    ");
 
-        $stmt->execute([
-            ':title'        => $title,
-            ':slug'         => $slug,
-            ':author'       => $author,
-            ':excerpt'      => $excerpt,
-            ':content'      => $content,
-            ':cover_image'  => $coverImage,
-            ':featured'     => $featured,
-            ':published_at' => $published_at,
-        ]);
+    $stmt->execute([
+        ':title'        => $title,
+        ':slug'         => $slug,
+        ':author'       => $author,
+        ':excerpt'      => $excerpt,
+        ':content'      => $content,
+        ':cover_image'  => $coverImage,
+        ':media_type'   => $mediaType,
+        ':featured'     => $featured,
+        ':published_at' => $published_at,
+    ]);
 
-        header('Location: ../posts.php?success=added');
-        exit;
-
-    } catch (PDOException $e) {
-        die('Database Error: ' . $e->getMessage());
-    }
+    header('Location: /admin/posts.php?success=added');
+    exit;
 }
 
 /*
@@ -149,8 +147,9 @@ if (isset($_POST['update'], $_POST['id'])) {
     $author       = trim($_POST['author'] ?? '');
     $excerpt      = trim($_POST['excerpt'] ?? '');
     $content      = trim($_POST['content'] ?? '');
-    $published_at = $_POST['published_at'] ?? null;
-    $featured     = isset($_POST['featured']) ? true : false;
+    $published_at = $_POST['published_at'] ?: null;
+    $featured     = isset($_POST['featured']);
+    $mediaType    = $_POST['media_type'] ?? 'image';
 
     $newImage = null;
 
@@ -158,81 +157,68 @@ if (isset($_POST['update'], $_POST['id'])) {
 
         $mime = mime_content_type($_FILES['media_file']['tmp_name']);
 
-        if (!isset($imageMime[$mime])) {
-            header('Location: ../posts.php?error=type');
+        if (!isset($allowedMime[$mime])) {
+            header('Location: /admin/posts.php?error=invalid_media');
             exit;
         }
 
-        $newImage = generate_filename($imageMime[$mime]);
+        $newImage = randomFilename($allowedMime[$mime]);
 
         if (!move_uploaded_file(
             $_FILES['media_file']['tmp_name'],
             $uploadDir . $newImage
         )) {
-            header('Location: ../posts.php?error=upload');
+            header('Location: /admin/posts.php?error=upload_failed');
             exit;
         }
 
-        $stmt = $pdo->prepare("SELECT cover_image FROM posts WHERE id = ?");
-        $stmt->execute([$id]);
-        $oldImage = $stmt->fetchColumn();
+        $old = $pdo->prepare("SELECT cover_image FROM posts WHERE id = ?");
+        $old->execute([$id]);
+        $oldImage = $old->fetchColumn();
 
         if ($oldImage && file_exists($uploadDir . $oldImage)) {
             unlink($uploadDir . $oldImage);
         }
     }
 
-    try {
-        if ($newImage) {
-            $stmt = $pdo->prepare("
-                UPDATE posts SET
-                    title = :title,
-                    slug = :slug,
-                    author = :author,
-                    excerpt = :excerpt,
-                    content = :content,
-                    cover_image = :cover_image,
-                    featured = :featured,
-                    published_at = :published_at
-                WHERE id = :id
-            ");
-        } else {
-            $stmt = $pdo->prepare("
-                UPDATE posts SET
-                    title = :title,
-                    slug = :slug,
-                    author = :author,
-                    excerpt = :excerpt,
-                    content = :content,
-                    featured = :featured,
-                    published_at = :published_at
-                WHERE id = :id
-            ");
-        }
+    $sql = "
+        UPDATE posts SET
+            title = :title,
+            slug = :slug,
+            author = :author,
+            excerpt = :excerpt,
+            content = :content,
+            media_type = :media_type,
+            featured = :featured,
+            published_at = :published_at
+    ";
 
-        $params = [
-            ':title'        => $title,
-            ':slug'         => $slug,
-            ':author'       => $author,
-            ':excerpt'      => $excerpt,
-            ':content'      => $content,
-            ':featured'     => $featured,
-            ':published_at' => $published_at,
-            ':id'           => $id,
-        ];
-
-        if ($newImage) {
-            $params[':cover_image'] = $newImage;
-        }
-
-        $stmt->execute($params);
-
-        header('Location: ../posts.php?success=updated');
-        exit;
-
-    } catch (PDOException $e) {
-        die('Database Error: ' . $e->getMessage());
+    if ($newImage) {
+        $sql .= ", cover_image = :cover_image ";
     }
+
+    $sql .= " WHERE id = :id";
+
+    $params = [
+        ':title'        => $title,
+        ':slug'         => $slug,
+        ':author'       => $author,
+        ':excerpt'      => $excerpt,
+        ':content'      => $content,
+        ':media_type'   => $mediaType,
+        ':featured'     => $featured,
+        ':published_at' => $published_at,
+        ':id'           => $id,
+    ];
+
+    if ($newImage) {
+        $params[':cover_image'] = $newImage;
+    }
+
+    $pdo->prepare($sql)->execute($params);
+
+    header('Location: /admin/posts.php?success=updated');
+    exit;
 }
 
 /*
@@ -254,10 +240,9 @@ if (isset($_POST['delete'], $_POST['id'])) {
         unlink($uploadDir . $image);
     }
 
-    $stmt = $pdo->prepare("DELETE FROM posts WHERE id = ?");
-    $stmt->execute([$id]);
+    $pdo->prepare("DELETE FROM posts WHERE id = ?")->execute([$id]);
 
-    header('Location: ../posts.php?success=deleted');
+    header('Location: /admin/posts.php?success=deleted');
     exit;
 }
 
@@ -266,5 +251,5 @@ if (isset($_POST['delete'], $_POST['id'])) {
 | FALLBACK
 |--------------------------------------------------------------------------
 */
-header('Location: ../posts.php');
+header('Location: /admin/posts.php');
 exit;

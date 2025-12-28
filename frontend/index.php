@@ -1,6 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/backend/includes/config.php';
 require_once dirname(__DIR__) . '/backend/includes/header.php';
+
 ?>
 
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -674,8 +675,30 @@ a { text-decoration: none; }
     </div>
 </section>
 
-<section class="section bg-surface">
+<?php
+/*
+|--------------------------------------------------------------------------
+| FETCH LATEST 3 PUBLISHED POSTS (HOME ONLY)
+|--------------------------------------------------------------------------
+*/
+$stmt = $pdo->prepare("
+    SELECT
+        title,
+        slug,
+        excerpt,
+        cover_image,
+        media_type,
+        published_at
+    FROM posts
+    WHERE published_at IS NOT NULL
+    ORDER BY published_at DESC
+    LIMIT 3
+");
+$stmt->execute();
+$latestPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
 
+<section class="section bg-surface">
     <div class="container">
 
         <div class="d-flex justify-content-between align-items-end mb-5">
@@ -690,99 +713,68 @@ a { text-decoration: none; }
         </div>
 
         <div class="h-grid">
-
-            <?php if (!empty($latestPosts) && is_array($latestPosts)): ?>
+            <?php if ($latestPosts): ?>
                 <?php foreach ($latestPosts as $post): ?>
 
                     <?php
-                        $title       = $post['title'] ?? 'Untitled Story';
-                        $slug        = $post['slug'] ?? null;
-                        $excerpt     = $post['excerpt'] ?? '';
-                        $mediaType   = $post['media_type'] ?? 'image';
-                        $coverImage  = $post['cover_image'] ?? null;
-
-                        // Public uploads URL (no backend leakage)
-                        $mediaUrl = $coverImage
-                            ? UPLOADS_URL . '/posts/' . $coverImage
+                        $mediaUrl = $post['cover_image']
+                            ? UPLOADS_URL . '/posts/' . $post['cover_image']
                             : null;
                     ?>
 
                     <article class="news-card" data-aos="fade-up">
 
                         <div class="news-media-container">
-
-                            <?php if ($mediaType === 'video' && $mediaUrl): ?>
-
+                            <?php if ($post['media_type'] === 'video' && $mediaUrl): ?>
                                 <video muted autoplay loop playsinline>
                                     <source src="<?= htmlspecialchars($mediaUrl) ?>" type="video/mp4">
                                 </video>
-
                             <?php elseif ($mediaUrl): ?>
-
-                                <img
-                                    src="<?= htmlspecialchars($mediaUrl) ?>"
-                                    alt="<?= htmlspecialchars($title) ?>"
-                                    loading="lazy"
-                                >
-
+                                <img src="<?= htmlspecialchars($mediaUrl) ?>"
+                                     alt="<?= htmlspecialchars($post['title']) ?>"
+                                     loading="lazy">
                             <?php else: ?>
-
                                 <div class="news-placeholder">
                                     <i class="fa-regular fa-image"></i>
                                 </div>
-
                             <?php endif; ?>
-
                         </div>
 
                         <div class="news-body">
-
                             <small class="text-muted">
-                                <?= !empty($post['published_at'])
-                                    ? date('M d, Y', strtotime($post['published_at']))
-                                    : 'Unpublished'
-                                ?>
+                                <?= date('M d, Y', strtotime($post['published_at'])) ?>
                             </small>
 
                             <h4 class="font-heading">
-                                <?= htmlspecialchars($title) ?>
+                                <?= htmlspecialchars($post['title']) ?>
                             </h4>
 
                             <p class="text-muted small mb-4">
-                                <?= htmlspecialchars(mb_strimwidth($excerpt, 0, 110, '...')) ?>
+                                <?= htmlspecialchars(mb_strimwidth($post['excerpt'], 0, 110, '…')) ?>
                             </p>
 
-                            <?php if ($slug): ?>
-                                <a
-                                    href="/frontend/post.php?slug=<?= urlencode($slug) ?>"
-                                    class="btn btn-sm btn-outline-success rounded-pill px-4"
-                                >
-                                    Read Story
-                                </a>
-                            <?php endif; ?>
-
+                            <a href="/post.php?slug=<?= urlencode($post['slug']) ?>"
+                               class="btn btn-sm btn-outline-success rounded-pill px-4">
+                                Read Story
+                            </a>
                         </div>
 
                     </article>
 
                 <?php endforeach; ?>
-
             <?php else: ?>
-
                 <div class="text-center py-5 w-100">
                     <p class="text-muted mb-3">No field stories published yet.</p>
                     <a href="/blog.php" class="btn btn-outline-success rounded-pill">
                         Visit News Archive
                     </a>
                 </div>
-
             <?php endif; ?>
-
         </div>
 
     </div>
-
 </section>
+
 <section id="get-involved" class="partnership-section">
     <img src="/assets/images/Re-logo.jpeg" class="partnership-bg" alt="Landscape">
     <div class="partnership-overlay"></div>
