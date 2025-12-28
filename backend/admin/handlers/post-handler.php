@@ -81,7 +81,8 @@ if (isset($_POST['add'])) {
         $mime = mime_content_type($_FILES['media_file']['tmp_name']);
 
         if (!isset($imageMime[$mime])) {
-            header('Location: ../posts.php?error=invalid_media');
+            // Corrected: Redirect to posts.php in the same admin folder
+            header('Location: posts.php?error=invalid_media');
             exit;
         }
 
@@ -91,41 +92,26 @@ if (isset($_POST['add'])) {
             $_FILES['media_file']['tmp_name'],
             $uploadDir . $coverImage
         )) {
-            header('Location: ../posts.php?error=upload_failed');
+            header('Location: posts.php?error=upload_failed');
             exit;
         }
     }
 
     $stmt = $pdo->prepare("
         INSERT INTO posts (
-            title,
-            slug,
-            author,
-            excerpt,
-            content,
-            cover_image,
-            media_type,
-            featured,
-            published_at,
-            created_at
+            title, slug, author, excerpt, content, 
+            cover_image, media_type, featured, published_at, created_at
         ) VALUES (
             ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW()
         )
     ");
 
     $stmt->execute([
-        $title,
-        $slug,
-        $author,
-        $excerpt,
-        $content,
-        $coverImage,
-        $media_type,
-        $featured,
-        $published_at
+        $title, $slug, $author, $excerpt, $content, 
+        $coverImage, $media_type, $featured, $published_at
     ]);
 
-    header('Location: ../posts.php?success=added');
+    header('Location: posts.php?success=added');
     exit;
 }
 
@@ -156,7 +142,7 @@ if (isset($_POST['update'], $_POST['id'])) {
         $mime = mime_content_type($_FILES['media_file']['tmp_name']);
 
         if (!isset($imageMime[$mime])) {
-            header('Location: ../posts.php?error=invalid_media');
+            header('Location: posts.php?error=invalid_media');
             exit;
         }
 
@@ -166,7 +152,7 @@ if (isset($_POST['update'], $_POST['id'])) {
             $_FILES['media_file']['tmp_name'],
             $uploadDir . $newImage
         )) {
-            header('Location: ../posts.php?error=upload_failed');
+            header('Location: posts.php?error=upload_failed');
             exit;
         }
 
@@ -179,61 +165,20 @@ if (isset($_POST['update'], $_POST['id'])) {
         }
     }
 
+    $sql = "UPDATE posts SET title = ?, slug = ?, author = ?, excerpt = ?, content = ?, media_type = ?, featured = ?, published_at = ?";
+    $params = [$title, $slug, $author, $excerpt, $content, $media_type, $featured, $published_at];
+
     if ($newImage) {
-        $stmt = $pdo->prepare("
-            UPDATE posts SET
-                title = ?,
-                slug = ?,
-                author = ?,
-                excerpt = ?,
-                content = ?,
-                cover_image = ?,
-                media_type = ?,
-                featured = ?,
-                published_at = ?
-            WHERE id = ?
-        ");
-
-        $stmt->execute([
-            $title,
-            $slug,
-            $author,
-            $excerpt,
-            $content,
-            $newImage,
-            $media_type,
-            $featured,
-            $published_at,
-            $id
-        ]);
-    } else {
-        $stmt = $pdo->prepare("
-            UPDATE posts SET
-                title = ?,
-                slug = ?,
-                author = ?,
-                excerpt = ?,
-                content = ?,
-                media_type = ?,
-                featured = ?,
-                published_at = ?
-            WHERE id = ?
-        ");
-
-        $stmt->execute([
-            $title,
-            $slug,
-            $author,
-            $excerpt,
-            $content,
-            $media_type,
-            $featured,
-            $published_at,
-            $id
-        ]);
+        $sql .= ", cover_image = ?";
+        $params[] = $newImage;
     }
 
-    header('Location: ../posts.php?success=updated');
+    $sql .= " WHERE id = ?";
+    $params[] = $id;
+
+    $pdo->prepare($sql)->execute($params);
+
+    header('Location: posts.php?success=updated');
     exit;
 }
 
@@ -259,7 +204,7 @@ if (isset($_POST['delete'], $_POST['id'])) {
 
     $pdo->prepare("DELETE FROM posts WHERE id = ?")->execute([$id]);
 
-    header('Location: ../posts.php?success=deleted');
+    header('Location: posts.php?success=deleted');
     exit;
 }
 
@@ -269,5 +214,5 @@ if (isset($_POST['delete'], $_POST['id'])) {
 |--------------------------------------------------------------------------
 */
 
-header('Location: ../posts.php');
+header('Location: posts.php');
 exit;
