@@ -35,7 +35,7 @@ function getEmbedUrl($url) {
         return "https://player.vimeo.com/video/{$videoId}?background=1&autoplay=1&loop=1&byline=0&title=0";
     }
 
-    return htmlspecialchars($url);
+    return htmlspecialchars($url);git commit -m "Fix uploads path handling and centralize config constants"
 }
 
 
