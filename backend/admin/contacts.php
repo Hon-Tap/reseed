@@ -1,19 +1,30 @@
 <?php
+
 declare(strict_types=1);
 
+/*
+|--------------------------------------------------------------------------
+| Bootstrap
+|--------------------------------------------------------------------------
+*/
 $backendPath = dirname(__DIR__);
 
 require_once $backendPath . '/includes/config.php';
 require_once $backendPath . '/admin/includes/admin_auth.php';
 require_once $backendPath . '/admin/includes/admin_header.php';
 
-/* ===================== DELETE (POST ONLY) ===================== */
+/*
+|--------------------------------------------------------------------------
+| DELETE (POST ONLY)
+|--------------------------------------------------------------------------
+*/
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'], $_POST['id'])) {
     if (!csrf_verify($_POST['csrf_token'] ?? null)) {
         die('Security check failed');
     }
 
     $id = (int) $_POST['id'];
+
     $stmt = $pdo->prepare('DELETE FROM contacts WHERE id = ?');
     $stmt->execute([$id]);
 
@@ -21,8 +32,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete'], $_POST['id'
     exit;
 }
 
-/* ===================== FETCH ===================== */
-$stmt = $pdo->query("SELECT id, name, email, phone, message, created_at FROM contacts ORDER BY created_at DESC");
+/*
+|--------------------------------------------------------------------------
+| FETCH (STABLE ORDERING — NEWEST FIRST)
+|--------------------------------------------------------------------------
+*/
+$stmt = $pdo->query("
+    SELECT id, name, email, phone, message, created_at
+    FROM contacts
+    ORDER BY created_at DESC, id DESC
+");
+
 $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -50,8 +70,7 @@ $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     .btn-reply:hover { color: #10b981; background-color: #f0fdf4; }
     .btn-delete { color: #94a3b8; }
     .btn-delete:hover { color: #ef4444; background-color: #fef2f2; }
-    
-    /* Better alternative to line-clamp for tables */
+
     .msg-truncate {
         max-width: 300px;
         white-space: nowrap;
@@ -71,26 +90,32 @@ $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div>
                 <h1 class="text-4xl font-extrabold text-[#0f172a] tracking-tight">Inbox</h1>
                 <p class="text-slate-500 mt-2 font-medium">
-                    Manage inquiries from the <span class="text-emerald-600 font-bold"><?= count($contacts) ?></span> messages received.
+                    Manage inquiries from the
+                    <span class="text-emerald-600 font-bold"><?= count($contacts) ?></span>
+                    messages received.
                 </p>
             </div>
-            
+
             <?php if (isset($_GET['success'])): ?>
-                <div class="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+                <div class="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg text-sm font-bold">
                     Message removed successfully
                 </div>
             <?php endif; ?>
         </div>
 
         <div class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+
             <?php if (empty($contacts)): ?>
+
                 <div class="p-20 text-center">
                     <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                         <i class="fa-solid fa-envelope-open text-slate-300 text-3xl"></i>
                     </div>
                     <h3 class="text-xl font-bold text-slate-800">Your inbox is empty</h3>
                 </div>
+
             <?php else: ?>
+
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
@@ -101,20 +126,21 @@ $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <th class="px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">Actions</th>
                             </tr>
                         </thead>
+
                         <tbody class="divide-y divide-slate-100">
                             <?php foreach ($contacts as $c): ?>
-                                <?php 
-                                    $subject = rawurlencode("Re: Inquiry - " . $c['name']);
-                                    $mailto = "mailto:" . htmlspecialchars($c['email']) . "?subject=" . $subject;
+                                <?php
+                                    $subject = rawurlencode('Re: Inquiry - ' . $c['name']);
+                                    $mailto  = 'mailto:' . htmlspecialchars($c['email']) . '?subject=' . $subject;
                                 ?>
-                                <tr class="inbox-card group">
+                                <tr class="inbox-card">
                                     <td class="px-8 py-6">
-                                        <div class="font-bold text-slate-800 text-base"><?= htmlspecialchars($c['name']) ?></div>
+                                        <div class="font-bold text-slate-800"><?= htmlspecialchars($c['name']) ?></div>
                                         <div class="text-sm text-slate-500 mt-1"><?= htmlspecialchars($c['email']) ?></div>
                                     </td>
-                                    
+
                                     <td class="px-8 py-6">
-                                        <div class="text-slate-600 leading-relaxed msg-truncate transition-all">
+                                        <div class="text-slate-600 leading-relaxed msg-truncate">
                                             <?= nl2br(htmlspecialchars($c['message'])) ?>
                                         </div>
                                     </td>
@@ -130,8 +156,9 @@ $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <a href="<?= $mailto ?>" class="btn-action btn-reply" title="Reply">
                                                 <i class="fa-solid fa-reply"></i>
                                             </a>
+
                                             <form method="POST" onsubmit="return confirm('Delete this message?')" class="inline">
-                                                <input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
+                                                <input type="hidden" name="id" value="<?= (int) $c['id'] ?>">
                                                 <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                                 <button name="delete" class="btn-action btn-delete">
                                                     <i class="fa-solid fa-trash-can"></i>
@@ -144,7 +171,9 @@ $contacts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         </tbody>
                     </table>
                 </div>
+
             <?php endif; ?>
+
         </div>
     </div>
 </div>
