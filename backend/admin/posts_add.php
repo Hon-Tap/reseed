@@ -21,8 +21,7 @@ if (empty($_SESSION['csrf_token'])) {
             <h2 class="text-3xl font-extrabold text-gray-900">Create New Post</h2>
             <p class="text-gray-600">Fill in the details below to publish a new article.</p>
         </div>
-
-        <form action="<?= admin_url('post-handler.php') ?>" 
+        <form action="project-handler.php" 
               method="POST" 
               enctype="multipart/form-data" 
               class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">

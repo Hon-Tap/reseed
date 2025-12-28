@@ -1,62 +1,105 @@
 <?php
+
 declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
 | APPLICATION ENVIRONMENT
 |--------------------------------------------------------------------------
+|
+| Values: development | production
+|
 */
+
 define('APP_ENV', $_ENV['APP_ENV'] ?? 'production');
+
 
 /*
 |--------------------------------------------------------------------------
 | BASE URL
 |--------------------------------------------------------------------------
-| IMPORTANT:
-| Render is serving `frontend/` as the public document root.
-| Therefore the application lives at `/`, NOT `/reseed`.
+|
+| Render serves `frontend/` as the public document root.
+| The application lives at `/`.
+|
+| Keep BASE_URL empty unless deploying under a subfolder.
+|
 */
+
 define('BASE_URL', '');
+
 
 /*
 |--------------------------------------------------------------------------
 | ROOT PATH (FILESYSTEM)
 |--------------------------------------------------------------------------
-| backend/includes → project root
+|
+| backend/includes/config.php → project root
+|
 */
+
 define('ROOT_PATH', dirname(__DIR__, 2));
+
+
+/*
+|--------------------------------------------------------------------------
+| UPLOADS (FILESYSTEM + PUBLIC URL)
+|--------------------------------------------------------------------------
+|
+| uploads/ lives at project root and is publicly accessible.
+| Gitignored, but present at runtime.
+|
+*/
+
+// Filesystem path (PHP: uploads, file_exists, move_uploaded_file)
+define('UPLOADS_DIR', ROOT_PATH . '/uploads');
+
+// Public URL path (HTML: <img src>, <video src>)
+define('UPLOADS_URL', '/uploads');
+
 
 /*
 |--------------------------------------------------------------------------
 | ERROR HANDLING
 |--------------------------------------------------------------------------
 */
+
+error_reporting(E_ALL);
+
 if (APP_ENV === 'development') {
-    error_reporting(E_ALL);
     ini_set('display_errors', '1');
 } else {
-    error_reporting(E_ALL);
     ini_set('display_errors', '0');
     ini_set('log_errors', '1');
     ini_set('error_log', ROOT_PATH . '/logs/php-error.log');
 }
 
+
 /*
 |--------------------------------------------------------------------------
-| DATABASE CONFIG (PRODUCTION)
+| DATABASE CONFIG (ENVIRONMENT)
 |--------------------------------------------------------------------------
+|
+| PostgreSQL (Render)
+|
 */
+
 $dbHost = $_ENV['DB_HOST'] ?? null;
 $dbName = $_ENV['DB_NAME'] ?? null;
 $dbUser = $_ENV['DB_USER'] ?? null;
 $dbPass = $_ENV['DB_PASS'] ?? null;
 $dbPort = $_ENV['DB_PORT'] ?? '5432';
 
+
 /*
 |--------------------------------------------------------------------------
 | LOCAL DEVELOPMENT FALLBACK
 |--------------------------------------------------------------------------
+|
+| backend/includes/config.local.php
+|
 */
+
 if (
     APP_ENV === 'development'
     && (!$dbHost || !$dbName || !$dbUser)
@@ -65,25 +108,28 @@ if (
     require __DIR__ . '/config.local.php';
 }
 
+
 /*
 |--------------------------------------------------------------------------
-| HARD FAIL IF DB CONFIG IS MISSING
+| HARD FAIL IF DATABASE CONFIG IS MISSING
 |--------------------------------------------------------------------------
 */
+
 if (!$dbHost || !$dbName || !$dbUser) {
     http_response_code(500);
     die('Application misconfigured: database credentials missing.');
 }
 
+
 /*
 |--------------------------------------------------------------------------
-| PDO INITIALIZATION (PostgreSQL)
+| PDO INITIALIZATION (PostgreSQL + SSL)
 |--------------------------------------------------------------------------
 */
+
 try {
-    // Separate the SSL mode from the database name
     $dsn = sprintf(
-        'pgsql:host=%s;port=%s;dbname=%s;sslmode=require', // Added sslmode here
+        'pgsql:host=%s;port=%s;dbname=%s;sslmode=require',
         $dbHost,
         $dbPort,
         $dbName
@@ -94,6 +140,7 @@ try {
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES   => false,
     ]);
+
 } catch (PDOException $e) {
     http_response_code(500);
 

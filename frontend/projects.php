@@ -9,20 +9,35 @@ require_once dirname(__DIR__) . '/backend/includes/header.php';
 
 $uploadPath = 'uploads/projects/';
 
-// Helper: Convert External Links to Embed URLs (Same as in project.php)
 function getEmbedUrl($url) {
     $url = htmlspecialchars_decode($url);
+
+    // YouTube
     if (strpos($url, 'youtube.com') !== false || strpos($url, 'youtu.be') !== false) {
-        $url = preg_replace('/watch\?v=([a-zA-Z0-9_-]+)/', 'embed/$1', $url);
-        $url = preg_replace('/youtu.be\/([a-zA-Z0-9_-]+)/', 'www.youtube.com/embed/$1', $url);
-        // Add params for clean grid background playback
-        return htmlspecialchars($url . "?autoplay=1&mute=1&controls=0&loop=1&playlist=" . getIDFromUrl($url));
-    } elseif (strpos($url, 'vimeo.com') !== false) {
-        $videoId = (int) substr(parse_url($url, PHP_URL_PATH), 1);
-        return "https://player.vimeo.com/video/" . $videoId . "?background=1&autoplay=1&loop=1&byline=0&title=0";
+
+        // Extract video ID safely
+        preg_match(
+            '%(?:youtube\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i',
+            $url,
+            $matches
+        );
+
+        $videoId = $matches[1] ?? null;
+
+        if ($videoId) {
+            return "https://www.youtube.com/embed/{$videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist={$videoId}";
+        }
     }
+
+    // Vimeo
+    if (strpos($url, 'vimeo.com') !== false) {
+        $videoId = (int) substr(parse_url($url, PHP_URL_PATH), 1);
+        return "https://player.vimeo.com/video/{$videoId}?background=1&autoplay=1&loop=1&byline=0&title=0";
+    }
+
     return htmlspecialchars($url);
 }
+
 
 // Helper: Extract ID for YouTube looping
 function getIDFromUrl($url) {
