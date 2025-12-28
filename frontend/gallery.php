@@ -45,9 +45,9 @@ try {
 <style>
 /* ===== Design Tokens ===== */
 :root{
-  --primary:#10b981;
-  --text-main:#0f172a;
-  --text-muted:#64748b;
+  --primary: #099227ff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
   --radius-xl:24px;
   --ease:cubic-bezier(.22,1,.36,1);
   --gallery-gap:clamp(1.25rem,2.5vw,2rem);
