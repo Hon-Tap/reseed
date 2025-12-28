@@ -1,85 +1,196 @@
 <?php
 declare(strict_types=1);
 
-/**
- * PATH RESOLUTION
- * Current File: /backend/admin/handlers/post-handler.php
- * Root Directory: / (where includes/ and uploads/ live)
- */
+// 1. Correct the path to reach backend/includes/config.php
 $rootPath = dirname(__DIR__, 2); 
 
 require_once $rootPath . '/includes/config.php';
+require_once $rootPath . '/admin/includes/csrf.php';
 
-// Verify CSRF
-session_start();
-if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-    die("CSRF token validation failed.");
+// 2. SAFETY CHECK: Ensure UPLOAD_ROOT is defined
+if (!defined('UPLOAD_ROOT')) {
+    define('UPLOAD_ROOT', $rootPath . '/uploads');
 }
 
-/* ===================== UPLOAD CONFIG ===================== */
-// Define the absolute path to the uploads folder
-$uploadDir = $rootPath . '/uploads/posts/';
+$uploadDir = UPLOAD_ROOT . '/posts/';
 
-// Ensure directory exists with correct permissions
+// 3. Ensure the folder exists on the server
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
 
+/* ===================== UPLOAD CONFIG ===================== */
+
+$imageMime = [
+    'image/jpeg' => 'jpg',
+    'image/png'  => 'png',
+    'image/webp' => 'webp',
+    'image/gif'  => 'gif',
+];
+
+/* ===================== HELPERS ===================== */
+
+function slugify(string $value): string
+{
+    return trim(
+        strtolower(preg_replace('/[^a-z0-9]+/', '-', $value)),
+        '-'
+    );
+}
+
+function generate_filename(string $ext): string
+{
+    return bin2hex(random_bytes(16)) . '.' . $ext;
+}
+
 /* ===================== ADD POST ===================== */
+
 if (isset($_POST['add'])) {
-    $title       = trim($_POST['title']);
-    $category_id = (int)$_POST['category_id'];
-    $content     = trim($_POST['content']);
-    $status      = $_POST['status'] ?? 'draft';
-    $featured    = isset($_POST['featured']) ? 1 : 0;
-    
-    // Generate Slug if empty
-    $slug = !empty($_POST['slug']) ? $_POST['slug'] : strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
+
+    $title    = trim($_POST['title'] ?? '');
+    $slug     = slugify($_POST['slug'] ?? $title);
+    $content  = trim($_POST['content'] ?? '');
+    $status   = $_POST['status'] ?? 'draft';
+    $featured = isset($_POST['featured']) ? 1 : 0;
 
     $coverImage = null;
 
-    // Handle File Upload
     if (!empty($_FILES['media_file']['tmp_name'])) {
-        $fileTmpPath = $_FILES['media_file']['tmp_name'];
-        $fileName    = $_FILES['media_file']['name'];
-        $fileExt     = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-        
-        // Create a unique filename to prevent overwriting
-        $newFileName = time() . '_' . bin2hex(random_bytes(4)) . '.' . $fileExt;
-        
-        // FIX: Combine Directory + Filename for the destination
-        $destPath = $uploadDir . $newFileName;
 
-        $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-        if (in_array($fileExt, $allowedExts)) {
-            if (move_uploaded_file($fileTmpPath, $destPath)) {
-                $coverImage = $newFileName;
-            }
+        $mime = mime_content_type($_FILES['media_file']['tmp_name']);
+        
+        if (!isset($imageMime[$mime])) {
+            header('Location: ../posts.php?error=type');
+            exit;
+        }
+
+        $coverImage = generate_filename($imageMime[$mime]);
+
+        if (!move_uploaded_file(
+            $_FILES['media_file']['tmp_name'],
+            $uploadDir . $coverImage
+        )) {
+            header('Location: ../posts.php?error=upload');
+            exit;
         }
     }
 
     try {
-        $sql = "INSERT INTO posts (title, slug, category_id, content, cover_image, status, featured, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$title, $slug, $category_id, $content, $coverImage, $status, $featured]);
+        // Removed category_id to match your database error deduction
+        $stmt = $pdo->prepare("
+            INSERT INTO posts (
+                title, slug, content, cover_image, 
+                status, featured, created_at
+            ) VALUES (
+                ?, ?, ?, ?, ?, ?, NOW()
+            )
+        ");
 
-        // FIX: Correct Redirect Path
-        // From /backend/admin/handlers/ to /admin/posts.php
-        header('Location: ../../../admin/posts.php?success=added');
+        $stmt->execute([
+            $title,
+            $slug,
+            $content,
+            $coverImage,
+            $status,
+            $featured
+        ]);
+
+        header('Location: ../posts.php?success=added');
         exit;
-
     } catch (PDOException $e) {
         die("Database Error: " . $e->getMessage());
     }
 }
 
-/* ===================== EDIT POST ===================== */
-if (isset($_POST['update'])) {
-    $id = (int)$_POST['id'];
-    // ... same logic as above but with UPDATE SQL ...
-    // ... use $uploadDir . $newFileName for move_uploaded_file ...
-    
-    header('Location: ../../../admin/posts.php?success=updated');
+/* ===================== UPDATE POST ===================== */
+
+if (isset($_POST['update'], $_POST['id'])) {
+
+    $id       = (int) $_POST['id'];
+    $title    = trim($_POST['title'] ?? '');
+    $slug     = slugify($_POST['slug'] ?? $title);
+    $content  = trim($_POST['content'] ?? '');
+    $status   = $_POST['status'] ?? 'draft';
+    $featured = isset($_POST['featured']) ? 1 : 0;
+
+    $newImage = null;
+
+    if (!empty($_FILES['media_file']['tmp_name'])) {
+
+        $mime = mime_content_type($_FILES['media_file']['tmp_name']);
+
+        if (!isset($imageMime[$mime])) {
+            header('Location: ../posts.php?error=type');
+            exit;
+        }
+
+        $newImage = generate_filename($imageMime[$mime]);
+
+        if (!move_uploaded_file(
+            $_FILES['media_file']['tmp_name'],
+            $uploadDir . $newImage
+        )) {
+            header('Location: ../posts.php?error=upload');
+            exit;
+        }
+
+        // Clean up old image
+        $stmt = $pdo->prepare('SELECT cover_image FROM posts WHERE id = ?');
+        $stmt->execute([$id]);
+        $old = $stmt->fetchColumn();
+
+        if ($old && file_exists($uploadDir . $old)) {
+            unlink($uploadDir . $old);
+        }
+    }
+
+    try {
+        if ($newImage) {
+            $stmt = $pdo->prepare("
+                UPDATE posts SET
+                    title=?, slug=?, content=?, cover_image=?,
+                    status=?, featured=?
+                WHERE id=?
+            ");
+            $stmt->execute([$title, $slug, $content, $newImage, $status, $featured, $id]);
+        } else {
+            $stmt = $pdo->prepare("
+                UPDATE posts SET
+                    title=?, slug=?, content=?, status=?, featured=?
+                WHERE id=?
+            ");
+            $stmt->execute([$title, $slug, $content, $status, $featured, $id]);
+        }
+
+        header('Location: ../posts.php?success=updated');
+        exit;
+    } catch (PDOException $e) {
+        die("Database Error: " . $e->getMessage());
+    }
+}
+
+/* ===================== DELETE POST ===================== */
+
+if (isset($_POST['delete'], $_POST['id'])) {
+
+    $id = (int) $_POST['id'];
+
+    $stmt = $pdo->prepare('SELECT cover_image FROM posts WHERE id = ?');
+    $stmt->execute([$id]);
+    $file = $stmt->fetchColumn();
+
+    if ($file && file_exists($uploadDir . $file)) {
+        unlink($uploadDir . $file);
+    }
+
+    $stmt = $pdo->prepare('DELETE FROM posts WHERE id = ?');
+    $stmt->execute([$id]);
+
+    header('Location: ../posts.php?success=deleted');
     exit;
 }
+
+/* ===================== FALLBACK ===================== */
+
+header('Location: ../posts.php');
+exit;
