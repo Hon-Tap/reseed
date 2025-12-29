@@ -6,7 +6,16 @@ declare(strict_types=1);
  * Path: /backend/admin/handlers/gallery-handler.php
  */
 
+// 1. Setup Environment
+// We need to go up 3 levels to reach the root from /backend/admin/handlers/
 $baseDir = dirname(__DIR__, 3); 
+
+// Fallback logic to ensure we found the root
+if (!file_exists($baseDir . '/vendor/autoload.php')) {
+    // If 3 levels failed, try 2 (for different local setups)
+    $baseDir = dirname(__DIR__, 2);
+}
+
 require_once $baseDir . '/vendor/autoload.php';
 require_once $baseDir . '/backend/includes/config.php';
 require_once $baseDir . '/backend/admin/includes/csrf.php';
