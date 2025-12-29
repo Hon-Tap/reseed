@@ -10,12 +10,11 @@ use Cloudinary\Api\Upload\UploadApi;
 |--------------------------------------------------------------------------
 */
 
-$rootPath = dirname(__DIR__, 2);
+$basePath = '/var/www/html'; 
 
-require_once $rootPath . '/includes/config.php';
-require_once $rootPath . '/admin/includes/csrf.php';
-require_once $rootPath . '/vendor/autoload.php';
-
+require_once $basePath . '/backend/includes/config.php';
+require_once $basePath . '/backend/admin/includes/csrf.php';
+require_once $basePath . '/vendor/autoload.php';
 /*
 |--------------------------------------------------------------------------
 | HELPERS
