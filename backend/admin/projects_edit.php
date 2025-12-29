@@ -41,7 +41,7 @@ $endDate = $project['end_date'] ? date('Y-m-d', strtotime($project['end_date']))
             </div>
         </div>
 
-        <form id="editForm" action="handlers/project-handler.php" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <form id="editForm" action="/admin/handlers/project-handler.php" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-10">
             <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
             <input type="hidden" name="id" value="<?= $project['id'] ?>">
 

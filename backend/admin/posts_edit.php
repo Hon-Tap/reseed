@@ -54,7 +54,7 @@ $publishedValue = date('Y-m-d\TH:i', strtotime($post['published_at'] ?? 'now'));
             </form>
         </div>
 
-        <form id="postForm" action="handlers/post-handler.php" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <form id="postForm" action="/admin/handlers/post-handler.php" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-10">
             <input type="hidden" name="id" value="<?= $post['id'] ?>">
             <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
