@@ -2,22 +2,56 @@
 
 declare(strict_types=1);
 
-use Cloudinary\Api\Upload\UploadApi;
-
 /*
 |--------------------------------------------------------------------------
-| BOOTSTRAP
+| BOOTSTRAP & CONFIGURATION
 |--------------------------------------------------------------------------
 */
 
-$basePath = '/var/www/html'; 
+// 1. Define the Absolute Path for Docker/Render Environment
+// This points directly to /var/www/html
+$basePath = '/var/www/html';
 
-require_once $basePath . '/backend/includes/config.php';
-require_once $basePath . '/backend/admin/includes/csrf.php';
-require_once $basePath . '/vendor/autoload.php';
+// 2. Enable Error Reporting (Helps debug if something else breaks)
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
+// 3. Load Dependencies using Absolute Paths
+// We check if files exist to prevent fatal crashes if paths are wrong
+if (file_exists($basePath . '/vendor/autoload.php')) {
+    require_once $basePath . '/vendor/autoload.php';
+} else {
+    die("Critical Error: /vendor/autoload.php not found. Did 'composer install' run?");
+}
+
+if (file_exists($basePath . '/backend/includes/config.php')) {
+    require_once $basePath . '/backend/includes/config.php';
+} else {
+    die("Critical Error: Config file not found at $basePath/backend/includes/config.php");
+}
+
+if (file_exists($basePath . '/backend/admin/includes/csrf.php')) {
+    require_once $basePath . '/backend/admin/includes/csrf.php';
+} else {
+    // If missing, define a dummy function to prevent crash, but warn user
+    function csrf_token() { return ''; } 
+}
+
+// 4. Import Cloudinary Classes
+use Cloudinary\Configuration\Configuration;
+use Cloudinary\Api\Upload\UploadApi;
+
+// 5. Configure Cloudinary
+// IMPORTANT: You must set the 'CLOUDINARY_URL' environment variable in Render Dashboard
+// Format: cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+if (getenv('CLOUDINARY_URL')) {
+    Configuration::instance(getenv('CLOUDINARY_URL'));
+}
+
 /*
 |--------------------------------------------------------------------------
-| HELPERS
+| HELPER FUNCTIONS
 |--------------------------------------------------------------------------
 */
 
@@ -31,10 +65,11 @@ function slugify(string $value): string
 
 /*
 |--------------------------------------------------------------------------
-| ADD PROJECT
+| HANDLE REQUESTS
 |--------------------------------------------------------------------------
 */
 
+// --- ADD PROJECT ---
 if (isset($_POST['add'])) {
 
     $title        = trim($_POST['title'] ?? '');
@@ -51,16 +86,20 @@ if (isset($_POST['add'])) {
 
     $coverImage = null;
 
+    // Handle File Upload via Cloudinary
     if (!empty($_FILES['media_file']['tmp_name'])) {
-        $upload = (new UploadApi())->upload(
-            $_FILES['media_file']['tmp_name'],
-            [
-                'folder'        => 'reseed/projects',
-                'resource_type' => 'auto'
-            ]
-        );
-
-        $coverImage = $upload['secure_url'];
+        try {
+            $upload = (new UploadApi())->upload(
+                $_FILES['media_file']['tmp_name'],
+                [
+                    'folder'        => 'reseed/projects',
+                    'resource_type' => 'auto'
+                ]
+            );
+            $coverImage = $upload['secure_url'];
+        } catch (Exception $e) {
+            die("Cloudinary Upload Failed: " . $e->getMessage());
+        }
     }
 
     $stmt = $pdo->prepare("
@@ -75,30 +114,16 @@ if (isset($_POST['add'])) {
     ");
 
     $stmt->execute([
-        $title,
-        $slug,
-        $summary,
-        $description,
-        $location,
-        $start_date,
-        $end_date,
-        $coverImage,
-        $media_type,
-        $media_url,
-        $status,
-        $featured
+        $title, $slug, $summary, $description, $location,
+        $start_date, $end_date, $coverImage,
+        $media_type, $media_url, $status, $featured
     ]);
 
     header('Location: ../projects.php?success=added');
     exit;
 }
 
-/*
-|--------------------------------------------------------------------------
-| UPDATE PROJECT
-|--------------------------------------------------------------------------
-*/
-
+// --- UPDATE PROJECT ---
 if (isset($_POST['update'], $_POST['id'])) {
 
     $id           = (int) $_POST['id'];
@@ -117,15 +142,18 @@ if (isset($_POST['update'], $_POST['id'])) {
     $newImage = null;
 
     if (!empty($_FILES['media_file']['tmp_name'])) {
-        $upload = (new UploadApi())->upload(
-            $_FILES['media_file']['tmp_name'],
-            [
-                'folder'        => 'reseed/projects',
-                'resource_type' => 'auto'
-            ]
-        );
-
-        $newImage = $upload['secure_url'];
+        try {
+            $upload = (new UploadApi())->upload(
+                $_FILES['media_file']['tmp_name'],
+                [
+                    'folder'        => 'reseed/projects',
+                    'resource_type' => 'auto'
+                ]
+            );
+            $newImage = $upload['secure_url'];
+        } catch (Exception $e) {
+            die("Cloudinary Upload Failed: " . $e->getMessage());
+        }
     }
 
     if ($newImage) {
@@ -136,21 +164,10 @@ if (isset($_POST['update'], $_POST['id'])) {
                 media_type=?, media_url=?, status=?, featured=?
             WHERE id=?
         ");
-
         $stmt->execute([
-            $title,
-            $slug,
-            $summary,
-            $description,
-            $location,
-            $start_date,
-            $end_date,
-            $newImage,
-            $media_type,
-            $media_url,
-            $status,
-            $featured,
-            $id
+            $title, $slug, $summary, $description, $location,
+            $start_date, $end_date, $newImage,
+            $media_type, $media_url, $status, $featured, $id
         ]);
     } else {
         $stmt = $pdo->prepare("
@@ -160,20 +177,10 @@ if (isset($_POST['update'], $_POST['id'])) {
                 media_type=?, media_url=?, status=?, featured=?
             WHERE id=?
         ");
-
         $stmt->execute([
-            $title,
-            $slug,
-            $summary,
-            $description,
-            $location,
-            $start_date,
-            $end_date,
-            $media_type,
-            $media_url,
-            $status,
-            $featured,
-            $id
+            $title, $slug, $summary, $description, $location,
+            $start_date, $end_date,
+            $media_type, $media_url, $status, $featured, $id
         ]);
     }
 
@@ -181,28 +188,15 @@ if (isset($_POST['update'], $_POST['id'])) {
     exit;
 }
 
-/*
-|--------------------------------------------------------------------------
-| DELETE PROJECT
-|--------------------------------------------------------------------------
-*/
-
+// --- DELETE PROJECT ---
 if (isset($_POST['delete'], $_POST['id'])) {
-
     $id = (int) $_POST['id'];
-
     $stmt = $pdo->prepare('DELETE FROM projects WHERE id = ?');
     $stmt->execute([$id]);
-
     header('Location: ../projects.php?success=deleted');
     exit;
 }
 
-/*
-|--------------------------------------------------------------------------
-| FALLBACK
-|--------------------------------------------------------------------------
-*/
-
+// Fallback
 header('Location: ../projects.php');
 exit;
