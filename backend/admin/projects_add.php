@@ -1,77 +1,74 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/includes/admin_auth.php';
-require_once __DIR__ . '/includes/admin_header.php';
+$backendPath = dirname(__DIR__, 1);
+require_once $backendPath . '/includes/config.php';
+require_once $backendPath . '/admin/includes/admin_auth.php';
+require_once $backendPath . '/admin/includes/admin_header.php';
+require_once $backendPath . '/admin/includes/csrf.php';
 
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
-// Default Start Date to Today
 $today = date('Y-m-d');
 ?>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
-<div class="bg-slate-50 min-h-screen p-6 md:p-10">
+<div class="bg-slate-50/50 min-h-screen p-6 md:p-10">
     <div class="max-w-6xl mx-auto">
-        <div class="mb-8 flex justify-between items-end">
+        
+        <div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-                <h2 class="text-3xl font-extrabold text-slate-900">Add New Project</h2>
-                <p class="text-slate-500 mt-1">Register a new community initiative or conservation project.</p>
+                <a href="projects.php" class="text-sm font-bold text-emerald-600 hover:underline mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Projects
+                </a>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight">New Initiative</h1>
             </div>
-            <a href="projects.php" class="text-slate-400 hover:text-emerald-600 transition">
-                <i class="fa-solid fa-circle-xmark text-2xl"></i>
-            </a>
         </div>
 
-        <form action="project-handler.php" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+        <form action="handlers/project-handler.php" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-5">
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200 space-y-6">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Project Title</label>
-                        <input type="text" name="title" required placeholder="e.g., Solar Water Initiative"
-                               class="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition text-lg">
+                        <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Project Title</label>
+                        <input type="text" name="title" required placeholder="Project Name"
+                               class="w-full px-6 py-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-500 text-xl font-bold outline-none">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Slug (Optional)</label>
-                            <input type="text" name="slug" placeholder="project-url-format"
-                                   class="w-full px-3 py-2 rounded-lg border bg-slate-50 font-mono text-sm outline-none">
+                            <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Location</label>
+                            <input type="text" name="location" required placeholder="Where is it?"
+                                   class="w-full px-5 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-500 font-medium outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Location</label>
-                            <input type="text" name="location" required placeholder="District or City"
-                                   class="w-full px-3 py-2 rounded-lg border outline-none focus:ring-2 focus:ring-emerald-500">
+                            <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">URL Slug (Auto-generated if empty)</label>
+                            <input type="text" name="slug" placeholder="url-friendly-name"
+                                   class="w-full px-5 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-500 font-mono text-sm outline-none">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Short Summary</label>
-                        <textarea name="summary" rows="2" required placeholder="A brief one-sentence hook..."
-                                  class="w-full px-4 py-2 rounded-lg border outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                        <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Short Hook (Summary)</label>
+                        <textarea name="summary" rows="2" required placeholder="A brief one-sentence pitch..."
+                                  class="w-full px-5 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-500 outline-none font-medium"></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Full Description</label>
-                        <textarea name="description" rows="10" required placeholder="Detailed project breakdown..."
-                                  class="w-full px-4 py-2 rounded-lg border outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                        <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Full Narrative</label>
+                        <textarea name="description" rows="12" required placeholder="Tell the story of this project..."
+                                  class="w-full px-5 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-500 outline-none leading-relaxed"></textarea>
                     </div>
                 </div>
             </div>
 
             <div class="space-y-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Project Meta</h3>
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200">
+                    <h3 class="text-xs font-black uppercase text-slate-400 mb-6 tracking-widest border-b pb-4">Lifecycle</h3>
                     
-                    <div class="mb-4">
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Status</label>
-                        <select name="status" class="w-full px-3 py-2 rounded-lg border bg-slate-50 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    <div class="mb-6">
+                        <label class="block text-xs font-bold text-slate-700 mb-2">Current Status</label>
+                        <select name="status" class="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-500 outline-none font-bold">
                             <option value="Ongoing">Ongoing</option>
                             <option value="Completed">Completed</option>
                             <option value="Planned">Planned</option>
@@ -80,36 +77,64 @@ $today = date('Y-m-d');
 
                     <div class="grid grid-cols-2 gap-4 mb-6">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase">Start Date</label>
-                            <input type="date" name="start_date" value="<?= $today ?>" class="w-full text-xs px-2 py-2 rounded border outline-none">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">Start Date</label>
+                            <input type="date" name="start_date" value="<?= $today ?>" class="w-full px-3 py-2 rounded-lg bg-slate-50 border-none text-xs font-bold">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase">End Date</label>
-                            <input type="date" name="end_date" class="w-full text-xs px-2 py-2 rounded border outline-none">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase mb-1">End Date</label>
+                            <input type="date" name="end_date" class="w-full px-3 py-2 rounded-lg bg-slate-50 border-none text-xs font-bold">
                         </div>
                     </div>
 
-                    <label class="flex items-center space-x-3 cursor-pointer p-3 rounded-xl border border-dashed border-slate-200 hover:bg-emerald-50 transition mb-6">
-                        <input type="checkbox" name="featured" value="1" class="w-5 h-5 text-emerald-600 rounded">
-                        <span class="text-sm font-bold text-slate-700">Featured Project</span>
+                    <label class="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 cursor-pointer hover:bg-emerald-50 transition group">
+                        <input type="checkbox" name="featured" value="1" class="w-5 h-5 rounded border-none text-emerald-600 focus:ring-0">
+                        <span class="text-sm font-black text-slate-700 group-hover:text-emerald-700">Feature on Home</span>
                     </label>
-
-                    <button type="submit" name="add" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-100 transition">
-                        Save Project
-                    </button>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Media</h3>
-                    <select name="media_type" class="w-full mb-4 px-3 py-2 rounded-lg border bg-slate-50 text-sm">
-                        <option value="image">Image</option>
-                        <option value="video">Video</option>
-                    </select>
-                    <input type="file" name="media_file" class="text-xs block w-full mb-4 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
-                    <input type="url" name="media_url" placeholder="YouTube URL" class="w-full px-3 py-2 rounded-lg border text-xs outline-none">
+                <div class="bg-slate-900 p-8 rounded-[2.5rem] shadow-xl text-white">
+                    <h3 class="text-xs font-black uppercase text-slate-500 mb-6 tracking-widest border-b border-slate-800 pb-4">Cover Media</h3>
+                    
+                    <div class="mb-6">
+                        <label class="block text-xs font-bold mb-2">Media Type</label>
+                        <select name="media_type" id="media_type" class="w-full px-4 py-3 rounded-xl bg-slate-800 border-none text-white outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="image">Upload Image</option>
+                            <option value="video">Upload Video</option>
+                            <option value="url">External Video (URL)</option>
+                        </select>
+                    </div>
+
+                    <div id="file-input-wrapper">
+                        <input type="file" name="media_file" id="media_file" class="text-xs block w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-emerald-500 file:text-white file:font-black hover:file:bg-emerald-400 cursor-pointer">
+                    </div>
+
+                    <div id="url-input-wrapper" class="hidden mt-4">
+                        <input type="url" name="media_url" placeholder="YouTube or Vimeo Link" class="w-full px-4 py-3 rounded-xl bg-slate-800 border-none text-white text-xs outline-none">
+                    </div>
                 </div>
+
+                <button type="submit" name="add" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-[2rem] shadow-xl shadow-emerald-200/50 transition transform active:scale-95">
+                    Launch Project
+                </button>
             </div>
         </form>
     </div>
 </div>
-<?php require_once __DIR__ . '/includes/admin_footer.php'; ?>
+
+<script>
+// Toggle media inputs based on type
+document.getElementById('media_type').addEventListener('change', function() {
+    const fileWrapper = document.getElementById('file-input-wrapper');
+    const urlWrapper = document.getElementById('url-input-wrapper');
+    
+    if (this.value === 'url') {
+        fileWrapper.classList.add('hidden');
+        urlWrapper.classList.remove('hidden');
+    } else {
+        fileWrapper.classList.remove('hidden');
+        urlWrapper.classList.add('hidden');
+    }
+});
+</script>
+
+<?php require_once $backendPath . '/admin/includes/admin_footer.php'; ?>

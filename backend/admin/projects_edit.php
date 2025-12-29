@@ -1,130 +1,113 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/includes/admin_auth.php';
-require_once __DIR__ . '/includes/admin_header.php';
+$backendPath = dirname(__DIR__, 1);
+require_once $backendPath . '/includes/config.php';
+require_once $backendPath . '/admin/includes/admin_auth.php';
+require_once $backendPath . '/admin/includes/admin_header.php';
+require_once $backendPath . '/admin/includes/csrf.php';
 
-$id = (int)($_GET['id'] ?? 0);
+$id = $_GET['id'] ?? null;
+if (!$id) { header('Location: projects.php'); exit; }
+
 $stmt = $pdo->prepare("SELECT * FROM projects WHERE id = ?");
 $stmt->execute([$id]);
-$project = $stmt->fetch(PDO::FETCH_ASSOC);
+$project = $stmt->fetch();
 
-if (!$project) {
-    header("Location: projects.php");
-    exit;
-}
-
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+if (!$project) { die("Project not found."); }
 ?>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
-<div class="bg-slate-50 min-h-screen p-6 md:p-10">
+<div class="bg-slate-50/50 min-h-screen p-6 md:p-10">
     <div class="max-w-6xl mx-auto">
-        <div class="mb-8 flex items-center gap-4">
-            <a href="projects.php" class="bg-white p-2 rounded-lg border hover:text-emerald-600 transition shadow-sm text-slate-400">
-                <i class="fa-solid fa-arrow-left"></i>
-            </a>
+        
+        <div class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-                <h2 class="text-3xl font-extrabold text-slate-900">Update Project</h2>
-                <p class="text-slate-500">Editing: <?= htmlspecialchars($project['title']) ?></p>
+                <a href="projects.php" class="text-sm font-bold text-slate-400 hover:text-emerald-600 transition mb-2 block">
+                    <i class="fa-solid fa-arrow-left"></i> Project Management
+                </a>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Edit Initiative</h1>
             </div>
         </div>
 
-        <form action="project-handler.php" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <form action="handlers/project-handler.php" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
             <input type="hidden" name="id" value="<?= $project['id'] ?>">
-            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
 
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 space-y-5">
+                <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200 space-y-6">
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Project Title</label>
+                        <label class="block text-xs font-black uppercase text-slate-400 mb-2">Project Title</label>
                         <input type="text" name="title" value="<?= htmlspecialchars($project['title']) ?>" required
-                               class="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none transition text-lg font-semibold">
+                               class="w-full px-6 py-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-500 text-xl font-bold">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Slug</label>
-                            <input type="text" name="slug" value="<?= htmlspecialchars($project['slug']) ?>"
-                                   class="w-full px-3 py-2 rounded-lg border bg-slate-50 font-mono text-sm outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Location</label>
+                            <label class="block text-xs font-black uppercase text-slate-400 mb-2">Location</label>
                             <input type="text" name="location" value="<?= htmlspecialchars($project['location']) ?>" required
-                                   class="w-full px-3 py-2 rounded-lg border outline-none focus:ring-2 focus:ring-emerald-500">
+                                   class="w-full px-5 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-500 font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-400 mb-2">Slug</label>
+                            <input type="text" name="slug" value="<?= htmlspecialchars($project['slug']) ?>"
+                                   class="w-full px-5 py-3 rounded-xl bg-slate-50 border-none font-mono text-sm">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Summary</label>
-                        <textarea name="summary" rows="3" required class="w-full px-4 py-2 rounded-lg border outline-none focus:ring-2 focus:ring-emerald-500"><?= htmlspecialchars($project['summary']) ?></textarea>
+                        <label class="block text-xs font-black uppercase text-slate-400 mb-2">Short Summary</label>
+                        <textarea name="summary" rows="2" class="w-full px-5 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-500 font-medium"><?= htmlspecialchars($project['summary']) ?></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1">Full Description</label>
-                        <textarea name="description" rows="12" required class="w-full px-4 py-2 rounded-lg border outline-none focus:ring-2 focus:ring-emerald-500"><?= htmlspecialchars($project['description']) ?></textarea>
+                        <label class="block text-xs font-black uppercase text-slate-400 mb-2">Description</label>
+                        <textarea name="description" rows="10" class="w-full px-5 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-500"><?= htmlspecialchars($project['description']) ?></textarea>
                     </div>
                 </div>
             </div>
 
             <div class="space-y-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Settings</h3>
+                <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200">
+                    <h3 class="text-xs font-black uppercase text-slate-400 mb-6 tracking-widest pb-4 border-b">Settings</h3>
                     
                     <div class="mb-4">
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Status</label>
-                        <select name="status" class="w-full px-3 py-2 rounded-lg border bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <label class="block text-xs font-bold mb-1">Status</label>
+                        <select name="status" class="w-full px-4 py-3 rounded-xl bg-slate-50 border-none focus:ring-2 focus:ring-emerald-500 font-bold">
                             <option value="Ongoing" <?= $project['status'] === 'Ongoing' ? 'selected' : '' ?>>Ongoing</option>
                             <option value="Completed" <?= $project['status'] === 'Completed' ? 'selected' : '' ?>>Completed</option>
                             <option value="Planned" <?= $project['status'] === 'Planned' ? 'selected' : '' ?>>Planned</option>
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase">Start Date</label>
-                            <input type="date" name="start_date" value="<?= $project['start_date'] ?>" class="w-full text-xs px-2 py-2 rounded border">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase">End Date</label>
-                            <input type="date" name="end_date" value="<?= $project['end_date'] ?>" class="w-full text-xs px-2 py-2 rounded border">
-                        </div>
-                    </div>
-
-                    <label class="flex items-center space-x-3 cursor-pointer p-3 mb-6 rounded-xl border border-dashed border-slate-200 hover:bg-emerald-50 transition">
-                        <input type="checkbox" name="featured" value="1" class="w-5 h-5 text-emerald-600 rounded" <?= !empty($project['featured']) ? 'checked' : '' ?>>
-                        <span class="text-sm font-bold text-slate-700">Featured Project</span>
+                    <label class="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 cursor-pointer">
+                        <input type="checkbox" name="featured" value="1" <?= $project['featured'] ? 'checked' : '' ?> class="w-5 h-5 rounded border-none text-emerald-600">
+                        <span class="text-sm font-black text-slate-700">Featured Project</span>
                     </label>
-
-                    <button type="submit" name="update" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-lg transition">
-                        Update Project
-                    </button>
                 </div>
 
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h3 class="text-xs font-bold uppercase text-slate-400 mb-4 tracking-widest">Media Asset</h3>
+                <div class="bg-slate-900 p-8 rounded-[2.5rem] text-white">
+                    <h3 class="text-xs font-black uppercase text-slate-500 mb-6 tracking-widest pb-4 border-b border-slate-800">Current Media</h3>
                     
-                    <select name="media_type" class="w-full mb-4 px-3 py-2 rounded-lg border bg-slate-50 text-sm">
-                        <option value="image" <?= $project['media_type'] === 'image' ? 'selected' : '' ?>>Image</option>
-                        <option value="video" <?= $project['media_type'] === 'video' ? 'selected' : '' ?>>Video</option>
-                    </select>
-
-                    <?php if (!empty($project['cover_image'])): ?>
-                        <div class="mb-4 rounded-xl overflow-hidden border">
-                            <img src="../uploads/projects/<?= $project['cover_image'] ?>" class="w-full h-32 object-cover">
+                    <?php if($project['media_type'] === 'image'): ?>
+                        <img src="<?= htmlspecialchars($project['media_url']) ?>" class="w-full h-40 object-cover rounded-2xl mb-4 border border-slate-700">
+                    <?php elseif($project['media_type'] === 'video' || $project['media_type'] === 'url'): ?>
+                        <div class="bg-slate-800 p-4 rounded-2xl mb-4 text-center text-xs text-slate-400">
+                            Video Asset Attached
                         </div>
                     <?php endif; ?>
 
-                    <input type="file" name="media_file" class="text-xs block w-full mb-4">
-                    <input type="url" name="media_url" value="<?= htmlspecialchars($project['media_url'] ?? '') ?>" 
-                           placeholder="External URL" class="w-full px-3 py-2 rounded-lg border text-xs outline-none">
+                    <label class="block text-xs font-bold text-slate-400 mb-2 uppercase">Replace Media (Optional)</label>
+                    <input type="file" name="media_file" class="text-xs block w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-slate-700 file:text-white hover:file:bg-emerald-600">
                 </div>
+
+                <button type="submit" name="update" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-[2rem] shadow-xl shadow-emerald-200/50 transition transform active:scale-95">
+                    Apply Updates
+                </button>
             </div>
         </form>
     </div>
 </div>
-<?php require_once __DIR__ . '/includes/admin_footer.php'; ?>
+
+<?php require_once $backendPath . '/admin/includes/admin_footer.php'; ?>

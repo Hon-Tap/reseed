@@ -698,76 +698,70 @@ $stmt->execute();
 $latestPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-<section class="section bg-surface">
+<section class="section bg-surface py-20">
     <div class="container">
 
         <div class="d-flex justify-content-between align-items-end mb-5">
             <div>
-                <h2 class="section-title mb-2">Field Stories</h2>
+                <h2 class="section-title mb-2" style="font-weight:900; letter-spacing:-0.03em;">Field Stories</h2>
                 <p class="text-muted">Updates from the ground.</p>
             </div>
 
-            <a href="/blog.php" class="btn btn-link text-success fw-bold text-decoration-none">
+            <a href="/blog.php" class="btn btn-link text-emerald-600 fw-bold text-decoration-none p-0">
                 See All News <i class="fa-solid fa-arrow-right ms-2"></i>
             </a>
         </div>
 
-        <div class="h-grid">
+        <div class="row g-4">
             <?php if ($latestPosts): ?>
                 <?php foreach ($latestPosts as $post): ?>
-
-                    <?php
-                        $mediaUrl = $post['cover_image']
-                            ? UPLOADS_URL . '/posts/' . $post['cover_image']
-                            : null;
+                    <?php 
+                        // Cloudinary-aware path logic
+                        $mediaUrl = (strpos($post['cover_image'], 'http') === 0) 
+                                    ? $post['cover_image'] 
+                                    : '/uploads/posts/' . $post['cover_image'];
                     ?>
 
-                    <article class="news-card" data-aos="fade-up">
+                    <div class="col-md-4">
+                        <article class="news-card h-100 border-0 shadow-sm" style="border-radius: 24px; overflow: hidden; transition: transform 0.3s ease;">
+                            <div class="news-media-container" style="aspect-ratio: 16/10; overflow: hidden; position: relative;">
+                                <?php if ($post['media_type'] === 'video' && $mediaUrl): ?>
+                                    <video muted autoplay loop playsinline style="width:100%; height:100%; object-fit:cover;">
+                                        <source src="<?= htmlspecialchars($mediaUrl) ?>" type="video/mp4">
+                                    </video>
+                                <?php elseif ($mediaUrl): ?>
+                                    <img src="<?= htmlspecialchars($mediaUrl) ?>" 
+                                         alt="<?= htmlspecialchars($post['title']) ?>" 
+                                         style="width:100%; height:100%; object-fit:cover;"
+                                         loading="lazy">
+                                <?php endif; ?>
+                            </div>
 
-                        <div class="news-media-container">
-                            <?php if ($post['media_type'] === 'video' && $mediaUrl): ?>
-                                <video muted autoplay loop playsinline>
-                                    <source src="<?= htmlspecialchars($mediaUrl) ?>" type="video/mp4">
-                                </video>
-                            <?php elseif ($mediaUrl): ?>
-                                <img src="<?= htmlspecialchars($mediaUrl) ?>"
-                                     alt="<?= htmlspecialchars($post['title']) ?>"
-                                     loading="lazy">
-                            <?php else: ?>
-                                <div class="news-placeholder">
-                                    <i class="fa-regular fa-image"></i>
-                                </div>
-                            <?php endif; ?>
-                        </div>
+                            <div class="news-body p-4 bg-white">
+                                <small class="text-emerald-600 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;">
+                                    <?= date('M d, Y', strtotime($post['published_at'])) ?>
+                                </small>
 
-                        <div class="news-body">
-                            <small class="text-muted">
-                                <?= date('M d, Y', strtotime($post['published_at'])) ?>
-                            </small>
+                                <h4 class="font-heading my-2" style="font-weight: 800; font-size: 1.25rem; line-height: 1.3;">
+                                    <?= htmlspecialchars($post['title']) ?>
+                                </h4>
 
-                            <h4 class="font-heading">
-                                <?= htmlspecialchars($post['title']) ?>
-                            </h4>
+                                <p class="text-muted small mb-4">
+                                    <?= htmlspecialchars(mb_strimwidth($post['excerpt'], 0, 90, '…')) ?>
+                                </p>
 
-                            <p class="text-muted small mb-4">
-                                <?= htmlspecialchars(mb_strimwidth($post['excerpt'], 0, 110, '…')) ?>
-                            </p>
-
-                            <a href="/post.php?slug=<?= urlencode($post['slug']) ?>"
-                               class="btn btn-sm btn-outline-success rounded-pill px-4">
-                                Read Story
-                            </a>
-                        </div>
-
-                    </article>
+                                <a href="/post.php?slug=<?= urlencode($post['slug']) ?>" 
+                                   class="text-decoration-none fw-bold text-dark small">
+                                    Read Story <i class="fa-solid fa-chevron-right ms-1" style="font-size: 0.7rem;"></i>
+                                </a>
+                            </div>
+                        </article>
+                    </div>
 
                 <?php endforeach; ?>
             <?php else: ?>
                 <div class="text-center py-5 w-100">
                     <p class="text-muted mb-3">No field stories published yet.</p>
-                    <a href="/blog.php" class="btn btn-outline-success rounded-pill">
-                        Visit News Archive
-                    </a>
                 </div>
             <?php endif; ?>
         </div>

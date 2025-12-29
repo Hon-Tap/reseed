@@ -20,6 +20,15 @@ function reading_time(string $html): int
     return max(1, (int) ceil($words / 200));
 }
 
+/**
+ * Helper to ensure we use the Cloudinary URL or a placeholder
+ */
+function getBlogImageUrl($path) {
+    if (empty($path)) return 'https://via.placeholder.com/800x500?text=Field+Journal';
+    // If it's a full URL (Cloudinary), return it. Otherwise, assume it's a legacy local path.
+    return (strpos($path, 'http') === 0) ? $path : '/uploads/posts/' . $path;
+}
+
 /*
 |--------------------------------------------------------------------------
 | FETCH PUBLISHED POSTS
@@ -41,53 +50,52 @@ $stmt = $pdo->query("
     ORDER BY featured DESC, published_at DESC
 ");
 $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$uploadsUrl   = '/uploads/posts/';
-$defaultImage = '/assets/images/blog-default.jpg';
 ?>
 
 <style>
 /* =========================================================
-   BLOG — EDITORIAL UI
+    BLOG — REFINED EDITORIAL UI
 ========================================================= */
 
 :root {
-    --green: #0b8a15;
-    --green-dark: #086b11;
+    --green: #10b981; /* Emerald 500 */
+    --green-dark: #059669; /* Emerald 600 */
     --ink: #0f172a;
     --muted: #64748b;
-    --radius: 22px;
+    --radius: 24px;
+    --shadow-sm: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
 }
 
 /* ---------- HERO ---------- */
 .blog-hero {
-    padding: 5rem 0;
-    background:
-        radial-gradient(circle at 80% 20%, rgba(11,138,21,.08), transparent 50%),
-        radial-gradient(circle at 20% 80%, rgba(241,245,249,.9), transparent 50%);
+    padding: 6rem 0;
+    background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
     text-align: center;
-    border-bottom: 1px solid rgba(0,0,0,.04);
 }
 
 .blog-hero h1 {
-    font-size: clamp(2.6rem, 6vw, 4rem);
+    font-size: clamp(2.8rem, 7vw, 4.5rem);
     font-weight: 900;
-    letter-spacing: -.04em;
-    margin-bottom: 1rem;
+    letter-spacing: -.05em;
+    margin-bottom: 1.2rem;
     color: var(--ink);
+    line-height: 1;
 }
 
 .blog-hero p {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     color: var(--muted);
+    max-width: 600px;
+    margin: 0 auto;
+    font-weight: 500;
 }
 
 /* ---------- GRID ---------- */
 .blog-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 3.5rem 2.5rem;
-    padding: 5rem 0;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 4rem 2.5rem;
+    padding: 4rem 0 8rem;
 }
 
 /* ---------- CARD ---------- */
@@ -97,11 +105,11 @@ $defaultImage = '/assets/images/blog-default.jpg';
     display: flex;
     flex-direction: column;
     height: 100%;
-    transition: transform .35s ease;
+    transition: all .4s cubic-bezier(0.2, 1, 0.3, 1);
 }
 
 .blog-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-12px);
 }
 
 /* ---------- MEDIA ---------- */
@@ -111,7 +119,8 @@ $defaultImage = '/assets/images/blog-default.jpg';
     border-radius: var(--radius);
     overflow: hidden;
     background: #f1f5f9;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.8rem;
+    box-shadow: var(--shadow-sm);
 }
 
 .blog-media img,
@@ -123,34 +132,44 @@ $defaultImage = '/assets/images/blog-default.jpg';
 }
 
 .blog-card:hover img {
-    transform: scale(1.06);
+    transform: scale(1.08);
 }
 
 .badge-featured {
     position: absolute;
-    top: 1rem;
-    left: 1rem;
-    background: #fff;
-    padding: .4rem .9rem;
-    border-radius: 999px;
+    top: 1.2rem;
+    left: 1.2rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    padding: .5rem 1rem;
+    border-radius: 99px;
     font-size: .7rem;
     font-weight: 800;
-    letter-spacing: .05em;
+    text-transform: uppercase;
+    letter-spacing: .08em;
     color: var(--green-dark);
-    box-shadow: 0 6px 16px rgba(0,0,0,.12);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 2;
 }
 
 /* ---------- TEXT ---------- */
 .blog-meta {
-    font-size: .72rem;
+    font-size: .75rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .04em;
-    color: var(--green);
+    letter-spacing: .05em;
+    color: var(--green-dark);
     display: flex;
-    gap: .6rem;
-    flex-wrap: wrap;
-    margin-bottom: .6rem;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: .8rem;
+}
+
+.blog-meta .dot {
+    width: 4px;
+    height: 4px;
+    background: #cbd5e1;
+    border-radius: 50%;
 }
 
 .blog-meta span {
@@ -159,18 +178,23 @@ $defaultImage = '/assets/images/blog-default.jpg';
 }
 
 .blog-title {
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     font-weight: 800;
-    line-height: 1.25;
-    margin-bottom: .8rem;
+    line-height: 1.3;
+    margin-bottom: 1rem;
     color: var(--ink);
+    transition: color 0.3s;
+}
+
+.blog-card:hover .blog-title {
+    color: var(--green-dark);
 }
 
 .blog-excerpt {
-    font-size: .98rem;
+    font-size: 1.05rem;
     color: var(--muted);
     line-height: 1.6;
-    margin-bottom: 1.3rem;
+    margin-bottom: 1.5rem;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -179,54 +203,48 @@ $defaultImage = '/assets/images/blog-default.jpg';
 
 .blog-cta {
     margin-top: auto;
-    font-weight: 700;
-    font-size: .9rem;
-    color: var(--green);
+    font-weight: 800;
+    font-size: .95rem;
+    color: var(--green-dark);
     display: inline-flex;
-    gap: .4rem;
+    gap: .5rem;
     align-items: center;
 }
 
 .blog-cta svg {
-    transition: transform .3s ease;
+    transition: transform .3s var(--ease);
 }
 
 .blog-card:hover .blog-cta svg {
-    transform: translateX(6px);
+    transform: translateX(8px);
 }
 </style>
 
 <main>
 
-    <!-- HERO -->
     <section class="blog-hero">
-        <div class="container">
+        <div class="container mx-auto px-4">
             <h1>Field Journal</h1>
-            <p>Stories and insights from the ground as we restore ecosystems.</p>
+            <p>Stories, updates, and ecological insights from our global restoration efforts.</p>
         </div>
     </section>
 
-    <!-- POSTS -->
-    <section class="container">
+    <section class="container mx-auto px-4">
 
         <?php if (!$posts): ?>
-            <div style="padding:6rem 0;text-align:center;">
-                <p style="font-size:1.1rem;color:var(--muted)">
-                    No stories published yet. Check back soon.
-                </p>
+            <div class="py-32 text-center bg-slate-50 rounded-[40px] border-2 border-dashed border-slate-200">
+                <i class="fa-solid fa-feather-pointed text-5xl text-slate-300 mb-4"></i>
+                <h3 class="text-xl font-bold text-slate-900">The journal is empty.</h3>
+                <p class="text-slate-500">Check back soon for new stories from the field.</p>
             </div>
         <?php else: ?>
 
             <div class="blog-grid">
 
                 <?php foreach ($posts as $post):
-
-                    $image = $post['cover_image']
-                        ? $uploadsUrl . $post['cover_image']
-                        : $defaultImage;
-
-                    $url  = '/post.php?slug=' . urlencode($post['slug']);
-                    $read = reading_time($post['content']);
+                    $image = getBlogImageUrl($post['cover_image']);
+                    $url   = '/post.php?slug=' . urlencode($post['slug']);
+                    $read  = reading_time($post['content']);
                 ?>
 
                 <article>
@@ -239,17 +257,19 @@ $defaultImage = '/assets/images/blog-default.jpg';
 
                             <?php if (($post['media_type'] ?? 'image') === 'video'): ?>
                                 <video muted autoplay loop playsinline>
-                                    <source src="<?= $image ?>" type="video/mp4">
+                                    <source src="<?= htmlspecialchars($image) ?>" type="video/mp4">
                                 </video>
                             <?php else: ?>
-                                <img src="<?= $image ?>" alt="<?= htmlspecialchars($post['title']) ?>" loading="lazy">
+                                <img src="<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($post['title']) ?>" loading="lazy">
                             <?php endif; ?>
                         </div>
 
                         <div class="blog-meta">
-                            <?= htmlspecialchars($post['author']) ?>
-                            <span>• <?= date('M j, Y', strtotime($post['published_at'])) ?></span>
-                            <span>• <?= $read ?> min read</span>
+                            <?= htmlspecialchars($post['author'] ?: 'Team Reseed') ?>
+                            <div class="dot"></div>
+                            <span><?= date('M j, Y', strtotime($post['published_at'])) ?></span>
+                            <div class="dot"></div>
+                            <span><?= $read ?> min read</span>
                         </div>
 
                         <h2 class="blog-title"><?= htmlspecialchars($post['title']) ?></h2>
@@ -260,7 +280,7 @@ $defaultImage = '/assets/images/blog-default.jpg';
 
                         <span class="blog-cta">
                             Read Story
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                                  stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                                 <polyline points="12 5 19 12 12 19"></polyline>

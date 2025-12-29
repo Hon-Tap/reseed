@@ -1,22 +1,10 @@
 <?php
 declare(strict_types=1);
 
-/*
-|--------------------------------------------------------------------------
-| Frontend — Gallery (Final, Fixed, Polished)
-|--------------------------------------------------------------------------
-*/
+require_once __DIR__ . '/backend/includes/config.php';
+require_once __DIR__ . '/backend/includes/header.php';
 
-require_once dirname(__DIR__) . '/backend/includes/config.php';
-require_once dirname(__DIR__) . '/backend/includes/header.php';
-
-/*
-|--------------------------------------------------------------------------
-| Pagination
-|--------------------------------------------------------------------------
-*/
-
-$limit  = 12;
+$limit  = 15; // Increased slightly for better masonry flow
 $page   = max(1, (int)($_GET['page'] ?? 1));
 $offset = ($page - 1) * $limit;
 
@@ -25,7 +13,7 @@ try {
     $totalPages  = max(1, (int) ceil($totalImages / $limit));
 
     $stmt = $pdo->prepare("
-        SELECT filename, caption, created_at
+        SELECT filename, caption, category, created_at
         FROM gallery
         ORDER BY created_at DESC
         LIMIT :limit OFFSET :offset
@@ -33,226 +21,153 @@ try {
     $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
     $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
     $stmt->execute();
-
     $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 } catch (PDOException $e) {
-    error_log($e->getMessage());
     $images = [];
 }
 ?>
 
 <style>
-/* ===== Design Tokens ===== */
-:root{
-  --primary: #099227ff;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --radius-xl:24px;
-  --ease:cubic-bezier(.22,1,.36,1);
-  --gallery-gap:clamp(1.25rem,2.5vw,2rem);
-  --gallery-max:1200px;
+:root {
+    --primary: #099227;
+    --dark: #0f172a;
+    --radius: 2rem;
 }
 
-/* ===== Hero ===== */
-.gallery-hero{
-  padding:clamp(7rem,12vw,9rem) 0 4rem;
-  text-align:center;
-  background:radial-gradient(700px 280px at 80% -10%,#dcfce7,transparent),#fff;
-}
-.gallery-hero h1{
-  font-size:clamp(2.75rem,5vw,3.75rem);
-  font-weight:900;
-  color:var(--text-main);
-  letter-spacing:-.04em;
+.gallery-hero {
+    padding: 10rem 0 5rem;
+    background: radial-gradient(circle at 10% 10%, #f0fdf4 0%, transparent 40%);
+    text-align: center;
 }
 
-/* ===== Layout ===== */
-.gallery-wrap{
-  max-width:var(--gallery-max);
-  margin-inline:auto;
-  padding-inline:var(--container-pad);
+.gallery-grid {
+    column-count: 1;
+    column-gap: 1.5rem;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
 }
 
-/* ===== Masonry ===== */
-.gallery-masonry{
-  columns:3;
-  column-gap:var(--gallery-gap);
-}
-@media(min-width:1400px){
-  .gallery-masonry{columns:3 360px;}
-}
-@media(max-width:1024px){
-  .gallery-masonry{columns:2;}
-}
-@media(max-width:640px){
-  .gallery-masonry{columns:1;}
+@media (min-width: 640px) { .gallery-grid { column-count: 2; } }
+@media (min-width: 1024px) { .gallery-grid { column-count: 3; } }
+
+.gallery-card {
+    break-inside: avoid;
+    margin-bottom: 1.5rem;
+    position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: #f8fafc;
+    transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
 }
 
-/* ===== Card ===== */
-.gallery-item{
-  break-inside:avoid;
-  margin-bottom:var(--gallery-gap);
-  position:relative;
-  overflow:hidden;
-  border-radius:var(--radius-xl);
-  background:#fff;
-  transition:transform .5s var(--ease), box-shadow .5s var(--ease);
-}
-.gallery-item img{
-  width:100%;
-  display:block;
-  transition:transform .8s var(--ease);
-}
-@media(hover:hover){
-  .gallery-item:hover{
-    transform:translateY(-6px);
-    box-shadow:0 28px 60px rgba(0,0,0,.14);
-  }
-  .gallery-item:hover img{transform:scale(1.06);}
+.gallery-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.7s ease;
 }
 
-/* ===== Overlay ===== */
-.item-overlay{
-  position:absolute;
-  inset:0;
-  background:linear-gradient(to top,rgba(15,23,42,.88),rgba(15,23,42,.15) 55%,transparent);
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
-  padding:clamp(1.25rem,3vw,1.75rem);
-  opacity:0;
-  transition:opacity .35s ease;
-}
-.gallery-item:hover .item-overlay{opacity:1;}
-
-/* ===== Download ===== */
-.download-btn{
-  margin-top:.75rem;
-  display:inline-flex;
-  align-items:center;
-  gap:.5rem;
-  padding:.6rem 1.2rem;
-  border-radius:999px;
-  background:rgba(255,255,255,.18);
-  backdrop-filter:blur(10px);
-  color:#fff;
-  text-decoration:none;
-  font-weight:700;
-  font-size:.75rem;
-  border:1px solid rgba(255,255,255,.3);
-  transition:all .25s ease;
-}
-.download-btn:hover{
-  background:#fff;
-  color:var(--text-main);
+.gallery-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
-/* ===== Pagination ===== */
-.pagination-deck{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:1.25rem;
-  margin:4rem 0 7rem;
+.gallery-card:hover img {
+    transform: scale(1.05);
 }
-.nav-btn{
-  display:inline-flex;
-  align-items:center;
-  gap:.6rem;
-  padding:.85rem 1.6rem;
-  border-radius:999px;
-  background:#fff;
-  border:1px solid #e2e8f0;
-  color:var(--text-main);
-  font-weight:700;
-  text-decoration:none;
-  transition:all .25s var(--ease);
-  box-shadow:0 4px 12px rgba(0,0,0,.06);
+
+.card-info {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 2rem 1.5rem 1.5rem;
+    background: linear-gradient(to top, rgba(15,23,42,0.9), transparent);
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
-.nav-btn:hover:not(.disabled){
-  background:var(--primary);
-  color:#fff;
-  border-color:var(--primary);
-  transform:translateY(-2px);
-  box-shadow:0 12px 26px rgba(16,185,129,.25);
+
+.gallery-card:hover .card-info {
+    opacity: 1;
 }
-.nav-btn.disabled{
-  opacity:.45;
-  pointer-events:none;
+
+.cat-tag {
+    font-size: 0.65rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--primary);
+    background: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 99px;
+    margin-bottom: 0.5rem;
+    display: inline-block;
 }
-.page-indicator{
-  font-weight:600;
-  font-size:.85rem;
-  color:var(--text-muted);
+
+.pagination-btn {
+    padding: 1rem 2rem;
+    border-radius: 1.5rem;
+    font-weight: 800;
+    transition: all 0.3s ease;
+    border: 2px solid #e2e8f0;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: scale(1.05);
 }
 </style>
 
-<section class="gallery-hero">
-  <div class="container">
-    <h1>The Archive</h1>
-    <p>Explore our visual history, one frame at a time.</p>
-  </div>
-</section>
+<header class="gallery-hero">
+    <div class="container mx-auto px-6">
+        <h1 class="text-6xl font-black text-slate-900 tracking-tighter mb-4">The Archive</h1>
+        <p class="text-slate-500 text-lg font-medium max-w-xl mx-auto italic">Capturing the evolution of ReSEED through the lens of time.</p>
+    </div>
+</header>
 
-<main class="gallery-wrap">
+<main class="pb-20">
+    <?php if (!$images): ?>
+        <div class="text-center py-20">
+            <p class="text-slate-400 font-bold">The vault is currently empty.</p>
+        </div>
+    <?php else: ?>
+        <div class="gallery-grid">
+            <?php foreach ($images as $img): 
+                $url = (strpos($img['filename'], 'http') === 0) ? $img['filename'] : UPLOADS_URL . '/gallery/' . $img['filename'];
+                $caption = $img['caption'] ?: 'ReSEED Archive';
+            ?>
+                <div class="gallery-card group">
+                    <img src="<?= htmlspecialchars($url) ?>" alt="<?= htmlspecialchars($caption) ?>" loading="lazy">
+                    <div class="card-info">
+                        <span class="cat-tag"><?= htmlspecialchars($img['category'] ?: 'General') ?></span>
+                        <h3 class="font-bold text-lg leading-tight"><?= htmlspecialchars($caption) ?></h3>
+                        <a href="<?= htmlspecialchars($url) ?>" download class="mt-4 inline-flex text-xs font-black uppercase tracking-widest hover:text-emerald-400 transition">
+                            Download Asset
+                        </a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
 
-<?php if (!$images): ?>
-
-  <div style="text-align:center; padding:100px 0;">
-    <p>No images found in this collection.</p>
-    <a href="gallery.php">Return to start</a>
-  </div>
-
-<?php else: ?>
-
-  <div class="gallery-masonry">
-    <?php foreach ($images as $img): 
-        $url = UPLOADS_URL . '/gallery/' . $img['filename'];
-        $cap = trim((string)($img['caption'] ?? '')) ?: 'ReSEED Visual Archive';
-    ?>
-      <figure class="gallery-item">
-        <img src="<?= htmlspecialchars($url) ?>" alt="<?= htmlspecialchars($cap) ?>" loading="lazy">
-        <figcaption class="item-overlay">
-          <div style="color:#fff; font-weight:700;">
-            <?= htmlspecialchars($cap) ?>
-          </div>
-          <a href="<?= htmlspecialchars($url) ?>" download class="download-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2.5">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Download
-          </a>
-        </figcaption>
-      </figure>
-    <?php endforeach; ?>
-  </div>
-
-  <div class="pagination-deck">
-    <a href="?page=<?= $page - 1 ?>" class="nav-btn <?= $page <= 1 ? 'disabled' : '' ?>">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2.5">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
-      Previous
-    </a>
-
-    <span class="page-indicator">Page <?= $page ?> of <?= $totalPages ?></span>
-
-    <a href="?page=<?= $page + 1 ?>" class="nav-btn <?= $page >= $totalPages ? 'disabled' : '' ?>">
-      Next
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2.5">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-    </a>
-  </div>
-
-<?php endif; ?>
-
+        <div class="flex flex-col items-center mt-16 gap-6">
+            <div class="flex gap-4">
+                <a href="?page=<?= $page - 1 ?>" 
+                   class="pagination-btn <?= $page <= 1 ? 'pointer-events-none opacity-30' : '' ?>">
+                   Prev
+                </a>
+                <a href="?page=<?= $page + 1 ?>" 
+                   class="pagination-btn <?= $page >= $totalPages ? 'pointer-events-none opacity-30' : '' ?>">
+                   Next
+                </a>
+            </div>
+            <p class="text-slate-400 text-xs font-black uppercase tracking-widest">
+                Page <?= $page ?> <span class="mx-2 text-slate-200">/</span> <?= $totalPages ?>
+            </p>
+        </div>
+    <?php endif; ?>
 </main>
 
-<?php include dirname(__DIR__) . '/backend/includes/footer.php'; ?>
+<?php include __DIR__ . '/backend/includes/footer.php'; ?>
