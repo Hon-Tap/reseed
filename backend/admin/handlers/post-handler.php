@@ -1,252 +1,143 @@
 <?php
 declare(strict_types=1);
 
-/*
-|--------------------------------------------------------------------------
-| BOOTSTRAP
-|--------------------------------------------------------------------------
-*/
+/**
+ * Admin - Post Handler (Cloudinary Optimized)
+ * Path: /backend/admin/post-handler.php
+ */
 
-// Resolve project root safely (Render / Docker / local)
-$ROOT = realpath(__DIR__ . '/../../../../');
-if ($ROOT === false) {
-    http_response_code(500);
-    exit('Critical error: Cannot resolve application root.');
-}
-
-// Error reporting (disable in prod if desired)
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-
-// Composer (Cloudinary SDK)
-if (!file_exists($ROOT . '/vendor/autoload.php')) {
-    http_response_code(500);
-    exit('Composer autoload missing. Run composer install.');
-}
-require_once $ROOT . '/vendor/autoload.php';
-
-// App config
-require_once $ROOT . '/backend/includes/config.php';
-
-// CSRF
-require_once $ROOT . '/backend/admin/includes/csrf.php';
-
-/*
-|--------------------------------------------------------------------------
-| CLOUDINARY CONFIG
-|--------------------------------------------------------------------------
-*/
+// 1. Setup Environment
+$baseDir = dirname(__DIR__, 2); // Goes up to project root
+require_once $baseDir . '/vendor/autoload.php';
+require_once $baseDir . '/backend/includes/config.php';
+require_once $baseDir . '/backend/admin/includes/csrf.php';
 
 use Cloudinary\Configuration\Configuration;
 use Cloudinary\Api\Upload\UploadApi;
 
+// 2. Initialize Cloudinary
 if (!getenv('CLOUDINARY_URL')) {
-    http_response_code(500);
-    exit('CLOUDINARY_URL is not set.');
+    header('Location: ../posts.php?error=cloudinary_missing');
+    exit;
 }
-
 Configuration::instance(getenv('CLOUDINARY_URL'));
 
-/*
-|--------------------------------------------------------------------------
-| HELPERS
-|--------------------------------------------------------------------------
-*/
-
-function slugify(string $value): string
+/**
+ * Generates a URL-friendly slug and ensures uniqueness
+ */
+function generateUniqueSlug(string $title, PDO $pdo, int $excludeId = 0): string 
 {
-    $value = strtolower(trim($value));
-    $value = preg_replace('/[^a-z0-9]+/', '-', $value);
-    return trim($value, '-');
+    $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title), '-'));
+    
+    // Check if slug exists
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM posts WHERE slug = ? AND id != ?");
+    $stmt->execute([$slug, $excludeId]);
+    
+    if ($stmt->fetchColumn() > 0) {
+        $slug .= '-' . bin2hex(random_bytes(2));
+    }
+    
+    return $slug;
 }
 
-function redirect(string $path): never
+/**
+ * Handles file upload to Cloudinary
+ */
+function uploadToCloudinary(array $file, string $type): ?string 
 {
-    header('Location: ' . $path);
+    if (empty($file['tmp_name'])) return null;
+
+    try {
+        $upload = new UploadApi();
+        $response = $upload->upload($file['tmp_name'], [
+            'folder'        => 'reseed/posts',
+            'resource_type' => ($type === 'video' ? 'video' : 'image'),
+            'quality'       => 'auto',
+            'fetch_format'  => 'auto'
+        ]);
+        return $response['secure_url'];
+    } catch (Exception $e) {
+        error_log("Cloudinary Upload Error: " . $e->getMessage());
+        return null;
+    }
+}
+
+// 3. Process Request
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ../posts.php');
     exit;
 }
 
-function uploadPostMedia(array $file, string $mediaType): ?string
-{
-    if (empty($file['tmp_name'])) {
-        return null;
-    }
+// CSRF check
+csrf_verify($_POST['csrf_token'] ?? '');
 
-    try {
-        $result = (new UploadApi())->upload(
-            $file['tmp_name'],
-            [
-                'folder'        => 'reseed/posts',
-                'resource_type' => ($mediaType === 'video' ? 'video' : 'image'),
-            ]
-        );
-
-        return $result['secure_url'] ?? null;
-    } catch (Throwable $e) {
-        http_response_code(500);
-        exit('Cloudinary upload failed: ' . $e->getMessage());
-    }
-}
-
-/*
-|--------------------------------------------------------------------------
-| INPUT NORMALIZATION
-|--------------------------------------------------------------------------
-*/
-
-$action = $_POST['add'] ?? $_POST['update'] ?? $_POST['delete'] ?? null;
-
+$id           = isset($_POST['id']) ? (int)$_POST['id'] : null;
 $title        = trim($_POST['title'] ?? '');
-$slug         = slugify($_POST['slug'] ?? $title);
-$author       = trim($_POST['author'] ?? '');
+$author       = trim($_POST['author'] ?? 'Team ReSEED');
 $excerpt      = trim($_POST['excerpt'] ?? '');
 $content      = trim($_POST['content'] ?? '');
-$published_at = !empty($_POST['published_at']) ? $_POST['published_at'] : null;
 $media_type   = $_POST['media_type'] ?? 'image';
 $featured     = isset($_POST['featured']) ? 1 : 0;
+$published_at = !empty($_POST['published_at']) ? $_POST['published_at'] : date('Y-m-d H:i:s');
 
-/*
-|--------------------------------------------------------------------------
-| ADD POST
-|--------------------------------------------------------------------------
-*/
+try {
+    $pdo->beginTransaction();
 
-if (isset($_POST['add'])) {
+    // --- DELETE ACTION ---
+    if (isset($_POST['delete']) && $id) {
+        $stmt = $pdo->prepare("DELETE FROM posts WHERE id = ?");
+        $stmt->execute([$id]);
+        $pdo->commit();
+        header('Location: ../posts.php?success=deleted');
+        exit;
+    }
 
-    csrf_verify($_POST['csrf_token'] ?? '');
+    // --- ADD OR UPDATE ACTION ---
+    // Handle Slug
+    $slug = !empty($_POST['slug']) ? trim($_POST['slug']) : $title;
+    $finalSlug = generateUniqueSlug($slug, $pdo, $id ?? 0);
 
-    $coverImage = uploadPostMedia($_FILES['media_file'] ?? [], $media_type);
+    // Handle Image
+    $uploadedUrl = uploadToCloudinary($_FILES['media_file'] ?? [], $media_type);
 
-    $stmt = $pdo->prepare("
-        INSERT INTO posts (
-            title,
-            slug,
-            author,
-            excerpt,
-            content,
-            cover_image,
-            media_type,
-            featured,
-            published_at,
-            created_at
-        ) VALUES (
-            :title,
-            :slug,
-            :author,
-            :excerpt,
-            :content,
-            :cover_image,
-            :media_type,
-            :featured,
-            :published_at,
-            NOW()
-        )
-    ");
-
-    $stmt->execute([
-        'title'        => $title,
-        'slug'         => $slug,
-        'author'       => $author,
-        'excerpt'      => $excerpt,
-        'content'      => $content,
-        'cover_image'  => $coverImage,
-        'media_type'   => $media_type,
-        'featured'     => $featured,
-        'published_at' => $published_at,
-    ]);
-
-    redirect('../posts.php?success=added');
-}
-
-/*
-|--------------------------------------------------------------------------
-| UPDATE POST
-|--------------------------------------------------------------------------
-*/
-
-if (isset($_POST['update'], $_POST['id'])) {
-
-    csrf_verify($_POST['csrf_token'] ?? '');
-
-    $id        = (int) $_POST['id'];
-    $newMedia  = uploadPostMedia($_FILES['media_file'] ?? [], $media_type);
-
-    if ($newMedia) {
-        $sql = "
-            UPDATE posts SET
-                title=:title,
-                slug=:slug,
-                author=:author,
-                excerpt=:excerpt,
-                content=:content,
-                cover_image=:cover_image,
-                media_type=:media_type,
-                featured=:featured,
-                published_at=:published_at
-            WHERE id=:id
-        ";
+    if (isset($_POST['add'])) {
+        $sql = "INSERT INTO posts (title, slug, author, excerpt, content, cover_image, media_type, featured, published_at, created_at) 
+                VALUES (:title, :slug, :author, :excerpt, :content, :cover_image, :media_type, :featured, :published_at, NOW())";
     } else {
-        $sql = "
-            UPDATE posts SET
-                title=:title,
-                slug=:slug,
-                author=:author,
-                excerpt=:excerpt,
-                content=:content,
-                media_type=:media_type,
-                featured=:featured,
-                published_at=:published_at
-            WHERE id=:id
-        ";
+        // Build Update Query (only update image if a new one was uploaded)
+        $imgSql = $uploadedUrl ? ", cover_image = :cover_image" : "";
+        $sql = "UPDATE posts SET 
+                title = :title, slug = :slug, author = :author, excerpt = :excerpt, 
+                content = :content, media_type = :media_type, featured = :featured, 
+                published_at = :published_at $imgSql 
+                WHERE id = :id";
     }
 
     $stmt = $pdo->prepare($sql);
-
     $params = [
         'title'        => $title,
-        'slug'         => $slug,
+        'slug'         => $finalSlug,
         'author'       => $author,
         'excerpt'      => $excerpt,
         'content'      => $content,
         'media_type'   => $media_type,
         'featured'     => $featured,
-        'published_at' => $published_at,
-        'id'           => $id,
+        'published_at' => $published_at
     ];
 
-    if ($newMedia) {
-        $params['cover_image'] = $newMedia;
-    }
+    if ($id) $params['id'] = $id;
+    if ($uploadedUrl || isset($_POST['add'])) $params['cover_image'] = $uploadedUrl;
 
     $stmt->execute($params);
+    $pdo->commit();
 
-    redirect('../posts.php?success=updated');
+    $msg = isset($_POST['add']) ? 'added' : 'updated';
+    header("Location: ../posts.php?success=$msg");
+    exit;
+
+} catch (Exception $e) {
+    if ($pdo->inTransaction()) $pdo->rollBack();
+    error_log("Post Handler Error: " . $e->getMessage());
+    header('Location: ../posts.php?error=database_error');
+    exit;
 }
-
-/*
-|--------------------------------------------------------------------------
-| DELETE POST
-|--------------------------------------------------------------------------
-*/
-
-if (isset($_POST['delete'], $_POST['id'])) {
-
-    csrf_verify($_POST['csrf_token'] ?? '');
-
-    $id = (int) $_POST['id'];
-
-    // Note: Cloudinary assets intentionally retained (no public_id stored yet)
-    $pdo->prepare('DELETE FROM posts WHERE id = :id')
-        ->execute(['id' => $id]);
-
-    redirect('../posts.php?success=deleted');
-}
-
-/*
-|--------------------------------------------------------------------------
-| FALLBACK
-|--------------------------------------------------------------------------
-*/
-
-redirect('../posts.php');

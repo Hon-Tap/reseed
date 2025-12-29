@@ -1,25 +1,26 @@
 <?php
 declare(strict_types=1);
 
-/*
-|--------------------------------------------------------------------------
-| Admin — Gallery Management (Cloudinary Optimized)
-|--------------------------------------------------------------------------
-*/
+/**
+ * Admin — Gallery Management (Cloudinary Optimized)
+ * Path: /backend/admin/gallery.php
+ */
 
 $backendPath = dirname(__DIR__, 1);
 
 require_once $backendPath . '/includes/config.php';
 require_once $backendPath . '/admin/includes/admin_auth.php';
 require_once $backendPath . '/admin/includes/admin_header.php';
+require_once $backendPath . '/admin/includes/csrf.php';
 
 $search = trim($_GET['search'] ?? '');
 
+// Robust search using ILIKE (Postgres) or LIKE (MySQL)
 $sql = "
     SELECT id, filename, caption, category, created_at
     FROM gallery
-    WHERE caption ILIKE :search
-       OR category ILIKE :search
+    WHERE caption LIKE :search
+       OR category LIKE :search
     ORDER BY created_at DESC
 ";
 
@@ -28,12 +29,15 @@ $stmt->execute(['search' => '%' . $search . '%']);
 $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 /**
- * Cloudinary-aware URL helper
+ * Cloudinary Transformation Helper
+ * Optimizes dashboard previews by requesting a small, auto-cropped square thumbnail
  */
-function getGalleryUrl(string $filename): string {
-    return (strpos($filename, 'http') === 0) 
-        ? $filename 
-        : UPLOADS_URL . '/gallery/' . $filename;
+function getGalleryThumbnail(string $filename): string {
+    if (strpos($filename, 'cloudinary.com') !== false) {
+        // Injects transformation parameters: w_200, h_200, c_fill, g_auto
+        return str_replace('/upload/', '/upload/w_200,h_200,c_fill,g_auto,q_auto,f_auto/', $filename);
+    }
+    return $filename;
 }
 ?>
 
@@ -49,72 +53,90 @@ function getGalleryUrl(string $filename): string {
             </div>
 
             <a href="gallery_add.php" 
-               class="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl transition shadow-lg shadow-emerald-200">
-                <i class="fa-solid fa-plus-circle mr-2"></i>
+               class="inline-flex items-center px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl transition shadow-xl shadow-emerald-200/50 transform active:scale-95">
+                <i class="fa-solid fa-cloud-arrow-up mr-2"></i>
                 Bulk Upload
             </a>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="md:col-span-2">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="md:col-span-3">
                 <form method="GET" class="relative">
                     <input type="text" name="search" value="<?= htmlspecialchars($search) ?>"
-                           placeholder="Search gallery..."
-                           class="w-full pl-12 pr-4 py-4 bg-white border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none transition">
-                    <div class="absolute left-4 top-4 text-slate-400">
-                        <i class="fa-solid fa-magnifying-glass"></i>
+                           placeholder="Search by caption or category..."
+                           class="w-full pl-14 pr-4 py-4 bg-white border-none rounded-2xl shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none transition font-medium">
+                    <div class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass text-lg"></i>
                     </div>
                 </form>
             </div>
             <div class="bg-white px-6 py-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
-                <span class="text-slate-500 font-bold uppercase text-[10px] tracking-widest">Total Assets</span>
-                <span class="text-2xl font-black text-emerald-600"><?= count($images) ?></span>
+                <div>
+                    <span class="text-slate-400 font-black uppercase text-[10px] tracking-[0.2em] block">Stored Assets</span>
+                    <span class="text-2xl font-black text-slate-900"><?= count($images) ?></span>
+                </div>
+                <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                    <i class="fa-solid fa-photo-film"></i>
+                </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden">
+        <div class="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-200 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-100 text-slate-400 text-[11px] uppercase font-black tracking-widest">
-                            <th class="px-8 py-5 text-center">Preview</th>
-                            <th class="px-8 py-5">Metadata</th>
-                            <th class="px-8 py-5">Category</th>
-                            <th class="px-8 py-5 text-right">Actions</th>
+                        <tr class="bg-slate-50/50 border-b border-slate-100 text-slate-400 text-[11px] uppercase font-black tracking-widest">
+                            <th class="px-8 py-6 text-center">Thumbnail</th>
+                            <th class="px-8 py-6">Metadata & Source</th>
+                            <th class="px-8 py-6">Classification</th>
+                            <th class="px-8 py-6 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         <?php if ($images): foreach ($images as $img): 
-                            $url = getGalleryUrl($img['filename']);
+                            $thumb = getGalleryThumbnail($img['filename']);
                         ?>
-                            <tr class="group hover:bg-slate-50/50 transition-colors">
+                            <tr class="group hover:bg-slate-50/80 transition-all duration-300">
                                 <td class="px-8 py-6 w-32">
-                                    <div class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white shadow-md bg-slate-100 rotate-1 group-hover:rotate-0 transition-transform">
-                                        <img src="<?= htmlspecialchars($url) ?>" class="w-full h-full object-cover">
+                                    <div class="relative w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-md bg-slate-100 -rotate-2 group-hover:rotate-0 transition-all duration-500">
+                                        <img src="<?= htmlspecialchars($thumb) ?>" 
+                                             alt="Preview"
+                                             class="w-full h-full object-cover">
+                                        <a href="<?= htmlspecialchars($img['filename']) ?>" target="_blank" 
+                                           class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                            <i class="fa-solid fa-expand text-xs"></i>
+                                        </a>
                                     </div>
                                 </td>
                                 <td class="px-8 py-6">
-                                    <div class="font-bold text-slate-800 text-lg"><?= htmlspecialchars($img['caption'] ?: 'Untitled Asset') ?></div>
-                                    <div class="text-[10px] text-slate-400 mt-1 font-mono break-all max-w-xs">
-                                        <?= basename($img['filename']) ?>
+                                    <div class="font-black text-slate-800 text-lg tracking-tight"><?= htmlspecialchars($img['caption'] ?: 'Untitled Asset') ?></div>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Added</span>
+                                        <span class="text-[10px] font-medium text-slate-500"><?= date('M d, Y', strtotime($img['created_at'])) ?></span>
                                     </div>
                                 </td>
                                 <td class="px-8 py-6">
-                                    <span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-black uppercase tracking-tighter">
+                                    <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest border border-slate-200 group-hover:bg-emerald-50 group-hover:text-emerald-700 group-hover:border-emerald-100 transition-colors">
+                                        <i class="fa-solid fa-tag text-[8px]"></i>
                                         <?= htmlspecialchars($img['category'] ?: 'General') ?>
                                     </span>
                                 </td>
                                 <td class="px-8 py-6 text-right">
-                                    <div class="flex justify-end gap-2">
-                                        <a href="gallery_edit.php?id=<?= $img['id'] ?>" 
-                                           class="w-10 h-10 flex items-center justify-center text-blue-500 hover:bg-blue-50 rounded-xl transition">
-                                            <i class="fa-solid fa-pen"></i>
+                                    <div class="flex justify-end gap-3">
+                                        <a href="<?= htmlspecialchars($img['filename']) ?>" target="_blank"
+                                           class="w-11 h-11 flex items-center justify-center bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white rounded-2xl transition-all duration-300 shadow-sm">
+                                            <i class="fa-solid fa-arrow-up-right-from-square text-sm"></i>
                                         </a>
-                                        <form action="handlers/gallery-handler.php" method="POST" onsubmit="return confirm('Delete permanently?');">
+                                        <a href="gallery_edit.php?id=<?= $img['id'] ?>" 
+                                           class="w-11 h-11 flex items-center justify-center bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white rounded-2xl transition-all duration-300 shadow-sm">
+                                            <i class="fa-solid fa-pen-to-square text-sm"></i>
+                                        </a>
+                                        <form action="handlers/gallery-handler.php" method="POST" onsubmit="return confirm('Archive this asset? This cannot be undone.');">
+                                            <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                             <input type="hidden" name="id" value="<?= $img['id'] ?>">
                                             <input type="hidden" name="delete" value="1">
-                                            <button class="w-10 h-10 flex items-center justify-center text-rose-500 hover:bg-rose-50 rounded-xl transition">
-                                                <i class="fa-solid fa-trash-can"></i>
+                                            <button class="w-11 h-11 flex items-center justify-center bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-2xl transition-all duration-300 shadow-sm">
+                                                <i class="fa-solid fa-trash-can text-sm"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -122,7 +144,17 @@ function getGalleryUrl(string $filename): string {
                             </tr>
                         <?php endforeach; else: ?>
                             <tr>
-                                <td colspan="4" class="p-20 text-center text-slate-400 font-bold italic">No media found.</td>
+                                <td colspan="4" class="p-32 text-center">
+                                    <div class="flex flex-col items-center justify-center space-y-4">
+                                        <div class="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-200">
+                                            <i class="fa-solid fa-box-open text-4xl"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-400 font-black uppercase text-xs tracking-[0.2em]">No Media Found</p>
+                                            <p class="text-slate-300 text-sm mt-1 font-medium italic">Try adjusting your search filters.</p>
+                                        </div>
+                                    </div>
+                                </td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -131,5 +163,26 @@ function getGalleryUrl(string $filename): string {
         </div>
     </div>
 </div>
+
+<script>
+    // Logic for handling success/error toasts from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('success')) {
+        const action = urlParams.get('success');
+        const count = urlParams.get('count') || '';
+        let message = 'Action successful.';
+        
+        if (action === 'uploaded') message = `Successfully archived ${count} new assets.`;
+        if (action === 'updated') message = 'Metadata updated successfully.';
+        if (action === 'deleted') message = 'Asset removed from vault.';
+
+        // Simple professional alert (You could replace this with a nice Toast library)
+        const toast = document.createElement('div');
+        toast.className = "fixed bottom-10 right-10 bg-slate-900 text-white px-8 py-4 rounded-3xl shadow-2xl font-bold z-50 animate-bounce";
+        toast.innerHTML = `<div class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-emerald-400"></i> ${message}</div>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+</script>
 
 <?php require_once $backendPath . '/admin/includes/admin_footer.php'; ?>

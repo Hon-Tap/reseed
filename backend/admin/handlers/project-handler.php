@@ -1,244 +1,147 @@
 <?php
 declare(strict_types=1);
 
-/*
-|--------------------------------------------------------------------------
-| BOOTSTRAP
-|--------------------------------------------------------------------------
-*/
+/**
+ * Admin - Project/Initiative Handler
+ * Path: /backend/admin/handlers/project-handler.php
+ */
 
-// Always resolve from THIS file location (works on Render, Docker, local)
-$ROOT = realpath(__DIR__ . '/../../../../');
-if ($ROOT === false) {
-    http_response_code(500);
-    exit('Critical error: Unable to resolve project root.');
-}
-
-// Error reporting (disable in production if needed)
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-
-// Composer (Cloudinary)
-if (!file_exists($ROOT . '/vendor/autoload.php')) {
-    http_response_code(500);
-    exit('Composer autoload not found. Run composer install.');
-}
-require_once $ROOT . '/vendor/autoload.php';
-
-// App config
-require_once $ROOT . '/backend/includes/config.php';
-
-// CSRF (optional but safe)
-$csrfPath = $ROOT . '/backend/admin/includes/csrf.php';
-if (file_exists($csrfPath)) {
-    require_once $csrfPath;
-}
-
-/*
-|--------------------------------------------------------------------------
-| CLOUDINARY CONFIG
-|--------------------------------------------------------------------------
-*/
+$baseDir = dirname(__DIR__, 3); // Adjust to reach project root
+require_once $baseDir . '/vendor/autoload.php';
+require_once $baseDir . '/backend/includes/config.php';
+require_once $baseDir . '/backend/admin/includes/csrf.php';
 
 use Cloudinary\Configuration\Configuration;
 use Cloudinary\Api\Upload\UploadApi;
 
+// 1. Initialize Cloudinary
 if (!getenv('CLOUDINARY_URL')) {
-    http_response_code(500);
-    exit('CLOUDINARY_URL is not set in environment.');
+    header('Location: ../projects.php?error=cloudinary_config_missing');
+    exit;
 }
-
 Configuration::instance(getenv('CLOUDINARY_URL'));
 
-/*
-|--------------------------------------------------------------------------
-| HELPERS
-|--------------------------------------------------------------------------
-*/
-
-function slugify(string $value): string
+/**
+ * Slug generator with collision detection
+ */
+function createUniqueProjectSlug(string $title, PDO $pdo, int $id = 0): string 
 {
-    $value = strtolower(trim($value));
-    $value = preg_replace('/[^a-z0-9]+/', '-', $value);
-    return trim($value, '-');
+    $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title), '-'));
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM projects WHERE slug = ? AND id != ?");
+    $stmt->execute([$slug, $id]);
+    
+    return ($stmt->fetchColumn() > 0) ? $slug . '-' . bin2hex(random_bytes(2)) : $slug;
 }
 
-function redirect(string $path): never
+/**
+ * Cloudinary Upload Helper
+ */
+function uploadProjectMedia(array $file, string $type): ?string 
 {
-    header('Location: ' . $path);
+    if (empty($file['tmp_name'])) return null;
+    try {
+        $api = new UploadApi();
+        $response = $api->upload($file['tmp_name'], [
+            'folder'        => 'reseed/projects',
+            'resource_type' => ($type === 'video' ? 'video' : 'image')
+        ]);
+        return $response['secure_url'];
+    } catch (Exception $e) {
+        error_log("Project Upload Error: " . $e->getMessage());
+        return null;
+    }
+}
+
+// 2. Security & Request Validation
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: ../projects.php');
     exit;
 }
 
-/*
-|--------------------------------------------------------------------------
-| INPUT NORMALIZATION
-|--------------------------------------------------------------------------
-*/
+csrf_verify($_POST['csrf_token'] ?? '');
 
-$action = $_POST['add'] ?? $_POST['update'] ?? $_POST['delete'] ?? null;
-
+// 3. Input Sanitization
+$id          = isset($_POST['id']) ? (int)$_POST['id'] : null;
 $title       = trim($_POST['title'] ?? '');
-$slug        = slugify($_POST['slug'] ?? $title);
+$location    = trim($_POST['location'] ?? '');
 $summary     = trim($_POST['summary'] ?? '');
 $description = trim($_POST['description'] ?? '');
-$location    = trim($_POST['location'] ?? '');
-$start_date  = $_POST['start_date'] ?: null;
-$end_date    = $_POST['end_date'] ?: null;
-$status      = $_POST['status'] ?? 'planned';
-$media_type  = $_POST['media_type'] ?? 'image';
-$media_url   = trim($_POST['media_url'] ?? '') ?: null;
+$status      = $_POST['status'] ?? 'Planned';
+$start_date  = !empty($_POST['start_date']) ? $_POST['start_date'] : null;
+$end_date    = !empty($_POST['end_date']) ? $_POST['end_date'] : null;
 $featured    = isset($_POST['featured']) ? 1 : 0;
+$media_type  = $_POST['media_type'] ?? 'image';
 
-/*
-|--------------------------------------------------------------------------
-| FILE UPLOAD (CLOUDINARY ONLY)
-|--------------------------------------------------------------------------
-*/
+// 4. Handle Media Logic
+$finalMediaUrl = null;
 
-function uploadProjectImage(array $file): ?string
-{
-    if (empty($file['tmp_name'])) {
-        return null;
-    }
-
-    try {
-        $result = (new UploadApi())->upload(
-            $file['tmp_name'],
-            [
-                'folder'        => 'reseed/projects',
-                'resource_type' => 'auto'
-            ]
-        );
-
-        return $result['secure_url'] ?? null;
-    } catch (Throwable $e) {
-        http_response_code(500);
-        exit('Cloudinary upload failed: ' . $e->getMessage());
-    }
+if ($media_type === 'url') {
+    // Case: External Video URL
+    $finalMediaUrl = filter_var($_POST['media_url'], FILTER_SANITIZE_URL);
+} else {
+    // Case: Cloudinary Upload
+    $finalMediaUrl = uploadProjectMedia($_FILES['media_file'] ?? [], $media_type);
 }
 
-/*
-|--------------------------------------------------------------------------
-| ADD PROJECT
-|--------------------------------------------------------------------------
-*/
+// 5. Database Operation
+try {
+    $pdo->beginTransaction();
 
-if (isset($_POST['add'])) {
+    // Generate Slug
+    $slugSource = !empty($_POST['slug']) ? $_POST['slug'] : $title;
+    $finalSlug  = createUniqueProjectSlug($slugSource, $pdo, $id ?? 0);
 
-    $coverImage = uploadProjectImage($_FILES['media_file'] ?? []);
-
-    $stmt = $pdo->prepare("
-        INSERT INTO projects (
-            title, slug, summary, description, location,
-            start_date, end_date, cover_image,
-            media_type, media_url, status,
-            featured, created_at
-        ) VALUES (
-            :title, :slug, :summary, :description, :location,
-            :start_date, :end_date, :cover_image,
-            :media_type, :media_url, :status,
-            :featured, NOW()
-        )
-    ");
-
-    $stmt->execute([
-        'title'       => $title,
-        'slug'        => $slug,
-        'summary'     => $summary,
-        'description' => $description,
-        'location'    => $location,
-        'start_date'  => $start_date,
-        'end_date'    => $end_date,
-        'cover_image' => $coverImage,
-        'media_type'  => $media_type,
-        'media_url'   => $media_url,
-        'status'      => $status,
-        'featured'    => $featured,
-    ]);
-
-    redirect('../projects.php?success=added');
-}
-
-/*
-|--------------------------------------------------------------------------
-| UPDATE PROJECT
-|--------------------------------------------------------------------------
-*/
-
-if (isset($_POST['update'], $_POST['id'])) {
-
-    $id = (int) $_POST['id'];
-    $newImage = uploadProjectImage($_FILES['media_file'] ?? []);
-
-    if ($newImage) {
-        $sql = "
-            UPDATE projects SET
-                title=:title, slug=:slug, summary=:summary,
-                description=:description, location=:location,
-                start_date=:start_date, end_date=:end_date,
-                cover_image=:cover_image,
-                media_type=:media_type, media_url=:media_url,
-                status=:status, featured=:featured
-            WHERE id=:id
-        ";
+    if (isset($_POST['add'])) {
+        $sql = "INSERT INTO projects (
+                    title, slug, location, summary, description, 
+                    status, start_date, end_date, featured, 
+                    cover_media, media_type, created_at
+                ) VALUES (
+                    :title, :slug, :location, :summary, :description, 
+                    :status, :start_date, :end_date, :featured, 
+                    :cover_media, :media_type, NOW()
+                )";
     } else {
-        $sql = "
-            UPDATE projects SET
-                title=:title, slug=:slug, summary=:summary,
-                description=:description, location=:location,
-                start_date=:start_date, end_date=:end_date,
-                media_type=:media_type, media_url=:media_url,
-                status=:status, featured=:featured
-            WHERE id=:id
-        ";
+        // Update logic: Only change media if a new file was uploaded or new URL provided
+        $mediaSql = ($finalMediaUrl) ? ", cover_media = :cover_media, media_type = :media_type" : "";
+        $sql = "UPDATE projects SET 
+                title = :title, slug = :slug, location = :location, 
+                summary = :summary, description = :description, 
+                status = :status, start_date = :start_date, 
+                end_date = :end_date, featured = :featured 
+                $mediaSql 
+                WHERE id = :id";
     }
 
     $stmt = $pdo->prepare($sql);
-
     $params = [
         'title'       => $title,
-        'slug'        => $slug,
+        'slug'        => $finalSlug,
+        'location'    => $location,
         'summary'     => $summary,
         'description' => $description,
-        'location'    => $location,
+        'status'      => $status,
         'start_date'  => $start_date,
         'end_date'    => $end_date,
-        'media_type'  => $media_type,
-        'media_url'   => $media_url,
-        'status'      => $status,
-        'featured'    => $featured,
-        'id'          => $id,
+        'featured'    => $featured
     ];
 
-    if ($newImage) {
-        $params['cover_image'] = $newImage;
+    if ($id) $params['id'] = $id;
+    if ($finalMediaUrl || isset($_POST['add'])) {
+        $params['cover_media'] = $finalMediaUrl;
+        $params['media_type']  = $media_type;
     }
 
     $stmt->execute($params);
+    $pdo->commit();
 
-    redirect('../projects.php?success=updated');
+    $redirectStatus = isset($_POST['add']) ? 'created' : 'updated';
+    header("Location: ../projects.php?success=$redirectStatus");
+    exit;
+
+} catch (Exception $e) {
+    if ($pdo->inTransaction()) $pdo->rollBack();
+    error_log("Project Handler Error: " . $e->getMessage());
+    header('Location: ../projects.php?error=db_failure');
+    exit;
 }
-
-/*
-|--------------------------------------------------------------------------
-| DELETE PROJECT
-|--------------------------------------------------------------------------
-*/
-
-if (isset($_POST['delete'], $_POST['id'])) {
-
-    $id = (int) $_POST['id'];
-    $stmt = $pdo->prepare('DELETE FROM projects WHERE id = :id');
-    $stmt->execute(['id' => $id]);
-
-    redirect('../projects.php?success=deleted');
-}
-
-/*
-|--------------------------------------------------------------------------
-| FALLBACK
-|--------------------------------------------------------------------------
-*/
-
-redirect('../projects.php');

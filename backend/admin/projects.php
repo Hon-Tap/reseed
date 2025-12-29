@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN · PROJECTS LIST
+| ADMIN · PROJECTS LIST (FIXED PATHS)
 |--------------------------------------------------------------------------
 */
 
@@ -94,7 +94,7 @@ function isRemoteImage(?string $url): bool
             </p>
         </div>
 
-        <a href="project_add.php"
+        <a href="projects_add.php"
            class="inline-flex items-center px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl transition shadow-xl shadow-emerald-200 active:scale-95">
             <i class="fa-solid fa-plus mr-2"></i> New Initiative
         </a>
@@ -134,7 +134,6 @@ function isRemoteImage(?string $url): bool
 
                 <tr class="group hover:bg-slate-50/80 transition">
 
-                    <!-- Project -->
                     <td class="px-8 py-6">
                         <div class="flex items-center gap-5">
 
@@ -169,7 +168,6 @@ function isRemoteImage(?string $url): bool
                         </div>
                     </td>
 
-                    <!-- Timeline -->
                     <td class="px-8 py-6">
                         <div class="text-xs font-bold space-y-1">
                             <div class="text-slate-400 uppercase tracking-tighter">Launched</div>
@@ -177,25 +175,23 @@ function isRemoteImage(?string $url): bool
                         </div>
                     </td>
 
-                    <!-- Status -->
                     <td class="px-8 py-6">
                         <span class="px-4 py-1.5 text-[10px] font-black uppercase rounded-lg tracking-widest <?= statusBadge($p['status'] ?? '') ?>">
                             <?= htmlspecialchars($p['status'] ?? 'Unknown') ?>
                         </span>
                     </td>
 
-                    <!-- Actions -->
                     <td class="px-8 py-6 text-right">
                         <div class="flex justify-end gap-3">
 
-                            <a href="project_edit.php?id=<?= (int) $p['id'] ?>"
+                            <a href="projects_edit.php?id=<?= (int) $p['id'] ?>"
                                class="p-3 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition"
                                title="Edit Project">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </a>
 
                             <form
-                                action="handlers/project-handler.php"
+                                action="project-handler.php"
                                 method="POST"
                                 onsubmit="return confirm('Delete this project permanently?');"
                             >
