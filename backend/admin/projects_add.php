@@ -23,7 +23,7 @@ $today = date('Y-m-d');
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">New Initiative</h1>
             </div>
         </div>
-
+    
         <form action="handlers/project-handler.php" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-3 gap-10">
             <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
