@@ -1,41 +1,26 @@
 <?php
+
 declare(strict_types=1);
 
-// 1. Correct the path to reach backend/includes/config.php
-$rootPath = dirname(__DIR__, 2); 
+use Cloudinary\Api\Upload\UploadApi;
+
+/*
+|--------------------------------------------------------------------------
+| BOOTSTRAP
+|--------------------------------------------------------------------------
+*/
+
+$rootPath = dirname(__DIR__, 2);
 
 require_once $rootPath . '/includes/config.php';
 require_once $rootPath . '/admin/includes/csrf.php';
+require_once $rootPath . '/vendor/autoload.php';
 
-// 2. SAFETY CHECK: If UPLOAD_ROOT isn't in config.php, define it here
-if (!defined('UPLOAD_ROOT')) {
-    define('UPLOAD_ROOT', $rootPath . '/uploads');
-}
-
-$uploadDir = UPLOAD_ROOT . '/projects/';
-
-// 3. Ensure the folder exists on the Render server
-if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0755, true);
-}
-
-/* ===================== UPLOAD CONFIG ===================== */
-
-$uploadDir = UPLOAD_ROOT . '/projects/';
-
-$imageMime = [
-    'image/jpeg' => 'jpg',
-    'image/png'  => 'png',
-    'image/webp' => 'webp',
-];
-
-$videoMime = [
-    'video/mp4'  => 'mp4',
-    'video/webm' => 'webm',
-    'video/ogg'  => 'ogg',
-];
-
-/* ===================== HELPERS ===================== */
+/*
+|--------------------------------------------------------------------------
+| HELPERS
+|--------------------------------------------------------------------------
+*/
 
 function slugify(string $value): string
 {
@@ -45,12 +30,11 @@ function slugify(string $value): string
     );
 }
 
-function generate_filename(string $ext): string
-{
-    return bin2hex(random_bytes(16)) . '.' . $ext;
-}
-
-/* ===================== ADD PROJECT ===================== */
+/*
+|--------------------------------------------------------------------------
+| ADD PROJECT
+|--------------------------------------------------------------------------
+*/
 
 if (isset($_POST['add'])) {
 
@@ -69,24 +53,15 @@ if (isset($_POST['add'])) {
     $coverImage = null;
 
     if (!empty($_FILES['media_file']['tmp_name'])) {
-
-        $mime = mime_content_type($_FILES['media_file']['tmp_name']);
-        $map  = $media_type === 'image' ? $imageMime : $videoMime;
-
-        if (!isset($map[$mime])) {
-            header('Location: ../projects.php?error=type');
-            exit;
-        }
-
-        $coverImage = generate_filename($map[$mime]);
-
-        if (!move_uploaded_file(
+        $upload = (new UploadApi())->upload(
             $_FILES['media_file']['tmp_name'],
-            $uploadDir . $coverImage
-        )) {
-            header('Location: ../projects.php?error=upload');
-            exit;
-        }
+            [
+                'folder'        => 'reseed/projects',
+                'resource_type' => 'auto'
+            ]
+        );
+
+        $coverImage = $upload['secure_url'];
     }
 
     $stmt = $pdo->prepare("
@@ -119,7 +94,11 @@ if (isset($_POST['add'])) {
     exit;
 }
 
-/* ===================== UPDATE PROJECT ===================== */
+/*
+|--------------------------------------------------------------------------
+| UPDATE PROJECT
+|--------------------------------------------------------------------------
+*/
 
 if (isset($_POST['update'], $_POST['id'])) {
 
@@ -139,32 +118,15 @@ if (isset($_POST['update'], $_POST['id'])) {
     $newImage = null;
 
     if (!empty($_FILES['media_file']['tmp_name'])) {
-
-        $mime = mime_content_type($_FILES['media_file']['tmp_name']);
-        $map  = $media_type === 'image' ? $imageMime : $videoMime;
-
-        if (!isset($map[$mime])) {
-            header('Location: ../projects.php?error=type');
-            exit;
-        }
-
-        $newImage = generate_filename($map[$mime]);
-
-        if (!move_uploaded_file(
+        $upload = (new UploadApi())->upload(
             $_FILES['media_file']['tmp_name'],
-            $uploadDir . $newImage
-        )) {
-            header('Location: ../projects.php?error=upload');
-            exit;
-        }
+            [
+                'folder'        => 'reseed/projects',
+                'resource_type' => 'auto'
+            ]
+        );
 
-        $stmt = $pdo->prepare('SELECT cover_image FROM projects WHERE id = ?');
-        $stmt->execute([$id]);
-        $old = $stmt->fetchColumn();
-
-        if ($old && file_exists($uploadDir . $old)) {
-            unlink($uploadDir . $old);
-        }
+        $newImage = $upload['secure_url'];
     }
 
     if ($newImage) {
@@ -220,19 +182,15 @@ if (isset($_POST['update'], $_POST['id'])) {
     exit;
 }
 
-/* ===================== DELETE PROJECT ===================== */
+/*
+|--------------------------------------------------------------------------
+| DELETE PROJECT
+|--------------------------------------------------------------------------
+*/
 
 if (isset($_POST['delete'], $_POST['id'])) {
 
     $id = (int) $_POST['id'];
-
-    $stmt = $pdo->prepare('SELECT cover_image FROM projects WHERE id = ?');
-    $stmt->execute([$id]);
-    $file = $stmt->fetchColumn();
-
-    if ($file && file_exists($uploadDir . $file)) {
-        unlink($uploadDir . $file);
-    }
 
     $stmt = $pdo->prepare('DELETE FROM projects WHERE id = ?');
     $stmt->execute([$id]);
@@ -241,7 +199,11 @@ if (isset($_POST['delete'], $_POST['id'])) {
     exit;
 }
 
-/* ===================== FALLBACK ===================== */
+/*
+|--------------------------------------------------------------------------
+| FALLBACK
+|--------------------------------------------------------------------------
+*/
 
 header('Location: ../projects.php');
 exit;

@@ -74,18 +74,23 @@ $uploadUrl = '../uploads/projects/'; // Adjust path as needed relative to this f
                         <tr class="hover:bg-slate-50/50 transition-colors">
                             <td class="px-8 py-6">
                                 <div class="flex items-center gap-4">
-                                    <?php if($hasImage): ?>
+                                   <?php
+                                    $hasImage = !empty($p['cover_image']) && filter_var($p['cover_image'], FILTER_VALIDATE_URL);
+                                    ?>
+
+                                    <?php if ($hasImage): ?>
                                         <img 
-                                            src="<?= UPLOADS_URL ?>/projects/<?= htmlspecialchars($p['cover_image']) ?>" 
+                                            src="<?= htmlspecialchars($p['cover_image']) ?>" 
                                             class="w-16 h-16 object-cover rounded-xl shadow-sm border border-slate-100"
                                             loading="lazy"
+                                            alt=""
                                         >
-
                                     <?php else: ?>
                                         <div class="w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400 border border-slate-200">
                                             <i class="fa-solid fa-briefcase text-2xl"></i>
                                         </div>
                                     <?php endif; ?>
+
                                     
                                     <div>
                                         <div class="font-bold text-slate-800 text-lg hover:text-emerald-600 transition-colors cursor-pointer">
