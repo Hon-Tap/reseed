@@ -10,9 +10,15 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     unzip \
     git \
+    curl \
     && docker-php-ext-install pdo pdo_mysql pdo_pgsql \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# --------------------------------------------------
+# Install Composer
+# --------------------------------------------------
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # --------------------------------------------------
 # Enable Apache rewrite
@@ -36,6 +42,12 @@ WORKDIR /var/www/html
 # Copy application files
 # --------------------------------------------------
 COPY . /var/www/html
+
+# --------------------------------------------------
+# Run Composer Install
+# --------------------------------------------------
+# This creates the /var/www/html/vendor folder required by your code
+RUN composer install --no-interaction --optimize-autoloader
 
 # --------------------------------------------------
 # Uploads: backend owns them, frontend links to them

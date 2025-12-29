@@ -14,7 +14,7 @@ $rootPath = dirname(__DIR__, 2);
 
 require_once $rootPath . '/includes/config.php';
 require_once $rootPath . '/admin/includes/csrf.php';
-require_once dirname($rootPath) . '/vendor/autoload.php';
+require_once $rootPath . '/vendor/autoload.php';
 
 /*
 |--------------------------------------------------------------------------
