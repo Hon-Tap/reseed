@@ -413,61 +413,135 @@ a { text-decoration: none; }
 .journey-card:hover p { color: rgba(255,255,255,0.9); }
 
 /* ================= 5. FIELD STORIES ================= */
+.field-stories-section {
+    background-color: #f9fafb;
+}
+
+.section-title {
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    font-size: 2.5rem;
+    color: var(--text-dark);
+}
+
+.section-subtitle {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+/* View All Link */
+.view-all-link {
+    color: var(--primary-color);
+    font-weight: 700;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+    border-bottom: 2px solid transparent;
+    padding-bottom: 4px;
+}
+
+.view-all-link:hover {
+    color: #047857;
+    border-bottom-color: var(--primary-color);
+}
+
+/* News Card */
 .news-card {
-    background: white;
-    border-radius: var(--radius-lg);
+    background: var(--card-bg);
+    border-radius: var(--radius-custom);
     overflow: hidden;
-    border: none;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-    transition: all 0.4s var(--ease-smooth);
+    height: 100%;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: var(--transition-smooth);
 }
 
 .news-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 25px 50px rgba(0,0,0,0.1);
+    transform: translateY(-12px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
 }
 
+/* Media Container */
 .news-media-container {
-    height: 280px;
-    width: 100%;
-    overflow: hidden;
     position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
 }
 
-.news-media-container img, 
-.news-media-container video {
+.media-element {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.8s var(--ease-smooth);
+    transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.news-card:hover .news-media-container img,
-.news-card:hover .news-media-container video {
-    transform: scale(1.1);
+.news-card:hover .media-element {
+    transform: scale(1.08);
 }
 
-.news-body { padding: 35px; flex-grow: 1; display: flex; flex-direction: column; }
-
-.news-body small {
-    color: var(--primary);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 0.75rem;
+/* Body Styling */
+.news-body {
+    padding: 2rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-.news-body h4 {
-    font-size: 1.35rem;
+.news-date {
+    color: var(--primary-color);
     font-weight: 800;
-    margin: 10px 0 15px;
-    line-height: 1.3;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+    display: block;
 }
 
-.news-body .btn { margin-top: auto; align-self: flex-start; }
+.news-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1.3;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+    transition: color 0.3s ease;
+}
+
+.news-card:hover .news-title {
+    color: var(--primary-color);
+}
+
+.news-excerpt {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+/* Read More Button */
+.read-more-btn {
+    margin-top: auto;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: gap 0.3s ease;
+}
+
+.read-more-btn i {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+.read-more-btn:hover {
+    color: var(--primary-color);
+}
+
+.read-more-btn:hover i {
+    transform: translateX(4px);
+}
 
 /* ================= 6. PARTNERSHIP (Parallax Effect) ================= */
 .partnership-section {
@@ -694,92 +768,67 @@ $latestPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 
-<section class="section bg-surface py-20">
+<section class="field-stories-section py-20">
     <div class="container">
-
         <div class="d-flex justify-content-between align-items-end mb-5">
             <div>
-                <h2 class="section-title mb-2" style="font-weight:900; letter-spacing:-0.03em;">
-                    Field Stories
-                </h2>
-                <p class="text-muted">Updates from the ground.</p>
+                <h2 class="section-title">Field Stories</h2>
+                <p class="section-subtitle">Updates from the ground.</p>
             </div>
 
-            <a href="/blog.php"
-               class="btn btn-link text-emerald-600 fw-bold text-decoration-none p-0">
+            <a href="/blog.php" class="view-all-link">
                 See All News <i class="fa-solid fa-arrow-right ms-2"></i>
             </a>
         </div>
 
         <div class="row g-4">
-
             <?php if (!empty($latestPosts)): ?>
                 <?php foreach ($latestPosts as $post): ?>
-
                     <?php
-                        // Same logic as blog.php
-                        $mediaUrl = $post['cover_media']
-                            ?: 'https://via.placeholder.com/800x500?text=Field+Journal';
-
+                        $mediaUrl = $post['cover_media'] ?: 'https://via.placeholder.com/800x500?text=Field+Journal';
                         $url = '/post.php?slug=' . urlencode($post['slug']);
                     ?>
 
                     <div class="col-md-4">
-                        <article class="news-card h-100 border-0 shadow-sm"
-                                 style="border-radius:24px; overflow:hidden;">
-
-                            <div class="news-media-container"
-                                 style="aspect-ratio:16/10; overflow:hidden; position:relative;">
-
+                        <article class="news-card">
+                            <div class="news-media-container">
                                 <?php if (($post['media_type'] ?? 'image') === 'video'): ?>
-                                    <video muted autoplay loop playsinline
-                                           style="width:100%; height:100%; object-fit:cover;">
+                                    <video muted autoplay loop playsinline class="media-element">
                                         <source src="<?= htmlspecialchars($mediaUrl) ?>" type="video/mp4">
                                     </video>
                                 <?php else: ?>
-                                    <img src="<?= htmlspecialchars($mediaUrl) ?>"
-                                         alt="<?= htmlspecialchars($post['title']) ?>"
-                                         loading="lazy"
-                                         style="width:100%; height:100%; object-fit:cover;">
+                                    <img src="<?= htmlspecialchars($mediaUrl) ?>" 
+                                         alt="<?= htmlspecialchars($post['title']) ?>" 
+                                         class="media-element" loading="lazy">
                                 <?php endif; ?>
-
                             </div>
 
-                            <div class="news-body p-4 bg-white">
-                                <small class="text-emerald-600 fw-bold text-uppercase"
-                                       style="font-size:.7rem; letter-spacing:.05em;">
+                            <div class="news-body">
+                                <small class="news-date">
                                     <?= date('M j, Y', strtotime($post['published_at'])) ?>
                                 </small>
 
-                                <h4 class="font-heading my-2"
-                                    style="font-weight:800; font-size:1.25rem; line-height:1.3;">
+                                <h4 class="news-title">
                                     <?= htmlspecialchars($post['title']) ?>
                                 </h4>
 
-                                <p class="text-muted small mb-4">
+                                <p class="news-excerpt">
                                     <?= htmlspecialchars(mb_strimwidth($post['excerpt'], 0, 90, '…')) ?>
                                 </p>
 
-                                <a href="<?= $url ?>"
-                                   class="text-decoration-none fw-bold text-dark small">
-                                    Read Story
-                                    <i class="fa-solid fa-chevron-right ms-1"
-                                       style="font-size:.7rem;"></i>
+                                <a href="<?= $url ?>" class="read-more-btn">
+                                    Read Story <i class="fa-solid fa-chevron-right ms-1"></i>
                                 </a>
                             </div>
-
                         </article>
                     </div>
 
                 <?php endforeach; ?>
             <?php else: ?>
-
                 <div class="text-center py-5 w-100">
                     <p class="text-muted mb-0">No field stories published yet.</p>
                 </div>
-
             <?php endif; ?>
-
         </div>
     </div>
 </section>
