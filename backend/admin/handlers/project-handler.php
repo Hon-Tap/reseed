@@ -9,7 +9,8 @@ declare(strict_types=1);
 
 // Direct path resolution - adjust these to match your exact folder structure
 $baseDir = dirname(__DIR__, 2); // Goes up from /admin/handlers/ to project root
-require_once $baseDir . '/vendor/autoload.php';
+// Navigates up from 'handlers' -> 'admin' -> 'backend' -> to project root
+require_once dirname(__DIR__, 3) . '/vendor/autoload.php';
 require_once $baseDir . '/backend/includes/config.php';
 require_once $baseDir . '/backend/admin/includes/csrf.php';
 
