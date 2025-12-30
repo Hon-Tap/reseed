@@ -120,11 +120,17 @@ $currentTime = date('Y-m-d\TH:i');
                     </span>
                 </label>
 
-                <button type="submit" name="add" id="submitBtn"
-                        class="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-5 rounded-[2rem] shadow-xl transition active:scale-95 flex items-center justify-center gap-2">
+                <button
+                    type="submit"
+                    name="add"
+                    value="1"
+                    id="submitBtn"
+                    class="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-5 rounded-[2rem] shadow-xl transition active:scale-95 flex items-center justify-center gap-2"
+                >
                     <span id="btnText">Publish Story</span>
                     <i id="btnIcon" class="fa-solid fa-paper-plane"></i>
                 </button>
+
             </div>
 
             <!-- Cover Image -->

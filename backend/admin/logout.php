@@ -6,8 +6,9 @@ declare(strict_types=1);
 $backendPath = dirname(__DIR__); 
 
 // 2. Load dependencies
-require_once $backendPath . '/admin/includes/config.php'; // Corrected path
-require_once $backendPath . '/admin/includes/csrf.php';   // Corrected path
+require_once $backendPath . '/includes/config.php'; // Corrected path
+require_once __DIR__ . '/includes/csrf.php';
+
 
 // ... rest of your code ...
 

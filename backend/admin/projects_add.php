@@ -134,11 +134,17 @@ $today = date('Y-m-d');
                         </span>
                     </label>
 
-                    <button type="submit" name="add" id="submitBtn"
-                            class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-[2rem] shadow-xl shadow-emerald-200 flex items-center justify-center gap-2">
+                    <button
+                        type="submit"
+                        name="add"
+                        value="1"
+                        id="submitBtn"
+                        class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-[2rem] shadow-xl shadow-emerald-200 flex items-center justify-center gap-2"
+                    >
                         <span id="btnText">Launch Project</span>
                         <i id="btnIcon" class="fa-solid fa-rocket"></i>
                     </button>
+
                 </div>
 
                 <!-- Media -->

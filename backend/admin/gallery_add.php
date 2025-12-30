@@ -151,13 +151,17 @@ require_once $backendPath . '/admin/includes/csrf.php';
                         </div>
                     </div>
 
-                    <button type="submit"
-                            name="bulk_add"
-                            id="submitBtn"
-                            class="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-5 rounded-[2rem] shadow-lg transition active:scale-95 flex items-center justify-center gap-3">
+                    <button
+                        type="submit"
+                        name="bulk_add"
+                        value="1"
+                        id="submitBtn"
+                        class="w-full bg-slate-900 hover:bg-emerald-600 text-white font-black py-5 rounded-[2rem] shadow-lg transition active:scale-95 flex items-center justify-center gap-3"
+                    >
                         <span id="btnText">Initiate Upload</span>
                         <i id="btnIcon" class="fa-solid fa-cloud-arrow-up"></i>
                     </button>
+
 
                 </div>
             </div>
