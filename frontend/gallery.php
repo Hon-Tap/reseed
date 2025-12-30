@@ -7,8 +7,7 @@ declare(strict_types=1);
 | GALLERY PAGE
 |--------------------------------------------------------------------------
 */
-
-require_once __DIR__ . '/backend/includes/config.php';
+require_once dirname(__DIR__) . '/backend/includes/config.php';
 require_once __DIR__ . '/backend/includes/header.php';
 
 /*

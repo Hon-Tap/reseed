@@ -118,32 +118,45 @@ try {
     $slug = uniquePostSlug($slugSource, $pdo, $id ?? 0);
     $newMedia = uploadCoverImage($_FILES['media_file'] ?? []);
 
-    if (isset($_POST['add'])) {
-        // INSERT - Using 'cover_media' as per your DB screenshot
-        $stmt = $pdo->prepare("
-            INSERT INTO posts (
-                title, slug, author, excerpt, content,
-                cover_media, media_type,
-                featured, published_at, created_at
-            ) VALUES (
-                :title, :slug, :author, :excerpt, :content,
-                :cover_media, 'image',
-                :featured, :published_at, NOW()
-            )
-        ");
+if (!$id) {
+    $stmt = $pdo->prepare("
+        INSERT INTO posts (
+            title,
+            slug,
+            author,
+            excerpt,
+            content,
+            cover_media,
+            media_type,
+            featured,
+            published_at,
+            created_at
+        ) VALUES (
+            :title,
+            :slug,
+            :author,
+            :excerpt,
+            :content,
+            :cover_media,
+            'image',
+            :featured,
+            :published_at,
+            NOW()
+        )
+    ");
 
-        $stmt->execute([
-            'title'        => $title,
-            'slug'         => $slug,
-            'author'       => $author,
-            'excerpt'      => $excerpt,
-            'content'      => $content,
-            'cover_media'  => $newMedia,
-            'featured'     => $featured,
-            'published_at' => $published_at,
-        ]);
-
-    } else {
+    $stmt->execute([
+        'title'        => $title,
+        'slug'         => $slug,
+        'author'       => $author,
+        'excerpt'      => $excerpt,
+        'content'      => $content,
+        'cover_media'  => $newMedia,
+        'featured'     => $featured,
+        'published_at' => $published_at,
+    ]);
+}
+ else {
         // UPDATE - Using 'cover_media' as per your DB screenshot
         $sql = "
             UPDATE posts SET

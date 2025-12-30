@@ -109,34 +109,52 @@ try {
     $slugSource = !empty($_POST['slug']) ? $_POST['slug'] : $title;
     $slug = generateProjectSlug($slugSource, $pdo, $id ?? 0);
 
-    if (isset($_POST['add'])) {
-        // CREATE - Note: using cover_media to match your DB image
-        $stmt = $pdo->prepare("
-            INSERT INTO projects (
-                title, slug, summary, description, location, 
-                start_date, end_date, status, featured, 
-                media_type, cover_media, created_at
-            ) VALUES (
-                :title, :slug, :summary, :description, :location, 
-                :start_date, :end_date, :status, :featured, 
-                :media_type, :cover_media, NOW()
-            )
-        ");
+    if (!$id) {
+    $stmt = $pdo->prepare("
+        INSERT INTO projects (
+            title,
+            slug,
+            summary,
+            description,
+            location,
+            start_date,
+            end_date,
+            status,
+            featured,
+            media_type,
+            cover_media,
+            created_at
+        ) VALUES (
+            :title,
+            :slug,
+            :summary,
+            :description,
+            :location,
+            :start_date,
+            :end_date,
+            :status,
+            :featured,
+            :media_type,
+            :cover_media,
+            NOW()
+        )
+    ");
 
-        $stmt->execute([
-            'title'       => $title,
-            'slug'        => $slug,
-            'summary'     => $summary,
-            'description' => $description,
-            'location'    => $location,
-            'start_date'  => $startDate,
-            'end_date'    => $endDate,
-            'status'      => $status,
-            'featured'    => $featured,
-            'media_type'  => $mediaType,
-            'cover_media' => $uploadedMedia
-        ]);
-    } else {
+    $stmt->execute([
+        'title'       => $title,
+        'slug'        => $slug,
+        'summary'     => $summary,
+        'description' => $description,
+        'location'    => $location,
+        'start_date'  => $startDate,
+        'end_date'    => $endDate,
+        'status'      => $status,
+        'featured'    => $featured,
+        'media_type'  => $mediaType,
+        'cover_media' => $uploadedMedia,
+    ]);
+}
+ else {
         // UPDATE
         $mediaSql = $uploadedMedia ? ', media_type = :media_type, cover_media = :cover_media' : '';
         
