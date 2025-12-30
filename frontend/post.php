@@ -1,9 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
-| FRONTEND — SINGLE STORY (CLOUDINARY ENABLED)
+| FRONTEND — SINGLE STORY (CLOUDINARY NATIVE)
 |--------------------------------------------------------------------------
 */
 
@@ -15,15 +16,16 @@ require_once __DIR__ . '/includes/header.php';
 | HELPERS
 |--------------------------------------------------------------------------
 */
+
 function reading_time(string $html): int
 {
     $words = str_word_count(strip_tags($html));
     return max(1, (int) ceil($words / 200));
 }
 
-function getBlogPostUrl($path) {
-    if (empty($path)) return null;
-    return (strpos($path, 'http') === 0) ? $path : '/uploads/posts/' . $path;
+function getPostMediaUrl(?string $url): ?string
+{
+    return $url ?: null;
 }
 
 /*
@@ -31,6 +33,7 @@ function getBlogPostUrl($path) {
 | FETCH POST BY SLUG
 |--------------------------------------------------------------------------
 */
+
 $slug = trim($_GET['slug'] ?? '');
 
 $stmt = $pdo->prepare("
@@ -38,7 +41,7 @@ $stmt = $pdo->prepare("
         title,
         slug,
         content,
-        cover_image,
+        cover_media,
         media_type,
         author,
         published_at
@@ -47,6 +50,7 @@ $stmt = $pdo->prepare("
       AND published_at IS NOT NULL
     LIMIT 1
 ");
+
 $stmt->execute(['slug' => $slug]);
 $post = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -55,17 +59,23 @@ $post = $stmt->fetch(PDO::FETCH_ASSOC);
 | NOT FOUND
 |--------------------------------------------------------------------------
 */
+
 if (!$post): ?>
-    <main class="container mx-auto" style="min-height:70vh;padding:12rem 1.5rem;text-align:center;">
-        <div class="mb-6 text-slate-200">
-            <i class="fa-solid fa-ghost text-6xl"></i>
-        </div>
-        <h1 style="font-size:3rem;font-weight:900;letter-spacing:-0.04em;margin-bottom:1rem;color:#0f172a;">Story not found</h1>
-        <p style="color:#64748b;margin-bottom:3rem;font-size:1.2rem;">The article you’re looking for has moved or been archived.</p>
-        <a href="blog.php" style="background:#10b981;color:white;padding:12px 30px;border-radius:99px;font-weight:700;text-decoration:none;display:inline-block;">
-            Return to Journal
-        </a>
-    </main>
+<main class="container mx-auto" style="min-height:70vh;padding:12rem 1.5rem;text-align:center;">
+    <div class="mb-6 text-slate-200">
+        <i class="fa-solid fa-ghost text-6xl"></i>
+    </div>
+    <h1 style="font-size:3rem;font-weight:900;margin-bottom:1rem;color:#0f172a;">
+        Story not found
+    </h1>
+    <p style="color:#64748b;margin-bottom:3rem;font-size:1.2rem;">
+        The article you’re looking for has moved or been archived.
+    </p>
+    <a href="/blog.php"
+       style="background:#10b981;color:white;padding:12px 30px;border-radius:99px;font-weight:700;text-decoration:none;">
+        Return to Journal
+    </a>
+</main>
 <?php
 require_once __DIR__ . '/includes/footer.php';
 exit;
@@ -76,7 +86,8 @@ endif;
 | DERIVED DATA
 |--------------------------------------------------------------------------
 */
-$mediaUrl = getBlogPostUrl($post['cover_image']);
+
+$mediaUrl = getPostMediaUrl($post['cover_media']);
 $isVideo  = ($post['media_type'] ?? 'image') === 'video';
 $readTime = reading_time($post['content']);
 ?>
@@ -96,7 +107,7 @@ $readTime = reading_time($post['content']);
     --radius-xl: 32px;
 }
 
-/* Reading Progress Bar */
+/* Reading Progress */
 #reading-progress {
     position: fixed;
     top: 0;
@@ -105,7 +116,6 @@ $readTime = reading_time($post['content']);
     width: 0%;
     background: linear-gradient(to right, var(--primary), #34d399);
     z-index: 10000;
-    transition: width .1s ease-out;
 }
 
 .article-wrap {
@@ -128,7 +138,6 @@ $readTime = reading_time($post['content']);
     text-transform: uppercase;
     color: var(--primary-dark);
     margin-bottom: 1.5rem;
-    display: inline-block;
 }
 
 .article-title {
@@ -143,19 +152,10 @@ $readTime = reading_time($post['content']);
 .article-meta {
     display: flex;
     justify-content: center;
-    align-items: center;
     gap: 1rem;
     font-size: 1rem;
     color: var(--muted);
     font-weight: 500;
-}
-
-.author-badge {
-    color: var(--ink);
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
 }
 
 /* Media */
@@ -180,7 +180,7 @@ $readTime = reading_time($post['content']);
     object-fit: cover;
 }
 
-/* Body Content */
+/* Body */
 .article-body {
     max-width: 740px;
     margin: 0 auto;
@@ -188,30 +188,9 @@ $readTime = reading_time($post['content']);
     font-size: 1.25rem;
     line-height: 1.9;
     color: var(--ink-light);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* Styled HTML content from Admin */
-.article-body p { margin-bottom: 2rem; }
-.article-body h2 { 
-    font-size: 2.2rem; 
-    font-weight: 800; 
-    color: var(--ink); 
-    margin: 4rem 0 1.5rem; 
-    letter-spacing: -0.03em;
-}
-.article-body blockquote {
-    border-left: 5px solid var(--primary);
-    padding: 1rem 0 1rem 2rem;
-    margin: 3rem 0;
-    font-style: italic;
-    font-size: 1.5rem;
-    color: var(--ink);
-    background: #f0fdf4;
-    border-radius: 0 16px 16px 0;
-}
-
-/* Footer & Back */
+/* Footer */
 .article-footer {
     max-width: 740px;
     margin: 6rem auto 0;
@@ -220,27 +199,9 @@ $readTime = reading_time($post['content']);
 }
 
 .back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.8rem;
     font-weight: 800;
     color: var(--muted);
     text-decoration: none;
-    transition: all 0.3s;
-    font-size: 0.95rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.back-btn:hover {
-    color: var(--primary-dark);
-    transform: translateX(-5px);
-}
-
-@media (max-width: 768px) {
-    .article-header { padding-top: 5rem; }
-    .article-title { font-size: 2.5rem; }
-    .article-body { font-size: 1.15rem; }
 }
 </style>
 
@@ -248,83 +209,50 @@ $readTime = reading_time($post['content']);
 
 <main class="article-wrap">
 
-    <header class="article-header">
-        <span class="article-kicker">Field Journal</span>
+<header class="article-header">
+    <span class="article-kicker">Field Journal</span>
+    <h1 class="article-title"><?= htmlspecialchars($post['title']) ?></h1>
 
-        <h1 class="article-title">
-            <?= htmlspecialchars($post['title']) ?>
-        </h1>
+    <div class="article-meta">
+        <span><?= htmlspecialchars($post['author'] ?: 'Team ReSEED') ?></span>
+        <span>•</span>
+        <span><?= date('F j, Y', strtotime($post['published_at'])) ?></span>
+        <span>•</span>
+        <span><?= $readTime ?> min read</span>
+    </div>
+</header>
 
-        <div class="article-meta">
-            <span class="author-badge">
-                <i class="fa-solid fa-circle-user text-emerald-500"></i>
-                <?= htmlspecialchars($post['author'] ?: 'Team ReSEED') ?>
-            </span>
-            <span class="text-slate-300">•</span>
-            <span><?= date('F j, Y', strtotime($post['published_at'])) ?></span>
-            <span class="text-slate-300">•</span>
-            <span class="flex items-center gap-1">
-                <i class="fa-regular fa-clock"></i> <?= $readTime ?> min read
-            </span>
-        </div>
-    </header>
+<?php if ($mediaUrl): ?>
+<section class="article-media">
+    <div class="media-frame">
+        <?php if ($isVideo): ?>
+            <video controls playsinline>
+                <source src="<?= htmlspecialchars($mediaUrl) ?>" type="video/mp4">
+            </video>
+        <?php else: ?>
+            <img src="<?= htmlspecialchars($mediaUrl) ?>" alt="<?= htmlspecialchars($post['title']) ?>">
+        <?php endif; ?>
+    </div>
+</section>
+<?php endif; ?>
 
-    <?php if ($mediaUrl): ?>
-        <section class="article-media">
-            <div class="media-frame">
-                <?php if ($isVideo): ?>
-                    <video controls playsinline poster="">
-                        <source src="<?= htmlspecialchars($mediaUrl) ?>" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                <?php else: ?>
-                    <img
-                        src="<?= htmlspecialchars($mediaUrl) ?>"
-                        alt="<?= htmlspecialchars($post['title']) ?>"
-                    >
-                <?php endif; ?>
-            </div>
-        </section>
-    <?php endif; ?>
+<article class="article-body">
+    <?= $post['content'] ?>
+</article>
 
-    <article class="article-body">
-        <?= $post['content'] ?>
-    </article>
-
-    <footer class="article-footer">
-        <div class="flex justify-between items-center">
-            <a href="blog.php" class="back-btn">
-                <i class="fa-solid fa-arrow-left-long"></i>
-                Back to Journal
-            </a>
-            
-            <div class="flex gap-4 items-center">
-                <span class="text-xs font-bold uppercase text-slate-400">Share</span>
-                <a href="https://twitter.com/share?url=<?= urlencode((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]") ?>" target="_blank" class="text-slate-400 hover:text-sky-400 transition-colors">
-                    <i class="fa-brands fa-twitter text-xl"></i>
-                </a>
-                <a href="https://www.facebook.com/sharer/sharer.php?u=<?= urlencode((isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]") ?>" target="_blank" class="text-slate-400 hover:text-blue-600 transition-colors">
-                    <i class="fa-brands fa-facebook text-xl"></i>
-                </a>
-            </div>
-        </div>
-    </footer>
+<footer class="article-footer">
+    <a href="/blog.php" class="back-btn">
+        ← Back to Journal
+    </a>
+</footer>
 
 </main>
 
 <script>
-// Dynamic Reading Progress
 window.addEventListener('scroll', () => {
-    const doc = document.documentElement;
-    const scrollPercent = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
-    document.getElementById('reading-progress').style.width = scrollPercent + '%';
-});
-
-// Smooth fade in for body images (if any inside content)
-document.querySelectorAll('.article-body img').forEach(img => {
-    img.style.borderRadius = '16px';
-    img.style.margin = '2rem 0';
-    img.style.boxShadow = '0 10px 30px rgba(0,0,0,0.05)';
+    const d = document.documentElement;
+    const p = (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100;
+    document.getElementById('reading-progress').style.width = p + '%';
 });
 </script>
 

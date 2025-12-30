@@ -1,9 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
-| PROJECT DETAIL PAGE (CLOUDINARY-FIRST)
+| PROJECT DETAIL PAGE
 |--------------------------------------------------------------------------
 */
 
@@ -28,11 +29,29 @@ if ($slug === '') {
 */
 
 try {
-    $stmt = $pdo->prepare('SELECT * FROM projects WHERE slug = :slug LIMIT 1');
+    $stmt = $pdo->prepare("
+        SELECT
+            id,
+            title,
+            slug,
+            summary,
+            description,
+            location,
+            start_date,
+            end_date,
+            media_type,
+            cover_media,
+            status,
+            featured,
+            created_at
+        FROM projects
+        WHERE slug = :slug
+        LIMIT 1
+    ");
     $stmt->execute(['slug' => $slug]);
     $project = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {
-    error_log('Project detail error: ' . $e->getMessage());
+    error_log('Project detail fetch error: ' . $e->getMessage());
     $project = false;
 }
 
@@ -49,7 +68,12 @@ if (!$project) {
 
 try {
     $stmt = $pdo->prepare("
-        SELECT title, slug, cover_image, location, status
+        SELECT
+            title,
+            slug,
+            cover_media,
+            location,
+            status
         FROM projects
         WHERE id != :id
         ORDER BY created_at DESC
@@ -63,80 +87,35 @@ try {
 
 /*
 |--------------------------------------------------------------------------
-| HELPERS
+| NORMALIZE DATA
 |--------------------------------------------------------------------------
 */
 
-function resolveMediaUrl(?string $url): string
-{
-    if (!$url) {
-        return 'https://via.placeholder.com/1200x800?text=No+Media';
-    }
-
-    // Cloudinary / remote URLs are stored as-is
-    if (str_starts_with($url, 'http')) {
-        return $url;
-    }
-
-    return 'https://via.placeholder.com/1200x800?text=Invalid+Media';
-}
-
-function embedUrl(string $url): string
-{
-    $url = htmlspecialchars_decode($url);
-
-    // YouTube
-    if (preg_match(
-        '%(?:youtube\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i',
-        $url,
-        $m
-    )) {
-        $id = $m[1];
-        return "https://www.youtube.com/embed/{$id}?autoplay=1&mute=1&loop=1&controls=0&playlist={$id}";
-    }
-
-    // Vimeo
-    if (strpos($url, 'vimeo.com') !== false) {
-        $path = parse_url($url, PHP_URL_PATH);
-        $id   = trim($path, '/');
-        if (ctype_digit($id)) {
-            return "https://player.vimeo.com/video/{$id}?background=1&autoplay=1&loop=1";
-        }
-    }
-
-    return htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
-}
-
-/*
-|--------------------------------------------------------------------------
-| NORMALIZED DATA
-|--------------------------------------------------------------------------
-*/
-
-$title       = htmlspecialchars($project['title'] ?? 'Untitled');
-$status      = strtolower(preg_replace('/[^a-z]/', '', $project['status'] ?? 'planned'));
+$title       = htmlspecialchars($project['title']);
+$status      = strtolower(preg_replace('/[^a-z0-9]/', '', $project['status'] ?? 'ongoing'));
 $location    = htmlspecialchars($project['location'] ?? 'Global');
 $summary     = htmlspecialchars($project['summary'] ?? '');
 $description = nl2br(htmlspecialchars($project['description'] ?? ''));
-$startDate   = !empty($project['start_date']) ? date('M Y', strtotime($project['start_date'])) : '';
-$endDate     = !empty($project['end_date']) ? date('M Y', strtotime($project['end_date'])) : 'Ongoing';
 
-$coverMedia  = resolveMediaUrl($project['cover_image'] ?? null);
-$mediaType   = $project['media_type'] ?? 'image';
-$embedMedia  = $project['media_url'] ?? '';
+$startDate = $project['start_date']
+    ? date('M Y', strtotime($project['start_date']))
+    : '';
+
+$endDate = $project['end_date']
+    ? date('M Y', strtotime($project['end_date']))
+    : 'Ongoing';
+
+$mediaType  = $project['media_type'] ?? 'image';
+$coverMedia = $project['cover_media'];
 
 require_once __DIR__ . '/includes/header.php';
 ?>
-
-<style>
-/* Your existing styles are intentionally preserved */
-</style>
 
 <div class="container">
 
 <header class="project-hero">
     <a href="projects.php"
-       class="inline-flex items-center text-emerald-600 font-bold no-underline hover:text-emerald-700">
+       class="inline-flex items-center text-emerald-600 font-bold hover:text-emerald-700">
         <i class="fa-solid fa-arrow-left mr-2"></i> Back to Projects
     </a>
 
@@ -159,10 +138,6 @@ require_once __DIR__ . '/includes/header.php';
 
     <img src="<?= htmlspecialchars($coverMedia) ?>" alt="<?= $title ?>">
 
-<?php elseif ($embedMedia): ?>
-
-    <iframe src="<?= embedUrl($embedMedia) ?>" allowfullscreen></iframe>
-
 <?php else: ?>
 
     <div class="flex flex-col items-center justify-center h-full text-slate-300">
@@ -177,7 +152,10 @@ require_once __DIR__ . '/includes/header.php';
 <div class="content-grid">
 
 <div class="main-column">
-    <div class="lead-summary"><?= $summary ?></div>
+    <?php if ($summary): ?>
+        <div class="lead-summary"><?= $summary ?></div>
+    <?php endif; ?>
+
     <div class="rich-text"><?= $description ?></div>
 </div>
 
@@ -201,7 +179,7 @@ require_once __DIR__ . '/includes/header.php';
         </div>
 
         <div class="pt-6 border-t border-slate-100">
-            <span class="info-label">Share this impact</span>
+            <span class="info-label">Share this project</span>
             <div class="flex gap-4 text-2xl mt-2">
                 <a href="#" class="text-blue-600"><i class="fa-brands fa-facebook"></i></a>
                 <a href="#" class="text-sky-400"><i class="fa-brands fa-twitter"></i></a>
@@ -215,28 +193,48 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 </div>
 
-<?php if ($relatedProjects): ?>
+<?php if (!empty($relatedProjects)): ?>
 
 <section class="bg-slate-50 py-20 border-t border-slate-200">
     <div class="container mx-auto px-6">
+
         <h2 class="text-3xl font-black text-slate-900 mb-10">Related Projects</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
             <?php foreach ($relatedProjects as $rp): ?>
+
                 <a href="project.php?slug=<?= urlencode($rp['slug']) ?>" class="group no-underline">
+
                     <div class="aspect-video rounded-2xl overflow-hidden shadow-sm mb-4 bg-white">
-                        <img
-                            src="<?= htmlspecialchars(resolveMediaUrl($rp['cover_image'] ?? null)) ?>"
-                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        >
+
+                        <?php if (!empty($rp['cover_media'])): ?>
+                            <img
+                                src="<?= htmlspecialchars($rp['cover_media']) ?>"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            >
+                        <?php else: ?>
+                            <div class="flex items-center justify-center h-full text-slate-300">
+                                <i class="fa-regular fa-image text-4xl"></i>
+                            </div>
+                        <?php endif; ?>
+
                     </div>
-                    <h4 class="text-lg font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
+
+                    <h4 class="text-lg font-bold text-slate-900 group-hover:text-emerald-600">
                         <?= htmlspecialchars($rp['title']) ?>
                     </h4>
-                    <p class="text-sm text-slate-500"><?= htmlspecialchars($rp['location'] ?? '') ?></p>
+
+                    <p class="text-sm text-slate-500">
+                        <?= htmlspecialchars($rp['location'] ?? '') ?>
+                    </p>
+
                 </a>
+
             <?php endforeach; ?>
+
         </div>
+
     </div>
 </section>
 

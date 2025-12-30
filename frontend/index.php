@@ -676,17 +676,12 @@ a { text-decoration: none; }
 </section>
 
 <?php
-/*
-|--------------------------------------------------------------------------
-| FETCH LATEST 3 PUBLISHED POSTS (HOME ONLY)
-|--------------------------------------------------------------------------
-*/
 $stmt = $pdo->prepare("
     SELECT
         title,
         slug,
         excerpt,
-        cover_image,
+        cover_media,
         media_type,
         published_at
     FROM posts
@@ -697,6 +692,7 @@ $stmt = $pdo->prepare("
 $stmt->execute();
 $latestPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
 
 <section class="section bg-surface py-20">
     <div class="container">
