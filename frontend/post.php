@@ -1,15 +1,9 @@
 <?php
-
 declare(strict_types=1);
 
-/*
-|--------------------------------------------------------------------------
-| FRONTEND — SINGLE STORY (CLOUDINARY NATIVE)
-|--------------------------------------------------------------------------
-*/
+require_once dirname(__DIR__) . '/backend/includes/config.php';
+require_once dirname(__DIR__) . '/backend/includes/header.php';
 
-require_once __DIR__ . '/../backend/includes/config.php';
-require_once __DIR__ . '/includes/header.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -256,4 +250,5 @@ window.addEventListener('scroll', () => {
 });
 </script>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/backend/includes/footer.php'; ?>
+

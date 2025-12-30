@@ -699,46 +699,60 @@ $latestPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <div class="d-flex justify-content-between align-items-end mb-5">
             <div>
-                <h2 class="section-title mb-2" style="font-weight:900; letter-spacing:-0.03em;">Field Stories</h2>
+                <h2 class="section-title mb-2" style="font-weight:900; letter-spacing:-0.03em;">
+                    Field Stories
+                </h2>
                 <p class="text-muted">Updates from the ground.</p>
             </div>
 
-            <a href="/blog.php" class="btn btn-link text-emerald-600 fw-bold text-decoration-none p-0">
+            <a href="/blog.php"
+               class="btn btn-link text-emerald-600 fw-bold text-decoration-none p-0">
                 See All News <i class="fa-solid fa-arrow-right ms-2"></i>
             </a>
         </div>
 
         <div class="row g-4">
-            <?php if ($latestPosts): ?>
+
+            <?php if (!empty($latestPosts)): ?>
                 <?php foreach ($latestPosts as $post): ?>
-                    <?php 
-                        // Cloudinary-aware path logic
-                        $mediaUrl = (strpos($post['cover_image'], 'http') === 0) 
-                                    ? $post['cover_image'] 
-                                    : '/uploads/posts/' . $post['cover_image'];
+
+                    <?php
+                        // Same logic as blog.php
+                        $mediaUrl = $post['cover_media']
+                            ?: 'https://via.placeholder.com/800x500?text=Field+Journal';
+
+                        $url = '/post.php?slug=' . urlencode($post['slug']);
                     ?>
 
                     <div class="col-md-4">
-                        <article class="news-card h-100 border-0 shadow-sm" style="border-radius: 24px; overflow: hidden; transition: transform 0.3s ease;">
-                            <div class="news-media-container" style="aspect-ratio: 16/10; overflow: hidden; position: relative;">
-                                <?php if ($post['media_type'] === 'video' && $mediaUrl): ?>
-                                    <video muted autoplay loop playsinline style="width:100%; height:100%; object-fit:cover;">
+                        <article class="news-card h-100 border-0 shadow-sm"
+                                 style="border-radius:24px; overflow:hidden;">
+
+                            <div class="news-media-container"
+                                 style="aspect-ratio:16/10; overflow:hidden; position:relative;">
+
+                                <?php if (($post['media_type'] ?? 'image') === 'video'): ?>
+                                    <video muted autoplay loop playsinline
+                                           style="width:100%; height:100%; object-fit:cover;">
                                         <source src="<?= htmlspecialchars($mediaUrl) ?>" type="video/mp4">
                                     </video>
-                                <?php elseif ($mediaUrl): ?>
-                                    <img src="<?= htmlspecialchars($mediaUrl) ?>" 
-                                         alt="<?= htmlspecialchars($post['title']) ?>" 
-                                         style="width:100%; height:100%; object-fit:cover;"
-                                         loading="lazy">
+                                <?php else: ?>
+                                    <img src="<?= htmlspecialchars($mediaUrl) ?>"
+                                         alt="<?= htmlspecialchars($post['title']) ?>"
+                                         loading="lazy"
+                                         style="width:100%; height:100%; object-fit:cover;">
                                 <?php endif; ?>
+
                             </div>
 
                             <div class="news-body p-4 bg-white">
-                                <small class="text-emerald-600 fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.05em;">
-                                    <?= date('M d, Y', strtotime($post['published_at'])) ?>
+                                <small class="text-emerald-600 fw-bold text-uppercase"
+                                       style="font-size:.7rem; letter-spacing:.05em;">
+                                    <?= date('M j, Y', strtotime($post['published_at'])) ?>
                                 </small>
 
-                                <h4 class="font-heading my-2" style="font-weight: 800; font-size: 1.25rem; line-height: 1.3;">
+                                <h4 class="font-heading my-2"
+                                    style="font-weight:800; font-size:1.25rem; line-height:1.3;">
                                     <?= htmlspecialchars($post['title']) ?>
                                 </h4>
 
@@ -746,24 +760,30 @@ $latestPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <?= htmlspecialchars(mb_strimwidth($post['excerpt'], 0, 90, '…')) ?>
                                 </p>
 
-                                <a href="/post.php?slug=<?= urlencode($post['slug']) ?>" 
+                                <a href="<?= $url ?>"
                                    class="text-decoration-none fw-bold text-dark small">
-                                    Read Story <i class="fa-solid fa-chevron-right ms-1" style="font-size: 0.7rem;"></i>
+                                    Read Story
+                                    <i class="fa-solid fa-chevron-right ms-1"
+                                       style="font-size:.7rem;"></i>
                                 </a>
                             </div>
+
                         </article>
                     </div>
 
                 <?php endforeach; ?>
             <?php else: ?>
-                <div class="text-center py-5 w-100">
-                    <p class="text-muted mb-3">No field stories published yet.</p>
-                </div>
-            <?php endif; ?>
-        </div>
 
+                <div class="text-center py-5 w-100">
+                    <p class="text-muted mb-0">No field stories published yet.</p>
+                </div>
+
+            <?php endif; ?>
+
+        </div>
     </div>
 </section>
+
 
 <section id="get-involved" class="partnership-section">
     <img src="/assets/images/Re-logo.jpeg" class="partnership-bg" alt="Landscape">
