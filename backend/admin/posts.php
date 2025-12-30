@@ -31,29 +31,24 @@ $search = trim($_GET['search'] ?? '');
 
 $sql = "
     SELECT
-        id,
-        title,
-        slug,
-        author,
-        cover_media,
-        media_type,
-        published_at,
-        created_at,
-        featured
+        id, title, slug, author, cover_media, media_type,
+        published_at, created_at, featured
     FROM posts
-    WHERE (:search = '' OR title ILIKE :q)
-    ORDER BY COALESCE(published_at, created_at) DESC
 ";
 
-$stmt = $pdo->prepare($sql);
-$stmt->execute([
-    'search' => $search,
-    'q'      => '%' . $search . '%',
-]);
+$params = [];
 
-$posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-// DEBUG LINE:
-if (empty($posts)) { echo ""; }
+if ($search !== '') {
+    $sql .= " WHERE title ILIKE :q";
+    $params['q'] = '%' . $search . '%';
+}
+
+$sql .= " ORDER BY COALESCE(published_at, created_at) DESC";
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$posts = $stmt->fetchAll();
+
 
 /*
 |--------------------------------------------------------------------------

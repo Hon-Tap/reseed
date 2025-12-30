@@ -43,23 +43,22 @@ $sql = "
         featured,
         start_date
     FROM projects
-    WHERE (:search = '' OR title ILIKE :q OR location ILIKE :q)
-    ORDER BY created_at DESC
 ";
 
+$params = [];
+
+if ($search !== '') {
+    $sql .= " WHERE title ILIKE :q OR location ILIKE :q";
+    $params['q'] = '%' . $search . '%';
+}
+
+$sql .= " ORDER BY created_at DESC";
+
 $stmt = $pdo->prepare($sql);
-$stmt->execute([
-    'search' => $search,
-    'q'      => '%' . $search . '%',
-]);
+$stmt->execute($params);
 
 $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-/*
-|--------------------------------------------------------------------------
-| HELPERS
-|--------------------------------------------------------------------------
-*/
 
 function statusBadge(string $status): string
 {

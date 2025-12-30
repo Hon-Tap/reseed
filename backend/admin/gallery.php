@@ -37,17 +37,19 @@ $sql = "
         category,
         created_at
     FROM gallery
-    WHERE (:search = '' 
-           OR caption ILIKE :q 
-           OR category ILIKE :q)
-    ORDER BY created_at DESC
 ";
 
+$params = [];
+
+if ($search !== '') {
+    $sql .= " WHERE caption ILIKE :q OR category ILIKE :q";
+    $params['q'] = '%' . $search . '%';
+}
+
+$sql .= " ORDER BY created_at DESC";
+
 $stmt = $pdo->prepare($sql);
-$stmt->execute([
-    'search' => $search,
-    'q'      => '%' . $search . '%',
-]);
+$stmt->execute($params);
 
 $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
