@@ -22,261 +22,282 @@ function reading_time(string $html): int
 
 /**
  * Helper to ensure we use the Cloudinary URL or a placeholder
- * Updated to use the correct schema column
  */
 function getBlogImageUrl($path) {
-    if (empty($path)) return 'https://images.unsplash.com/photo-1542601906990-b4d3fb773b09?auto=format&fit=crop&q=80&w=1000';
+    if (empty($path)) return 'https://via.placeholder.com/800x500?text=Field+Journal';
     // If it's a full URL (Cloudinary), return it. Otherwise, assume it's a legacy local path.
     return (strpos($path, 'http') === 0) ? $path : '/uploads/posts/' . $path;
 }
 
 /*
 |--------------------------------------------------------------------------
-| FETCH PUBLISHED POSTS (FIXED SCHEMA)
+| FETCH PUBLISHED POSTS
 |--------------------------------------------------------------------------
 */
-try {
-    $stmt = $pdo->query("
-        SELECT
-            title,
-            slug,
-            excerpt,
-            content,
-            cover_media,
-            media_type,
-            featured,
-            author,
-            published_at
-        FROM posts
-        WHERE published_at IS NOT NULL
-        ORDER BY featured DESC, published_at DESC
-    ");
-    $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    // Fallback if DB is empty or still syncing
-    $posts = [];
-}
+$stmt = $pdo->query("
+    SELECT
+        title,
+        slug,
+        excerpt,
+        content,
+        cover_image,
+        media_type,
+        featured,
+        author,
+        published_at
+    FROM posts
+    WHERE published_at IS NOT NULL
+    ORDER BY featured DESC, published_at DESC
+");
+$posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <style>
 /* =========================================================
-    BLOG — PREMIUM EDITORIAL UI
+    BLOG — REFINED EDITORIAL UI
 ========================================================= */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@800&display=swap');
 
 :root {
-    --primary-green: #099227;
+    --green: #10b981; /* Emerald 500 */
+    --green-dark: #059669; /* Emerald 600 */
     --ink: #0f172a;
-    --slate: #64748b;
-    --glass-border: rgba(15, 23, 42, 0.08);
+    --muted: #64748b;
+    --radius: 24px;
+    --shadow-sm: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
 }
 
+/* ---------- HERO ---------- */
 .blog-hero {
-    padding: 100px 0 60px;
-    background: radial-gradient(circle at top right, #f0fdf4 0%, #ffffff 70%);
-    position: relative;
-    overflow: hidden;
-}
-
-.blog-hero::after {
-    content: '';
-    position: absolute;
-    top: -50px; right: -50px;
-    width: 200px; height: 200px;
-    background: var(--primary-green);
-    filter: blur(120px);
-    opacity: 0.1;
+    padding: 6rem 0;
+    background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+    text-align: center;
 }
 
 .blog-hero h1 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: clamp(3rem, 8vw, 5rem);
-    font-weight: 800;
-    letter-spacing: -0.04em;
+    font-size: clamp(2.8rem, 7vw, 4.5rem);
+    font-weight: 900;
+    letter-spacing: -.05em;
+    margin-bottom: 1.2rem;
     color: var(--ink);
-    margin-bottom: 20px;
+    line-height: 1;
 }
 
-/* ---------- BLOG GRID ---------- */
+.blog-hero p {
+    font-size: 1.25rem;
+    color: var(--muted);
+    max-width: 600px;
+    margin: 0 auto;
+    font-weight: 500;
+}
+
+/* ---------- GRID ---------- */
 .blog-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-    gap: 60px 40px;
-    padding: 60px 0 120px;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 4rem 2.5rem;
+    padding: 4rem 0 8rem;
 }
 
-/* ---------- POST CARD ---------- */
-.post-card {
-    text-decoration: none !important;
-    display: block;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+/* ---------- CARD ---------- */
+.blog-card {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all .4s cubic-bezier(0.2, 1, 0.3, 1);
 }
 
-.post-card:hover {
-    transform: translateY(-10px);
+.blog-card:hover {
+    transform: translateY(-12px);
 }
 
-.post-media-box {
+/* ---------- MEDIA ---------- */
+.blog-media {
     position: relative;
-    width: 100%;
     aspect-ratio: 16 / 10;
-    border-radius: 32px;
+    border-radius: var(--radius);
     overflow: hidden;
-    margin-bottom: 24px;
-    box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.1);
+    background: #f1f5f9;
+    margin-bottom: 1.8rem;
+    box-shadow: var(--shadow-sm);
 }
 
-.post-media-box img, 
-.post-media-box video {
+.blog-media img,
+.blog-media video {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.7s ease;
+    transition: transform .8s ease;
 }
 
-.post-card:hover .post-media-box img {
-    transform: scale(1.06);
+.blog-card:hover img {
+    transform: scale(1.08);
 }
 
-.featured-pill {
+.badge-featured {
     position: absolute;
-    top: 20px; left: 20px;
-    background: white;
-    padding: 6px 14px;
-    border-radius: 100px;
-    font-size: 0.7rem;
+    top: 1.2rem;
+    left: 1.2rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    padding: .5rem 1rem;
+    border-radius: 99px;
+    font-size: .7rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--primary-green);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    z-index: 5;
+    letter-spacing: .08em;
+    color: var(--green-dark);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 2;
 }
 
-.post-meta {
+/* ---------- TEXT ---------- */
+.blog-meta {
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--green-dark);
     display: flex;
     align-items: center;
-    gap: 12px;
-    color: var(--slate);
-    font-size: 0.8rem;
+    gap: .75rem;
+    margin-bottom: .8rem;
+}
+
+.blog-meta .dot {
+    width: 4px;
+    height: 4px;
+    background: #cbd5e1;
+    border-radius: 50%;
+}
+
+.blog-meta span {
+    color: var(--muted);
     font-weight: 600;
-    margin-bottom: 12px;
 }
 
-.post-meta span.author {
-    color: var(--primary-green);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.post-title {
-    font-size: 1.5rem;
+.blog-title {
+    font-size: 1.6rem;
     font-weight: 800;
     line-height: 1.3;
+    margin-bottom: 1rem;
     color: var(--ink);
-    margin-bottom: 12px;
     transition: color 0.3s;
 }
 
-.post-card:hover .post-title {
-    color: var(--primary-green);
+.blog-card:hover .blog-title {
+    color: var(--green-dark);
 }
 
-.post-excerpt {
-    color: var(--slate);
-    font-size: 1rem;
+.blog-excerpt {
+    font-size: 1.05rem;
+    color: var(--muted);
     line-height: 1.6;
+    margin-bottom: 1.5rem;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
-.read-btn {
-    margin-top: 20px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+.blog-cta {
+    margin-top: auto;
     font-weight: 800;
-    font-size: 0.9rem;
-    color: var(--ink);
+    font-size: .95rem;
+    color: var(--green-dark);
+    display: inline-flex;
+    gap: .5rem;
+    align-items: center;
 }
 
-.read-btn i {
-    font-size: 0.7rem;
-    transition: transform 0.3s ease;
+.blog-cta svg {
+    transition: transform .3s var(--ease);
 }
 
-.post-card:hover .read-btn i {
-    transform: translateX(5px);
-}
-
-@media (max-width: 768px) {
-    .blog-grid { grid-template-columns: 1fr; gap: 40px; }
+.blog-card:hover .blog-cta svg {
+    transform: translateX(8px);
 }
 </style>
 
 <main>
+
     <section class="blog-hero">
-        <div class="container text-center">
-            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 mb-3 fw-bold uppercase">Field Notes</span>
-            <h1>The Field Journal</h1>
-            <p class="lead text-secondary mx-auto" style="max-width: 600px;">Chronicles of restoration, community resilience, and ecological insights from South Sudan.</p>
+        <div class="container mx-auto px-4">
+            <h1>Field Journal</h1>
+            <p>Stories, updates, and ecological insights from our global restoration efforts.</p>
         </div>
     </section>
 
-    <div class="container">
-        <?php if (empty($posts)): ?>
-            <div class="py-5 text-center">
-                <div class="p-5 bg-light rounded-5 border border-dashed">
-                    <i class="fas fa-feather-pointed fa-3x text-muted mb-3"></i>
-                    <h3 class="fw-bold">No stories found.</h3>
-                    <p class="text-muted">We are currently drafting new updates from the ground.</p>
-                </div>
+    <section class="container mx-auto px-4">
+
+        <?php if (!$posts): ?>
+            <div class="py-32 text-center bg-slate-50 rounded-[40px] border-2 border-dashed border-slate-200">
+                <i class="fa-solid fa-feather-pointed text-5xl text-slate-300 mb-4"></i>
+                <h3 class="text-xl font-bold text-slate-900">The journal is empty.</h3>
+                <p class="text-slate-500">Check back soon for new stories from the field.</p>
             </div>
         <?php else: ?>
+
             <div class="blog-grid">
-                <?php foreach ($posts as $post): 
-                    $mediaPath = getBlogImageUrl($post['cover_media']);
-                    $slugUrl = '/post.php?slug=' . urlencode($post['slug']);
-                    $minutes = reading_time($post['content']);
+
+                <?php foreach ($posts as $post):
+                    $image = getBlogImageUrl($post['cover_image']);
+                    $url   = '/post.php?slug=' . urlencode($post['slug']);
+                    $read  = reading_time($post['content']);
                 ?>
+
                 <article>
-                    <a href="<?= $slugUrl ?>" class="post-card">
-                        <div class="post-media-box">
+                    <a href="<?= $url ?>" class="blog-card">
+
+                        <div class="blog-media">
                             <?php if ($post['featured']): ?>
-                                <span class="featured-pill">Top Story</span>
+                                <span class="badge-featured">Featured</span>
                             <?php endif; ?>
 
                             <?php if (($post['media_type'] ?? 'image') === 'video'): ?>
                                 <video muted autoplay loop playsinline>
-                                    <source src="<?= htmlspecialchars($mediaPath) ?>" type="video/mp4">
+                                    <source src="<?= htmlspecialchars($image) ?>" type="video/mp4">
                                 </video>
                             <?php else: ?>
-                                <img src="<?= htmlspecialchars($mediaPath) ?>" alt="<?= htmlspecialchars($post['title']) ?>" loading="lazy">
+                                <img src="<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($post['title']) ?>" loading="lazy">
                             <?php endif; ?>
                         </div>
 
-                        <div class="post-meta">
-                            <span class="author"><?= htmlspecialchars($post['author'] ?: 'ReSEED Team') ?></span>
-                            <span>•</span>
+                        <div class="blog-meta">
+                            <?= htmlspecialchars($post['author'] ?: 'Team Reseed') ?>
+                            <div class="dot"></div>
                             <span><?= date('M j, Y', strtotime($post['published_at'])) ?></span>
-                            <span>•</span>
-                            <span><?= $minutes ?> min read</span>
+                            <div class="dot"></div>
+                            <span><?= $read ?> min read</span>
                         </div>
 
-                        <h2 class="post-title"><?= htmlspecialchars($post['title']) ?></h2>
-                        <p class="post-excerpt"><?= htmlspecialchars($post['excerpt']) ?></p>
+                        <h2 class="blog-title"><?= htmlspecialchars($post['title']) ?></h2>
 
-                        <div class="read-btn">
-                            Read Full Story <i class="fas fa-chevron-right"></i>
-                        </div>
+                        <p class="blog-excerpt">
+                            <?= htmlspecialchars($post['excerpt']) ?>
+                        </p>
+
+                        <span class="blog-cta">
+                            Read Story
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </span>
+
                     </a>
                 </article>
+
                 <?php endforeach; ?>
+
             </div>
+
         <?php endif; ?>
-    </div>
+
+    </section>
+
 </main>
 
 <?php require_once dirname(__DIR__) . '/backend/includes/footer.php'; ?>
