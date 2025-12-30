@@ -1,9 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN · PROJECTS LIST (FIXED PATHS)
+| ADMIN · PROJECTS LIST (DB-ALIGNED)
 |--------------------------------------------------------------------------
 */
 
@@ -28,7 +29,7 @@ $search = trim($_GET['search'] ?? '');
 
 /*
 |--------------------------------------------------------------------------
-| FETCH PROJECTS (Postgres-safe)
+| FETCH PROJECTS (POSTGRES + SCHEMA SAFE)
 |--------------------------------------------------------------------------
 */
 
@@ -37,7 +38,7 @@ $sql = "
         id,
         title,
         location,
-        cover_image,
+        cover_media,
         status,
         featured,
         start_date
@@ -75,7 +76,7 @@ function safeDate(?string $date): string
     return $date ? date('M d, Y', strtotime($date)) : '—';
 }
 
-function isRemoteImage(?string $url): bool
+function isRemoteMedia(?string $url): bool
 {
     return !empty($url) && str_starts_with($url, 'http');
 }
@@ -137,10 +138,10 @@ function isRemoteImage(?string $url): bool
                     <td class="px-8 py-6">
                         <div class="flex items-center gap-5">
 
-                            <?php if (isRemoteImage($p['cover_image'])): ?>
+                            <?php if (isRemoteMedia($p['cover_media'])): ?>
                                 <div class="relative">
                                     <img
-                                        src="<?= htmlspecialchars($p['cover_image']) ?>"
+                                        src="<?= htmlspecialchars($p['cover_media']) ?>"
                                         class="w-16 h-16 object-cover rounded-2xl shadow-md group-hover:scale-105 transition"
                                         alt=""
                                     >
@@ -165,6 +166,7 @@ function isRemoteImage(?string $url): bool
                                     <?= htmlspecialchars($p['location'] ?? 'Remote') ?>
                                 </div>
                             </div>
+
                         </div>
                     </td>
 
@@ -185,24 +187,18 @@ function isRemoteImage(?string $url): bool
                         <div class="flex justify-end gap-3">
 
                             <a href="projects_edit.php?id=<?= (int) $p['id'] ?>"
-                               class="p-3 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition"
-                               title="Edit Project">
+                               class="p-3 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </a>
 
-                            <form
-                                action="project-handler.php"
-                                method="POST"
-                                onsubmit="return confirm('Delete this project permanently?');"
-                            >
+                            <form action="project-handler.php" method="POST"
+                                  onsubmit="return confirm('Delete this project permanently?');">
                                 <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                 <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
                                 <input type="hidden" name="delete" value="1">
                                 <button
                                     type="submit"
-                                    class="p-3 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
-                                    title="Delete Project"
-                                >
+                                    class="p-3 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </form>

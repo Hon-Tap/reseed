@@ -1,12 +1,15 @@
 <?php
 declare(strict_types=1);
 
-// 1. Setup paths (Adjust levels if this file is in a subdirectory)
+// 1. Setup paths
+// Since logout.php is in /backend/admin/, dirname(__DIR__) gets you to /backend/
 $backendPath = dirname(__DIR__); 
 
-// 2. Load dependencies - REQUIRED to avoid "Blank Page" errors
-require_once $backendPath . '/includes/config.php'; 
-require_once $backendPath . '/includes/csrf.php';
+// 2. Load dependencies
+require_once $backendPath . '/admin/includes/config.php'; // Corrected path
+require_once $backendPath . '/admin/includes/csrf.php';   // Corrected path
+
+// ... rest of your code ...
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();

@@ -1,18 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
-/**
- * Admin - Gallery Media Handler
- * Path: /backend/admin/handlers/gallery-handler.php
- */
+/*
+|--------------------------------------------------------------------------
+| ADMIN · GALLERY HANDLER (DB + CLOUDINARY ALIGNED)
+| Path: /backend/admin/handlers/gallery-handler.php
+|--------------------------------------------------------------------------
+*/
 
-// 1. Setup Environment
-// We need to go up 3 levels to reach the root from /backend/admin/handlers/
-$baseDir = dirname(__DIR__, 3); 
-
-// Fallback logic to ensure we found the root
+/* ----------------------------------------------------------------------
+| Bootstrap
+|---------------------------------------------------------------------- */
+$baseDir = dirname(__DIR__, 3);
 if (!file_exists($baseDir . '/vendor/autoload.php')) {
-    // If 3 levels failed, try 2 (for different local setups)
     $baseDir = dirname(__DIR__, 2);
 }
 
@@ -23,35 +24,41 @@ require_once $baseDir . '/backend/admin/includes/csrf.php';
 use Cloudinary\Configuration\Configuration;
 use Cloudinary\Api\Upload\UploadApi;
 
-// 1. Initialize Cloudinary
+/* ----------------------------------------------------------------------
+| Cloudinary Init
+|---------------------------------------------------------------------- */
 if (!getenv('CLOUDINARY_URL')) {
-    header('Location: ../gallery.php?error=cloudinary_config');
+    header('Location: ../gallery.php?error=cloudinary_missing');
     exit;
 }
+
 Configuration::instance(getenv('CLOUDINARY_URL'));
 
-/**
- * Upload single image to Cloudinary
- */
-function uploadToGallery(string $tmpFile, string $category): ?string 
+/* ----------------------------------------------------------------------
+| Helpers
+|---------------------------------------------------------------------- */
+function uploadImage(string $tmp, string $category): ?string
 {
     try {
         $api = new UploadApi();
-        $response = $api->upload($tmpFile, [
-            'folder'         => 'reseed/gallery',
-            'resource_type'  => 'image',
-            'quality'        => 'auto',
-            'fetch_format'   => 'auto',
-            'tags'           => ['gallery', strtolower($category)]
+        $res = $api->upload($tmp, [
+            'folder'        => 'reseed/gallery',
+            'resource_type' => 'image',
+            'quality'       => 'auto',
+            'fetch_format'  => 'auto',
+            'tags'          => ['gallery', strtolower($category)]
         ]);
-        return $response['secure_url'];
-    } catch (Exception $e) {
-        error_log("Gallery Upload Error: " . $e->getMessage());
+
+        return $res['secure_url'] ?? null;
+    } catch (Throwable $e) {
+        error_log('[Gallery Upload] ' . $e->getMessage());
         return null;
     }
 }
 
-// 2. Security Check
+/* ----------------------------------------------------------------------
+| Guard
+|---------------------------------------------------------------------- */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../gallery.php');
     exit;
@@ -59,61 +66,85 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 csrf_verify($_POST['csrf_token'] ?? '');
 
-// 3. Process Actions
+/* ----------------------------------------------------------------------
+| Actions
+|---------------------------------------------------------------------- */
 try {
-    // --- BULK ADD ---
+
+    /* ================= BULK UPLOAD ================= */
     if (isset($_POST['bulk_add'])) {
+
         if (empty($_FILES['images']['tmp_name'][0])) {
-            header('Location: ../gallery.php?error=no_files_selected');
+            header('Location: ../gallery.php?error=no_files');
             exit;
         }
 
         $category = trim($_POST['category'] ?? 'General');
         $baseCaption = trim($_POST['caption'] ?? '');
-        $uploadCount = 0;
+        $count = 0;
 
         $pdo->beginTransaction();
-        
-        foreach ($_FILES['images']['tmp_name'] as $index => $tmpFile) {
-            if ($_FILES['images']['error'][$index] !== UPLOAD_ERR_OK) continue;
 
-            $url = uploadToGallery($tmpFile, $category);
-            
-            if ($url) {
-                // If user didn't provide a bulk caption, use the original filename
-                $finalCaption = !empty($baseCaption) 
-                    ? $baseCaption 
-                    : pathinfo($_FILES['images']['name'][$index], PATHINFO_FILENAME);
+        foreach ($_FILES['images']['tmp_name'] as $i => $tmp) {
 
-                $stmt = $pdo->prepare("INSERT INTO gallery (filename, caption, category, created_at) VALUES (?, ?, ?, NOW())");
-                $stmt->execute([$url, $finalCaption, $category]);
-                $uploadCount++;
+            if ($_FILES['images']['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
             }
+
+            $url = uploadImage($tmp, $category);
+            if (!$url) {
+                continue;
+            }
+
+            $caption = $baseCaption !== ''
+                ? $baseCaption
+                : pathinfo($_FILES['images']['name'][$i], PATHINFO_FILENAME);
+
+            $stmt = $pdo->prepare(
+                "INSERT INTO gallery (filename, caption, category, created_at)
+                 VALUES (:filename, :caption, :category, NOW())"
+            );
+
+            $stmt->execute([
+                'filename' => $url,
+                'caption'  => $caption,
+                'category' => $category
+            ]);
+
+            $count++;
         }
 
         $pdo->commit();
-        header("Location: ../gallery.php?success=uploaded&count=$uploadCount");
+        header("Location: ../gallery.php?success=uploaded&count=$count");
         exit;
     }
 
-    // --- UPDATE METADATA ---
+    /* ================= UPDATE META ================= */
     if (isset($_POST['update'], $_POST['id'])) {
+
         $id = (int)$_POST['id'];
         $caption = trim($_POST['caption'] ?? '');
         $category = trim($_POST['category'] ?? 'General');
 
-        $stmt = $pdo->prepare("UPDATE gallery SET caption = ?, category = ? WHERE id = ?");
-        $stmt->execute([$caption, $category, $id]);
+        $stmt = $pdo->prepare(
+            "UPDATE gallery SET caption = :caption, category = :category WHERE id = :id"
+        );
+
+        $stmt->execute([
+            'caption'  => $caption,
+            'category' => $category,
+            'id'       => $id
+        ]);
 
         header('Location: ../gallery.php?success=updated');
         exit;
     }
 
-    // --- DELETE ---
+    /* ================= DELETE ================= */
     if (isset($_POST['delete'], $_POST['id'])) {
+
         $id = (int)$_POST['id'];
 
-        // Optional: In the future, fetch the URL and delete from Cloudinary here
         $stmt = $pdo->prepare("DELETE FROM gallery WHERE id = ?");
         $stmt->execute([$id]);
 
@@ -121,12 +152,19 @@ try {
         exit;
     }
 
-} catch (Exception $e) {
-    if ($pdo->inTransaction()) $pdo->rollBack();
-    error_log("Gallery Handler Error: " . $e->getMessage());
-    header('Location: ../gallery.php?error=system_error');
+} catch (Throwable $e) {
+
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
+    error_log('[Gallery Handler] ' . $e->getMessage());
+    header('Location: ../gallery.php?error=system');
     exit;
 }
 
-// Fallback
+/* ----------------------------------------------------------------------
+| Fallback
+|---------------------------------------------------------------------- */
 header('Location: ../gallery.php');
+exit;

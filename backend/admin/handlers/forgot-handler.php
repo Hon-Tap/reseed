@@ -1,23 +1,28 @@
 <?php
 declare(strict_types=1);
 
+/**
+ * PATH LOGIC:
+ * Current: /backend/admin/handlers/forgot-handler.php
+ * $backendPath (Up 2): /backend/
+ * $rootPath (Up 3): / (Project Root for vendor)
+ */
 $backendPath = dirname(__DIR__, 2);
+$rootPath    = dirname(__DIR__, 3);
 
-require_once $backendPath . '/includes/config.php';
+// 1. Load Core Dependencies
+require_once $backendPath . '/admin/includes/config.php';
 require_once $backendPath . '/admin/includes/csrf.php';
 
+// 2. Load PHPMailer via Composer
+require_once $rootPath . '/vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Adjust path to your vendor/autoload.php
-require_once dirname(__DIR__, 3) . '/vendor/autoload.php'; 
-$basePath = dirname(__DIR__); 
-require_once $basePath . '/includes/config.php';
-require_once $basePath . '/includes/csrf.php';
-
+// 3. Security Guard & CSRF Check
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !csrf_verify($_POST['csrf_token'] ?? null)) {
-    header('Location: /frontend/admin/login.php?error=csrf');
+    header('Location: /admin.php?error=csrf');
     exit;
 }
 
@@ -27,7 +32,7 @@ if ($email) {
     $token = bin2hex(random_bytes(32));
     
     try {
-        // 1. Update Database (PostgreSQL syntax)
+        // Update Database (PostgreSQL)
         $stmt = $pdo->prepare("
             UPDATE users 
             SET reset_token = :token, 
@@ -37,15 +42,14 @@ if ($email) {
         $stmt->execute(['token' => $token, 'email' => $email]);
 
         if ($stmt->rowCount() > 0) {
-            // 2. PHPMailer Configuration
             $mail = new PHPMailer(true);
 
             // Server settings
             $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com'; // Replace with your SMTP provider
+            $mail->Host       = 'smtp.gmail.com'; 
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'your-email@gmail.com'; 
-            $mail->Password   = 'your-app-password'; // Not your login password!
+            $mail->Username   = 'your-email@gmail.com'; // Use Environment Variables here if possible
+            $mail->Password   = 'your-app-password'; 
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
 
@@ -54,7 +58,7 @@ if ($email) {
             $mail->addAddress($email);
 
             // Content
-            $resetLink = "https://yourdomain.com/frontend/admin/reset-password.php?token=" . $token;
+            $resetLink = "https://reseed.onrender.com/reset-password.php?token=" . $token;
             $mail->isHTML(true);
             $mail->Subject = 'Password Reset Request';
             $mail->Body    = "Click the link below to reset your password. Valid for 1 hour:<br><br>
@@ -69,6 +73,6 @@ if ($email) {
     }
 }
 
-// Redirect to login with a "check your email" message
-header('Location: /frontend/admin/login.php?error=sent');
+// Redirect back to login with success/sent message
+header('Location: /admin.php?status=sent');
 exit;
