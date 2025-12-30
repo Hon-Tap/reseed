@@ -7,12 +7,25 @@ declare(strict_types=1);
 |--------------------------------------------------------------------------
 */
 
-// Direct path resolution - adjust these to match your exact folder structure
-$baseDir = dirname(__DIR__, 2); // Goes up from /admin/handlers/ to project root
-// Navigates up from 'handlers' -> 'admin' -> 'backend' -> to project root
-require_once dirname(__DIR__, 3) . '/vendor/autoload.php';
-require_once $baseDir . '/backend/includes/config.php';
-require_once $baseDir . '/backend/admin/includes/csrf.php';
+// 1. Get the path to the 'backend' directory
+// From: backend/admin/handlers/project-handler.php
+// Up 2 levels -> backend/
+$backendDir = dirname(__DIR__, 2); 
+
+// 2. Get the path to the project root (where vendor is)
+// Up 3 levels -> Project Root/
+$rootDir = dirname(__DIR__, 3);
+
+// --- Fix the Requires ---
+
+// Correct: Root -> vendor/autoload.php
+require_once $rootDir . '/vendor/autoload.php';
+
+// Correct: Backend -> includes/config.php
+require_once $backendDir . '/includes/config.php';
+
+// Correct: Backend -> admin/includes/csrf.php
+require_once $backendDir . '/admin/includes/csrf.php';
 
 use Cloudinary\Configuration\Configuration;
 use Cloudinary\Api\Upload\UploadApi;

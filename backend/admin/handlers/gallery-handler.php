@@ -7,12 +7,22 @@ declare(strict_types=1);
 |--------------------------------------------------------------------------
 */
 
-// Direct path resolution
-$baseDir = dirname(__DIR__, 2); 
-// Navigates up from 'handlers' -> 'admin' -> 'backend' -> to project root
-require_once dirname(__DIR__, 3) . '/vendor/autoload.php';
-require_once $baseDir . '/backend/includes/config.php';
-require_once $baseDir . '/backend/admin/includes/csrf.php';
+// 1. Path to the 'backend' folder (Up 2 levels from /admin/handlers/)
+$backendDir = dirname(__DIR__, 2); 
+
+// 2. Path to the project root (Up 3 levels to find 'vendor')
+$rootDir = dirname(__DIR__, 3);
+
+// --- Corrected Requires ---
+
+// Load Composer from the root
+require_once $rootDir . '/vendor/autoload.php';
+
+// Load config from backend/includes/
+require_once $backendDir . '/includes/config.php';
+
+// Load CSRF from backend/admin/includes/
+require_once $backendDir . '/admin/includes/csrf.php';
 
 use Cloudinary\Configuration\Configuration;
 use Cloudinary\Api\Upload\UploadApi;
