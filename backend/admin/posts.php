@@ -52,6 +52,8 @@ $stmt->execute([
 ]);
 
 $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// DEBUG LINE:
+if (empty($posts)) { echo ""; }
 
 /*
 |--------------------------------------------------------------------------
@@ -136,7 +138,7 @@ function postStatus(?string $publishedAt): array
 
                 <?php
                     [$label, $badge] = postStatus($p['published_at']);
-                    $thumb = postThumb($p['cover_image']);
+                    $thumb = postThumb($p['cover_media']);
                 ?>
 
                 <tr class="group hover:bg-slate-50/50 transition">
