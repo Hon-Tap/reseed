@@ -266,4 +266,4 @@ function resolveGalleryUrl(string $filename): string
 
 </main>
 
-<?php require_once __DIR__ . '/backend/includes/footer.php'; ?>
+<?php include dirname(__DIR__) . '/backend/includes/footer.php'; ?>

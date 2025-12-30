@@ -39,7 +39,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <style>
     :root {
-        --emerald-primary: #059669;
+        --emerald-primary: #119605ff;
         --navy-ink: #0f172a;
         --slate-text: #64748b;
         --bg-soft: #f8fafc;

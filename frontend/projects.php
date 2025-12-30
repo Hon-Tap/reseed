@@ -33,7 +33,7 @@ try {
 
 <style>
     :root {
-        --primary-emerald: #059669;
+        --primary-emerald: #0a9605ff;
         --dark-navy: #0f172a;
         --soft-bg: #f8fafc;
         --card-radius: 20px;

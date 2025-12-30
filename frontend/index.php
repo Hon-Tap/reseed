@@ -1,7 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/backend/includes/config.php';
 require_once dirname(__DIR__) . '/backend/includes/header.php';
-
 ?>
 
 <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -13,28 +12,14 @@ require_once dirname(__DIR__) . '/backend/includes/header.php';
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
-    /* Palette: Deep Forest & Vibrant Life */
-     --primary: #099227ff;
-
-    --primary-dark: #022c10ff;
-
-    --primary-light: #078f1eff;
-
-    --accent: #53b810ff;
-    
-    /* Neutrals */
+    --primary: #099227;
+    --primary-dark: #022c10;
+    --primary-light: #078f1e;
+    --accent: #53b810;
     --text-main: #0f172a;
     --text-muted: #64748b;
     --bg-body: #ffffff;
     --bg-surface: #f8fafc;
-    
-    /* Glassmorphism Logic */
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.5);
-    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-    --blur-strength: 12px;
-
-    /* Spacing & Motion */
     --radius-xl: 32px;
     --radius-lg: 20px;
     --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -43,622 +28,97 @@ require_once dirname(__DIR__) . '/backend/includes/header.php';
 
 /* ================= RESET & CORE ================= */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; overflow-x: hidden; }
+body { font-family: 'Inter', sans-serif; color: var(--text-main); line-height: 1.7; background-color: var(--bg-body); overflow-x: hidden; }
+h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -0.03em; color: var(--primary-dark); }
+.container { max-width: 1280px; margin-inline: auto; padding-inline: clamp(1.5rem, 5vw, 3rem); position: relative; z-index: 2; }
+.section { padding: clamp(80px, 10vh, 120px) 0; position: relative; }
+.section-title { font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 800; margin-bottom: 1rem; background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-body {
-    font-family: 'Inter', sans-serif;
-    color: var(--text-main);
-    line-height: 1.7;
-    background-color: var(--bg-body);
-    overflow-x: hidden;
-}
+/* ================= 1. REFINED HERO SECTION ================= */
+.hero { min-height: 100vh; position: relative; display: flex; align-items: center; background: #022c15; overflow: hidden; color: white; padding-top: 80px; }
+.hero-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; filter: saturate(1.2) contrast(1.1); transform: scale(1.05); }
+.hero-overlay { position: absolute; inset: 0; background: linear-gradient(90deg, #022c10 0%, rgba(2, 44, 16, 0.8) 60%, rgba(2, 44, 16, 0) 100%); z-index: 2; }
 
-h1, h2, h3, h4, .font-heading {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.03em;
-    color: var(--primary-dark);
-}
+.hero-content { position: relative; z-index: 10; max-width: 850px; }
+.hero-badge { display: inline-block; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); padding: 10px 24px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; margin-bottom: 2rem; }
+.hero h1 { font-size: clamp(2.8rem, 8vw, 5.5rem); line-height: 1.1; font-weight: 800; margin-bottom: 2rem; color: #fff; }
+.hero h1 span { display: block; background: linear-gradient(90deg, #4ed334, #6ee782); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-img, video { max-width: 100%; height: auto; display: block; }
-a { text-decoration: none; }
+/* Fixed Clickable Buttons for Responsive */
+.hero-cta-group { display: flex; flex-wrap: wrap; gap: 15px; position: relative; z-index: 20; }
+.btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; padding: 18px 42px; border-radius: 100px; font-weight: 700; transition: all 0.4s var(--ease-elastic); cursor: pointer; border: none; }
+.btn-primary { background: var(--primary); color: #022c15 !important; }
+.btn-primary:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4); }
+.btn-outline { color: #fff !important; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px); }
+.btn-outline:hover { background: #fff; color: var(--primary-dark) !important; transform: translateY(-5px); }
 
-.container {
-    max-width: 1280px;
-    margin-inline: auto;
-    padding-inline: clamp(1.5rem, 5vw, 3rem);
-    position: relative;
-    z-index: 2;
-}
-
-.section { padding: 120px 0; position: relative; }
-.section-title {
-    font-size: clamp(2.5rem, 5vw, 3.5rem);
-    font-weight: 800;
-    margin-bottom: 1rem;
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-/* ================= 1. SEXY HERO SECTION ================= */
-.hero {
-    min-height: 100vh;
-    position: relative;
-    display: flex;
-    align-items: center;
-    background: #022c15; /* Fallback */
-    overflow: hidden;
-    color: white;
-}
-
-/* Dynamic Background Layers */
-.hero-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.4;
-    filter: saturate(1.2) contrast(1.1);
-    transform: scale(1.05); /* Slight zoom for depth */
-}
-
-/* Gradient Mesh Overlay */
-.hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, #022c10 0%, rgba(2, 44, 16, 0.8) 60%, rgba(2, 44, 16, 0.2) 100%);
-    z-index: 2;
-}
-
-/* Floating Orbs (The "Sexy" Factor) */
-.hero::before, .hero::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    z-index: 3;
-    animation: floatOrb 10s ease-in-out infinite alternate;
-}
-
-.hero::before {
-    top: -10%;
-    right: -5%;
-    width: 500px;
-    height: 500px;
-    background: rgba(69, 185, 16, 0.2);
-}
-
-.hero::after {
-    bottom: -10%;
-    left: -10%;
-    width: 400px;
-    height: 400px;
-    background: rgba(136, 245, 11, 0.15); /* Subtle gold hint */
-    animation-delay: -5s;
-}
-
-@keyframes floatOrb {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(30px, 50px); }
-}
-
-.hero-content {
-    position: relative;
-    z-index: 10;
-    max-width: 850px;
-}
-
-/* Glass Badge */
-.hero-badge {
-    display: inline-block;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 10px 24px;
-    border-radius: 100px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    color: var(--accent);
-    text-transform: uppercase;
-    margin-bottom: 2.5rem;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-
-.hero h1 {
-    font-size: clamp(3rem, 7vw, 5.5rem);
-    line-height: 1;
-    font-weight: 800;
-    margin-bottom: 2rem;
-    color: #fff;
-    -webkit-text-fill-color: #fff; /* Override global gradient */
-}
-
-.hero h1 span {
-    display: block;
-    background: linear-gradient(90deg, #4ed334ff, #6ee782ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.hero .lead {
-    font-size: clamp(1.1rem, 2vw, 1.35rem);
-    color: rgba(255, 255, 255, 0.85);
-    margin-bottom: 3.5rem;
-    font-weight: 300;
-    max-width: 600px;
-}
-
-/* Modern Buttons */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.4s var(--ease-elastic);
-}
-
-.btn-hero-primary {
-    background: var(--primary);
-    color: #022c15 !important;
-    border: none;
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-}
-
-.btn-hero-primary::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 100%);
-    z-index: -1;
-    transition: opacity 0.3s;
-}
-
-.btn-hero-primary:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.5);
-}
-
-.btn-hero-outline {
-    color: #fff !important;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(4px);
-}
-
-.btn-hero-outline:hover {
-    background: rgba(255, 255, 255, 1);
-    color: var(--primary-dark) !important;
-    transform: translateY(-4px);
-}
-
-/* ================= 2. ABOUT SECTION (Asymmetrical) ================= */
-.about-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 100px;
-    align-items: center;
-}
-
-.about-img-wrapper {
-    position: relative;
-}
-
-/* The "Off-Axis" Border Effect */
-.about-img-wrapper::before {
-    content: '';
-    position: absolute;
-    top: 20px;
-    left: -20px;
-    width: 100%;
-    height: 100%;
-    border: 2px solid var(--primary);
-    border-radius: var(--radius-xl);
-    z-index: 0;
-    transition: transform 0.5s var(--ease-elastic);
-}
-
-.about-img-wrapper:hover::before {
-    transform: translate(10px, -10px);
-}
-
-.about-img {
-    position: relative;
-    z-index: 1;
-    border-radius: var(--radius-xl);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-/* Modern Accordion */
-.accordion-box { margin-top: 3rem; }
+/* ================= 2. ABOUT SECTION ================= */
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 8vw, 100px); align-items: center; }
+.about-img { border-radius: var(--radius-xl); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; z-index: 1; }
 .acc-item { border-bottom: 1px solid rgba(0,0,0,0.08); }
+.acc-trigger { width: 100%; padding: 20px 0; display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; font-weight: 700; background: none; border: none; cursor: pointer; color: var(--primary-dark); }
+.acc-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; color: var(--text-muted); }
 
-.acc-trigger {
-    width: 100%;
-    padding: 24px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1.25rem;
-    font-weight: 700;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--primary-dark);
-    transition: color 0.3s;
-}
-
-.acc-trigger:hover { color: var(--primary); }
-
-.acc-content {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s ease-out;
-    color: var(--text-muted);
-}
-
-/* ================= 3. PILLARS (Glassmorphism Cards) ================= */
-.bg-light {
-    background-color: var(--bg-surface);
-    background-image: radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.05) 0px, transparent 50%),
-                      radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.05) 0px, transparent 50%);
-}
-
-.h-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 40px;
-}
-
-.card-elegant {
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--blur-strength));
-    border: 1px solid var(--glass-border);
-    padding: 50px 40px;
-    border-radius: var(--radius-lg);
-    transition: all 0.4s var(--ease-smooth);
+/* ================= 3. PATH TO PROSPERITY (Visual Upgrade) ================= */
+.journey-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 4rem; }
+.journey-card { 
+    background: rgba(255, 255, 255, 0.03); 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    padding: 3rem 2rem; 
+    border-radius: var(--radius-lg); 
     position: relative;
-    overflow: hidden;
+    transition: var(--ease-smooth) 0.4s;
 }
-
-/* Card Hover Glow */
-.card-elegant::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, transparent 100%);
-    opacity: 0;
-    transition: opacity 0.4s;
+.journey-card:hover { background: rgba(255, 255, 255, 0.07); transform: translateY(-10px); border-color: var(--primary); }
+.journey-step { 
+    font-size: 4rem; font-weight: 900; line-height: 1; margin-bottom: 1.5rem;
+    background: linear-gradient(180deg, var(--primary) 0%, transparent 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    opacity: 0.4;
 }
+.journey-card h5 { font-size: 1.4rem; color: #fff; margin-bottom: 0.75rem; font-weight: 800; }
+.journey-card p { color: #94a3b8; font-size: 0.95rem; }
 
-.card-elegant:hover {
-    transform: translateY(-15px);
-    box-shadow: 0 30px 60px -15px rgba(16, 185, 129, 0.2);
-    border-color: var(--primary);
+/* ================= 4. REFINED NEWS SECTION ================= */
+.news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; margin-top: 3rem; }
+.news-card { 
+    background: #fff; border-radius: var(--radius-lg); overflow: hidden; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: 0.4s var(--ease-smooth);
+    display: flex; flex-direction: column; height: 100%; text-decoration: none;
 }
+.news-card:hover { transform: translateY(-12px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+.news-thumb { aspect-ratio: 16/10; overflow: hidden; position: relative; }
+.news-thumb img, .news-thumb video { width: 100%; height: 100%; object-fit: cover; transition: 0.8s; }
+.news-card:hover .news-thumb img { transform: scale(1.1); }
+.news-content { padding: 2rem; flex: 1; display: flex; flex-direction: column; }
+.news-meta { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--primary); margin-bottom: 0.8rem; letter-spacing: 1px; }
+.news-card h4 { font-size: 1.35rem; font-weight: 800; line-height: 1.3; margin-bottom: 1rem; color: var(--primary-dark); }
+.news-card p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+.news-link { margin-top: auto; font-weight: 800; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; font-size: 0.9rem; }
 
-.card-elegant:hover::after { opacity: 1; }
-
-.icon-box {
-    width: 70px;
-    height: 70px;
-    background: white;
-    color: var(--primary);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-    margin-bottom: 30px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    position: relative;
-    z-index: 2;
-}
-
-/* ================= 4. JOURNEY (Dark Theme) ================= */
-/* We invert the colors here for high impact */
-.section-dark {
-    background: #0f172a;
-    color: white;
-}
-
-.section-dark .section-title {
-    background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.journey-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 30px;
-    margin-top: 60px;
-}
-
-.journey-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 40px 30px;
-    border-radius: var(--radius-lg);
-    text-align: left;
-    transition: all 0.4s ease;
-    position: relative;
-}
-
-.journey-step {
-    font-size: 3.5rem;
-    font-weight: 800;
-    color: transparent;
-    -webkit-text-stroke: 1px rgba(255,255,255,0.2);
-    line-height: 1;
-    margin-bottom: 20px;
-    transition: all 0.4s;
-}
-
-.journey-card:hover {
-    background: var(--primary);
-    border-color: var(--primary);
-}
-
-.journey-card:hover .journey-step {
-    -webkit-text-stroke: 1px rgba(255,255,255,0.6);
-    transform: scale(1.1) translateX(10px);
-}
-
-.journey-card h5 { color: white; margin-bottom: 10px; font-size: 1.25rem; }
-.journey-card p { color: rgba(255,255,255,0.6); font-size: 0.95rem; }
-.journey-card:hover p { color: rgba(255,255,255,0.9); }
-
-/* ================= 5. FIELD STORIES ================= */
-.field-stories-section {
-    background-color: #f9fafb;
-}
-
-.section-title {
-    font-weight: 900;
-    letter-spacing: -0.04em;
-    font-size: 2.5rem;
-    color: var(--text-dark);
-}
-
-.section-subtitle {
-    color: var(--text-muted);
-    font-size: 1.1rem;
-}
-
-/* View All Link */
-.view-all-link {
-    color: var(--primary-color);
-    font-weight: 700;
-    text-decoration: none;
-    transition: var(--transition-smooth);
-    border-bottom: 2px solid transparent;
-    padding-bottom: 4px;
-}
-
-.view-all-link:hover {
-    color: #047857;
-    border-bottom-color: var(--primary-color);
-}
-
-/* News Card */
-.news-card {
-    background: var(--card-bg);
-    border-radius: var(--radius-custom);
-    overflow: hidden;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    transition: var(--transition-smooth);
-}
-
-.news-card:hover {
-    transform: translateY(-12px);
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
-}
-
-/* Media Container */
-.news-media-container {
-    position: relative;
-    aspect-ratio: 16 / 10;
-    overflow: hidden;
-}
-
-.media-element {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.news-card:hover .media-element {
-    transform: scale(1.08);
-}
-
-/* Body Styling */
-.news-body {
-    padding: 2rem;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.news-date {
-    color: var(--primary-color);
-    font-weight: 800;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.75rem;
-    display: block;
-}
-
-.news-title {
-    font-size: 1.4rem;
-    font-weight: 800;
-    line-height: 1.3;
-    color: var(--text-dark);
-    margin-bottom: 1rem;
-    transition: color 0.3s ease;
-}
-
-.news-card:hover .news-title {
-    color: var(--primary-color);
-}
-
-.news-excerpt {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-}
-
-/* Read More Button */
-.read-more-btn {
-    margin-top: auto;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: var(--text-dark);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    transition: gap 0.3s ease;
-}
-
-.read-more-btn i {
-    font-size: 0.8rem;
-    transition: transform 0.3s ease;
-}
-
-.read-more-btn:hover {
-    color: var(--primary-color);
-}
-
-.read-more-btn:hover i {
-    transform: translateX(4px);
-}
-
-/* ================= 6. PARTNERSHIP (Parallax Effect) ================= */
-.partnership-section {
-    position: relative;
-    padding: 160px 0;
-    color: white;
-    overflow: hidden;
-}
-
-.partnership-bg {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 1;
-}
-
-/* Advanced Dark Gradient */
-.partnership-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, #022c10 0%, rgba(2, 44, 16, 0.8) 60%, rgba(2, 44, 16, 0.2) 100%);
-    z-index: 2;
-}
-
-.partnership-content {
-    position: relative;
-    z-index: 3;
-    max-width: 650px;
-}
-
-.impact-label {
-    color: var(--accent);
-    font-weight: 700;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 1.5rem;
-}
-
-.impact-label::before {
-    content: '';
-    width: 40px; height: 2px;
-    background: var(--accent);
-}
-
-.partnership-content h2 {
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    color: white;
-    margin-bottom: 1.5rem;
-}
-
-.partnership-content .lead {
-    font-size: 1.25rem;
-    color: rgba(255,255,255,0.8);
-    margin-bottom: 3rem;
-    font-weight: 300;
-}
-
-.btn-luxury {
-    background: white;
-    color: var(--primary-dark);
-    padding: 20px 50px;
-    border-radius: 100px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 0 0 4px rgba(255,255,255,0.2);
-    transition: all 0.3s;
-}
-
-.btn-luxury:hover {
-    background: var(--accent);
-    color: white;
-    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.3);
-    transform: translateY(-2px);
-}
-
-/* Mobile Tweaks */
+/* Responsive Fixes */
 @media (max-width: 991px) {
-    .about-grid { grid-template-columns: 1fr; gap: 50px; }
-    .hero::before, .hero::after { opacity: 0.5; }
-    .h-grid { gap: 20px; }
+    .about-grid { grid-template-columns: 1fr; }
+    .hero { text-align: center; }
+    .hero-cta-group { justify-content: center; }
+    .hero-overlay { background: radial-gradient(circle at center, rgba(2, 44, 16, 0.85) 0%, #022c10 100%); }
 }
 </style>
 
 <section class="hero">
-    <img src="/assets/images/Re-logo.jpeg" class="hero-bg" alt="ReSEED Landscape">
+    <img src="/assets/images/Re-logo.jpeg" class="hero-bg" alt="ReSEED">
     <div class="hero-overlay"></div>
-    
     <div class="container">
-        <div class="hero-content" data-aos="fade-up" data-aos-duration="1200">
+        <div class="hero-content" data-aos="fade-up">
             <span class="hero-badge">South Sudan Community Movement</span>
             <h1>Restoring Nature.<br><span>Reseeding Prosperity.</span></h1>
-            <p class="lead">A community-led movement transforming fragile landscapes into resilient ecosystems and sustainable livelihoods.</p>
+            <p class="lead" style="font-size: 1.25rem; opacity: 0.9; margin-bottom: 3rem; font-weight: 400;">A community-led movement transforming fragile landscapes into resilient ecosystems and sustainable livelihoods.</p>
             
-            <div style="display:flex;flex-wrap:wrap;gap:20px;">
-                <!-- Primary -->
-               <a href="#about"
-                class="btn btn-hero-primary"
-                style="padding:18px 48px;border-radius:100px;font-weight:700;">
-                    Our Mission
-                </a>
-
-                <a href="#get-involved"
-                class="btn btn-hero-outline"
-                style="padding:18px 48px;border-radius:100px;font-weight:700;">
-                    Join the Movement
-                </a>
-
+            <div class="hero-cta-group">
+                <a href="#about" class="btn btn-primary">Our Mission</a>
+                <a href="#get-involved" class="btn btn-outline">Join the Movement</a>
             </div>
-
         </div>
     </div>
 </section>
@@ -669,11 +129,10 @@ a { text-decoration: none; }
             <div class="about-img-wrapper" data-aos="fade-right">
                 <img src="/assets/images/Re-team.jpg" class="about-img" alt="ReSEED Team">
             </div>
-            
             <div data-aos="fade-left">
-                <span class="text-success fw-bold text-uppercase tracking-widest mb-2 d-block" style="letter-spacing: 2px; font-size: 0.85rem;">The ReSEED Story</span>
+                <span style="color: var(--primary); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; font-size: 0.8rem; display: block; margin-bottom: 1rem;">The ReSEED Story</span>
                 <h2 class="section-title">Rooted in Resilience.</h2>
-                <p class="text-muted mb-4 fs-5" style="font-weight: 300;">We bridge the gap between humanitarian aid and long-term climate adaptation through community-owned solutions.</p>
+                <p class="text-muted mb-4 fs-5">We bridge the gap between humanitarian aid and long-term climate adaptation through community-owned solutions.</p>
 
                 <div class="accordion-box">
                     <div class="acc-item">
@@ -690,208 +149,105 @@ a { text-decoration: none; }
     </div>
 </section>
 
-<section class="section bg-light">
+<section class="section" style="background: #0f172a; color: white;">
     <div class="container">
         <div class="text-center mb-5" data-aos="fade-up">
-            <h2 class="section-title">The Three Pillars</h2>
-            <p class="text-muted mx-auto" style="max-width: 600px;">Our holistic approach ensures that every seed planted grows into a sustainable future.</p>
+            <h2 class="section-title" style="background: linear-gradient(90deg, #fff, #94a3b8); -webkit-background-clip: text;">The Path to Prosperity</h2>
+            <p style="color: #94a3b8; max-width: 600px; margin: 0 auto;">Our strategy moves communities from immediate survival to generational wealth.</p>
         </div>
-        
-        <div class="h-grid">
-            <div class="card-elegant" data-aos="fade-up" data-aos-delay="100">
-                <div class="icon-box"><i class="fa-solid fa-seedling"></i></div>
-                <h3 class="fw-bold mb-3">Regenerate</h3>
-                <p class="text-muted">Revitalizing degraded soils using indigenous knowledge and modern agroecology to bring the land back to life.</p>
-            </div>
-            
-            <div class="card-elegant" data-aos="fade-up" data-aos-delay="200">
-                <div class="icon-box"><i class="fa-solid fa-people-group"></i></div>
-                <h3 class="fw-bold mb-3">Empower</h3>
-                <p class="text-muted">Investing in local leaders and youth to take ownership of their climate future through education and tools.</p>
-            </div>
-            
-            <div class="card-elegant" data-aos="fade-up" data-aos-delay="300">
-                <div class="icon-box"><i class="fa-solid fa-shield-heart"></i></div>
-                <h3 class="fw-bold mb-3">Resilience</h3>
-                <p class="text-muted">Building shock-resistant food systems that withstand floods and droughts, ensuring stability year-round.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="section section-dark">
-    <div class="container">
-        <div class="text-center mb-5" data-aos="fade-up">
-            <h2 class="section-title">The Path to Prosperity</h2>
-        </div>
-        <div class="journey-grid">
-            <div class="journey-card" data-aos="zoom-in" data-aos-delay="100">
+        <div class="journey-row">
+            <div class="journey-card" data-aos="fade-up" data-aos-delay="100">
                 <div class="journey-step">01</div>
-                <h5 class="fw-bold">Stabilize</h5>
-                <p>Relief and emergency stabilization for fragile zones.</p>
+                <h5>Stabilize</h5>
+                <p>Relief and emergency stabilization for zones affected by climate shocks.</p>
             </div>
-            <div class="journey-card" data-aos="zoom-in" data-aos-delay="200">
+            <div class="journey-card" data-aos="fade-up" data-aos-delay="200">
                 <div class="journey-step">02</div>
-                <h5 class="fw-bold">Restore</h5>
-                <p>Providing tools and regenerative farming techniques.</p>
+                <h5>Restore</h5>
+                <p>Providing regenerative tools and training to fix degraded soil health.</p>
             </div>
-            <div class="journey-card" data-aos="zoom-in" data-aos-delay="300">
+            <div class="journey-card" data-aos="fade-up" data-aos-delay="300">
                 <div class="journey-step">03</div>
-                <h5 class="fw-bold">Sustain</h5>
-                <p>Scaling climate-smart systems and market links.</p>
+                <h5>Sustain</h5>
+                <p>Scaling climate-smart production and building local market connections.</p>
             </div>
-            <div class="journey-card" data-aos="zoom-in" data-aos-delay="400">
+            <div class="journey-card" data-aos="fade-up" data-aos-delay="400">
                 <div class="journey-step">04</div>
-                <h5 class="fw-bold">Thrive</h5>
-                <p>Achieving full self-reliance and community wealth.</p>
+                <h5>Thrive</h5>
+                <p>Achieving total food sovereignty and community-owned financial wealth.</p>
             </div>
         </div>
     </div>
 </section>
 
 <?php
-$stmt = $pdo->prepare("
-    SELECT
-        title,
-        slug,
-        excerpt,
-        cover_media,
-        media_type,
-        published_at
-    FROM posts
-    WHERE published_at IS NOT NULL
-    ORDER BY published_at DESC
-    LIMIT 3
-");
+$stmt = $pdo->prepare("SELECT title, slug, excerpt, cover_media, media_type, published_at FROM posts WHERE published_at IS NOT NULL ORDER BY published_at DESC LIMIT 3");
 $stmt->execute();
 $latestPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-
-
-<section class="field-stories-section py-20">
+<section class="section bg-light">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-end mb-5">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem;">
             <div>
                 <h2 class="section-title">Field Stories</h2>
-                <p class="section-subtitle">Updates from the ground.</p>
+                <p class="text-muted">Direct updates from our restoration sites.</p>
             </div>
-
-            <a href="/blog.php" class="view-all-link">
-                See All News <i class="fa-solid fa-arrow-right ms-2"></i>
-            </a>
+            <a href="/blog.php" style="color: var(--primary); font-weight: 800; text-decoration: none;">View All <i class="fa-solid fa-arrow-right-long ms-2"></i></a>
         </div>
 
-        <div class="row g-4">
-            <?php if (!empty($latestPosts)): ?>
-                <?php foreach ($latestPosts as $post): ?>
-                    <?php
-                        $mediaUrl = $post['cover_media'] ?: 'https://via.placeholder.com/800x500?text=Field+Journal';
-                        $url = '/post.php?slug=' . urlencode($post['slug']);
-                    ?>
-
-                    <div class="col-md-4">
-                        <article class="news-card">
-                            <div class="news-media-container">
-                                <?php if (($post['media_type'] ?? 'image') === 'video'): ?>
-                                    <video muted autoplay loop playsinline class="media-element">
-                                        <source src="<?= htmlspecialchars($mediaUrl) ?>" type="video/mp4">
-                                    </video>
-                                <?php else: ?>
-                                    <img src="<?= htmlspecialchars($mediaUrl) ?>" 
-                                         alt="<?= htmlspecialchars($post['title']) ?>" 
-                                         class="media-element" loading="lazy">
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="news-body">
-                                <small class="news-date">
-                                    <?= date('M j, Y', strtotime($post['published_at'])) ?>
-                                </small>
-
-                                <h4 class="news-title">
-                                    <?= htmlspecialchars($post['title']) ?>
-                                </h4>
-
-                                <p class="news-excerpt">
-                                    <?= htmlspecialchars(mb_strimwidth($post['excerpt'], 0, 90, '…')) ?>
-                                </p>
-
-                                <a href="<?= $url ?>" class="read-more-btn">
-                                    Read Story <i class="fa-solid fa-chevron-right ms-1"></i>
-                                </a>
-                            </div>
-                        </article>
+        <div class="news-grid">
+            <?php if (!empty($latestPosts)): foreach ($latestPosts as $post): 
+                $mediaUrl = $post['cover_media'] ?: 'https://via.placeholder.com/800x500';
+                $url = '/post.php?slug=' . urlencode($post['slug']);
+            ?>
+                <a href="<?= $url ?>" class="news-card" data-aos="fade-up">
+                    <div class="news-thumb">
+                        <?php if (($post['media_type'] ?? 'image') === 'video'): ?>
+                            <video muted autoplay loop playsinline><source src="<?= htmlspecialchars($mediaUrl) ?>" type="video/mp4"></video>
+                        <?php else: ?>
+                            <img src="<?= htmlspecialchars($mediaUrl) ?>" alt="<?= htmlspecialchars($post['title']) ?>" loading="lazy">
+                        <?php endif; ?>
                     </div>
-
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="text-center py-5 w-100">
-                    <p class="text-muted mb-0">No field stories published yet.</p>
-                </div>
+                    <div class="news-content">
+                        <span class="news-meta"><?= date('M j, Y', strtotime($post['published_at'])) ?></span>
+                        <h4><?= htmlspecialchars($post['title']) ?></h4>
+                        <p><?= htmlspecialchars(mb_strimwidth($post['excerpt'], 0, 100, '...')) ?></p>
+                        <span class="news-link">Read Story <i class="fa-solid fa-arrow-right"></i></span>
+                    </div>
+                </a>
+            <?php endforeach; else: ?>
+                <p class="text-muted">No stories found.</p>
             <?php endif; ?>
         </div>
     </div>
 </section>
 
-
-<section id="get-involved" class="partnership-section">
-    <img src="/assets/images/Re-logo.jpeg" class="partnership-bg" alt="Landscape">
-    <div class="partnership-overlay"></div>
-    <div class="container">
-        <div class="partnership-content" data-aos="fade-right">
-            <span class="impact-label">Scale Our Impact</span>
-            <h2>Let's Restore the Land Together</h2>
-            <p class="lead">We are building a network of partners to transform South Sudan’s landscapes. Join us in creating a resilient future.</p>
-            
-            <div style="display:flex;flex-wrap:wrap;align-items:center;gap:24px;">
-
-                <button class="btn-luxury open-contact-modal">
-                    Partner With Us
-                </button>
-
-                <span style="
-                    font-size:0.75rem;
-                    font-weight:700;
-                    text-transform:uppercase;
-                    letter-spacing:0.25em;
-                    color:#9ca3af;
-                ">
-                    Donations opening soon
-                </span>
-
-            </div>
-
-        </div>
+<section id="get-involved" class="section" style="background: #022c10; color: white; overflow: hidden;">
+    <img src="/assets/images/Re-logo.jpeg" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.15;" alt="CTA">
+    <div class="container" style="text-align: center; max-width: 800px;">
+        <span style="color: var(--accent); font-weight: 800; text-transform: uppercase; letter-spacing: 3px; font-size: 0.8rem;">Scale Our Impact</span>
+        <h2 style="color: white; font-size: clamp(2.5rem, 5vw, 4rem); margin: 1.5rem 0;">Let's Restore the Land Together</h2>
+        <p class="lead mb-5">Join our network of partners transforming South Sudan’s landscapes for a resilient future.</p>
+        <button class="btn btn-primary open-contact-modal" style="padding: 20px 60px; font-size: 1.1rem;">Partner With Us</button>
     </div>
 </section>
 
 <script>
-    AOS.init({ once:true, duration:1000, easing:'ease-out-cubic' });
+    AOS.init({ once: true, duration: 1000, easing: 'ease-out-cubic' });
 
     // Accordion Logic
-    document.querySelectorAll('.acc-trigger').forEach(btn=>{
-        btn.addEventListener('click',()=>{
+    document.querySelectorAll('.acc-trigger').forEach(btn => {
+        btn.addEventListener('click', () => {
             const content = btn.nextElementSibling;
             const icon = btn.querySelector('i');
+            const isOpen = content.style.maxHeight;
 
-            // Close others
-            document.querySelectorAll('.acc-content').forEach(c=>{
-                if(c !== content){
-                    c.style.maxHeight = null;
-                    c.previousElementSibling.querySelector('i').className='fa-solid fa-plus small';
-                    c.previousElementSibling.style.color = 'var(--primary-dark)';
-                }
-            });
+            document.querySelectorAll('.acc-content').forEach(c => c.style.maxHeight = null);
+            document.querySelectorAll('.acc-trigger i').forEach(i => i.className = 'fa-solid fa-plus small');
 
-            // Toggle current
-            if(content.style.maxHeight){
-                content.style.maxHeight = null;
-                icon.className = 'fa-solid fa-plus small';
-                btn.style.color = 'var(--primary-dark)';
-            } else {
-                content.style.maxHeight = content.scrollHeight + 'px';
+            if (!isOpen) {
+                content.style.maxHeight = content.scrollHeight + "px";
                 icon.className = 'fa-solid fa-minus small';
-                btn.style.color = 'var(--primary)';
             }
         });
     });
