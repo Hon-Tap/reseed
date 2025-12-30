@@ -35,7 +35,7 @@ $sql = "
         title,
         slug,
         author,
-        cover_image,
+        cover_media,
         media_type,
         published_at,
         created_at,

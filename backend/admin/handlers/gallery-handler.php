@@ -1,22 +1,14 @@
 <?php
-
 declare(strict_types=1);
 
 /*
 |--------------------------------------------------------------------------
 | ADMIN · GALLERY HANDLER (DB + CLOUDINARY ALIGNED)
-| Path: /backend/admin/handlers/gallery-handler.php
 |--------------------------------------------------------------------------
 */
 
-/* ----------------------------------------------------------------------
-| Bootstrap
-|---------------------------------------------------------------------- */
-$baseDir = dirname(__DIR__, 3);
-if (!file_exists($baseDir . '/vendor/autoload.php')) {
-    $baseDir = dirname(__DIR__, 2);
-}
-
+// Direct path resolution
+$baseDir = dirname(__DIR__, 2); 
 require_once $baseDir . '/vendor/autoload.php';
 require_once $baseDir . '/backend/includes/config.php';
 require_once $baseDir . '/backend/admin/includes/csrf.php';
@@ -57,11 +49,15 @@ function uploadImage(string $tmp, string $category): ?string
 }
 
 /* ----------------------------------------------------------------------
-| Guard
+| Guards
 |---------------------------------------------------------------------- */
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../gallery.php');
     exit;
+}
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
 csrf_verify($_POST['csrf_token'] ?? '');
@@ -70,7 +66,6 @@ csrf_verify($_POST['csrf_token'] ?? '');
 | Actions
 |---------------------------------------------------------------------- */
 try {
-
     /* ================= BULK UPLOAD ================= */
     if (isset($_POST['bulk_add'])) {
 
@@ -100,6 +95,7 @@ try {
                 ? $baseCaption
                 : pathinfo($_FILES['images']['name'][$i], PATHINFO_FILENAME);
 
+            // Ensure your gallery table uses 'filename' for the URL
             $stmt = $pdo->prepare(
                 "INSERT INTO gallery (filename, caption, category, created_at)
                  VALUES (:filename, :caption, :category, NOW())"
@@ -153,18 +149,14 @@ try {
     }
 
 } catch (Throwable $e) {
-
     if ($pdo->inTransaction()) {
         $pdo->rollBack();
     }
 
     error_log('[Gallery Handler] ' . $e->getMessage());
-    header('Location: ../gallery.php?error=system');
+    header('Location: ../gallery.php?error=system&msg=' . urlencode($e->getMessage()));
     exit;
 }
 
-/* ----------------------------------------------------------------------
-| Fallback
-|---------------------------------------------------------------------- */
 header('Location: ../gallery.php');
 exit;
